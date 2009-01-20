@@ -1,0 +1,43 @@
+= ruby-mqtt
+
+Pure Ruby gem that implements the MQTT (Message Queue Telemetry Transport) protocol, a lightweight protocol for publish/subscribe messaging.
+
+RubyForge Project Page  http://rubyforge.org/projects/mqtt/
+
+== Installing
+
+You may get the latest stable version from Rubyforge. Source gems are also available.
+
+  $ gem install mqtt
+
+=== Getting Started
+
+ require 'rubygems'
+ require 'mqtt'
+
+ mqtt = MQTT::Client.new('hadrian.aelius.com')
+ mqtt.connect('clientid')
+ mqtt.publish('topic','message')
+ mqtt.disconnect
+
+== TODO
+
+* Implement Keep alive pings
+* Implement Will and Testament
+* Add unit tests
+* More examples
+* Implement QOS Level 1
+* Implement QOS Level 2
+* Refactor callbacks to be called from seperate thread
+* Add support for binding to local address
+
+== Resources
+
+http://mqtt.org
+
+== Contact
+
+Author::     Nicholas J Humfrey
+Email::      njh@aelius.com 
+Home Page::  http://www.aelius.com/njh/
+License::    Distributes under the same terms as Ruby
