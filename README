@@ -16,9 +16,9 @@ You may get the latest stable version from Rubyforge. Source gems are also avail
  require 'mqtt'
 
  mqtt = MQTT::Client.new('mqtt.example.com')
- mqtt.connect('clientid')
- mqtt.publish('topic','message')
- mqtt.disconnect
+ mqtt.connect('clientid') do |c|
+   c.publish('topic','message')
+ end
 
 == TODO
 

@@ -4,14 +4,9 @@ $:.unshift File.dirname(__FILE__)+'/../lib'
 
 require 'mqtt'
 
+client = MQTT::Client.new('mqtt.example.com')
+client.connect('simple_publish_example') do |c|
 
-client = MQTT::Client.new('hadrian.aelius.com')
-client.connect('myclient')
+  c.publish('test', "The time is: #{Time.now}")
 
-sleep 2
-
-client.publish('test',Time.now.to_s)
-
-sleep 2
-
-client.disconnect
+end

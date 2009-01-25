@@ -24,12 +24,13 @@ module MQTT
       @message_id = 0
       @keep_alive = 10
       @clean_start = true
-      @last_pingreq = 0
-      @last_pingresp = 0
+      @last_pingreq = Time.now
+      @last_pingresp = Time.now
       @socket = nil
     end
     
     # Connect to the MQTT broker
+    # If a block is given, then yield to that block and then disconnect again.
     def connect(clientid)
       if not connected?
         @socket = TCPSocket.new(@remote_host,@remote_port)
@@ -53,6 +54,12 @@ module MQTT
         
         # Send packet
         @socket.write(packet)
+      end
+      
+      # If a block is given, then yield and disconnect
+      if block_given?
+        yield(self)
+        disconnect
       end
     end
     
@@ -151,7 +158,7 @@ module MQTT
         end
         
         # Time to send a keep-alive ping request?
-        if Time.now > @last_pingreq+@keep_alive
+        if Time.now > @last_pingreq + @keep_alive
           ping
         end
         
