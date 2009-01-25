@@ -148,7 +148,7 @@ module MQTT
             # Parse the variable header
             topic = packet.shift_string
             msg_id = packet.shift_short unless (packet.qos == 0)
-            payload = packet.payload
+            payload = packet.body
             yield(topic,payload) if block_given?
             return topic,payload
           else
