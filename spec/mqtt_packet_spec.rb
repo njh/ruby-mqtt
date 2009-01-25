@@ -176,7 +176,7 @@ describe MQTT::Packet do
   
   it "should have a custom inspector that does not output the packet body" do
     packet = MQTT::Packet.new(:type => :pingreq)
-    packet.inspect.should match(/^#<MQTT::Packet:0x(\w+) type=pingreq, dup=false, retain=false, qos=0, body.size=0>$/)
+    packet.inspect.should match(/^#<MQTT::Packet:0x([0-9a-f]+) type=pingreq, dup=false, retain=false, qos=0, body.size=0>$/)
   end
   
   describe "when reading and deserialising a packet from a socket" do
