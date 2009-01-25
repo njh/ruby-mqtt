@@ -5,13 +5,30 @@ require 'mqtt/client'
 # Pure-ruby implementation of the MQTT protocol
 module MQTT
 
-  QOS_TYPES = [
-    :qos0,    # At most once - Fire and Forget
-    :qos1,    # At least once - Acknowledged delivery
-    :qos2     # Exactly once - Assured delivery
+  PACKET_TYPES = [
+    nil,
+    :connect,      # Client request to connect to Broker
+    :connack,      # Connect Acknowledgment
+    :publish,      # Publish message
+    :puback,       # Publish Acknowledgment
+    :pubrec,       # Publish Received (assured delivery part 1)
+    :pubrel,       # Publish Release (assured delivery part 2)
+    :pubcomp,      # Publish Complete (assured delivery part 3)
+    :subscribe,    # Client Subscribe request
+    :suback,       # Subscribe Acknowledgment
+    :unsubscribe,  # Client Unsubscribe request
+    :unsuback,     # Unsubscribe Acknowledgment
+    :pingreq,      # PING Request
+    :pingresp,     # PING Response
+    :disconnect,   # Client is Disconnecting
+    nil
   ]
-
+  
   class Exception < Exception
+  
+  end
+
+  class ProtocolException < MQTT::Exception
   
   end
   
