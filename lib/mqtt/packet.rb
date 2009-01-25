@@ -5,11 +5,11 @@ module MQTT
   # Class representing a MQTT Packet
   # Performs binary encoding and decoding of headers
   class Packet #:nodoc: all
-    attr_accessor :type       # The packet type
-    attr_accessor :dup        # Duplicate delivery flag
-    attr_accessor :qos        # Quality of Service level
-    attr_accessor :retain     # Retain flag
-    attr_accessor :payload    # Packet's Payload (everything after fixed header)
+    attr_reader :type        # The packet type
+    attr_reader :dup         # Duplicate delivery flag
+    attr_reader :retain      # Retain flag
+    attr_accessor :qos       # Quality of Service level
+    attr_accessor :payload   # Packet's Payload (everything after fixed header)
   
     # Read in a packet from a socket
     def self.read(sock)
@@ -49,11 +49,19 @@ module MQTT
     end
     
     def dup=(arg)
-      @dup = (arg == 1 ? true : false)
+      if arg.kind_of?(Integer)
+        @dup = (arg != 0 ? true : false)
+      else
+        @dup = arg
+      end
     end
     
     def retain=(arg)
-      @retain = (arg == 1 ? true : false)
+      if arg.kind_of?(Integer)
+        @retain = (arg != 0 ? true : false)
+      else
+        @retain = arg
+      end
     end
 
     # Return the identifer for this packet type
