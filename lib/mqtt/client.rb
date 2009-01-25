@@ -116,26 +116,49 @@ module MQTT
     # * String: subscribe to one topic with QOS 0
     # * Array: subscribe to multiple topics with QOS 0
     # * Hash: subscribe to multiple topics where the key is the topic and the value is the QOS level
-    def subscribe(topics)
-      packet = MQTT::Packet.new(:type => :subscribe, :qos => 1)
-      if topics.is_a?(String)
-        topics = { topics => 0 }
-      elsif topics.is_a?(Array)
-        # Default to QOS 0
-        hash = {}
-        topics.each { |i| hash[i] = 0 }
-        topics = hash
+    #
+    # For example:
+    #   client.subscribe( 'a/b' )
+    #   client.subscribe( 'a/b', 'c/d' )
+    #   client.subscribe( 'a/b' => 0 )
+    #
+    def subscribe(*topics)
+      hash = {}
+      topics.each do |item|
+        if item.is_a?(Hash)
+          hash.merge!(item)
+        elsif item.is_a?(Array)
+          # Default to QOS 0
+          item.each { |i| hash[i] = 0 }
+        else
+          hash[item.to_s] = 0
+        end
       end
       
-      # Add the topics to it
+      p hash
+      
+      # Create the packet
+      packet = MQTT::Packet.new(:type => :subscribe, :qos => 1)
       packet.add_short(@message_id.next)
-      topics.each_pair do |topic,qos|
+      hash.each_pair do |topic,qos|
         packet.add_string(topic)
         packet.add_bytes(qos)
       end
       @socket.write(packet)
     end
     
+    # Return the next message recieved from the MQTT broker.
+    # This method blocks until a message is available.
+    # NOTE: It is currently necessary to keep calling this method in 
+    # order to keep the connection to the broker alive.
+    #
+    # If you supply the optional block then the topic and message
+    # will be passed to that block:
+    #   client.get { |topic,message|  ... }
+    #
+    # The method also returns the topic and message:
+    #   topic,message = client.get
+    #
     def get
       loop do
         # Poll socket - is there data waiting?
