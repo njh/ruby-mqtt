@@ -150,8 +150,9 @@ module MQTT
     end
     
     def inspect
-      "#<MQTT::Packet:#{object_id} type=#{type.to_s}, dup=#{@dup}, "+
-      "retain=#{@retain}, qos=#{@qos}, body.size=#{@body.size}>"
+      format("#<MQTT::Packet:0x%1x ", object_id)+
+      "type=#{@type}, dup=#{@dup}, retain=#{@retain}, "+
+      "qos=#{@qos}, body.size=#{@body.size}>"
     end
     
   end
