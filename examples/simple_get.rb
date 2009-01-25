@@ -11,9 +11,8 @@ client.connect('simple_get')
 client.subscribe('$SYS/#')
 
 loop do
-  client.get do |topic,message|
-    puts "#{topic}: #{message}"
-  end
+  topic,message = client.get
+  puts "#{topic}: #{message}"
 end
 
 client.disconnect
