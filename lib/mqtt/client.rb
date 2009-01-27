@@ -2,6 +2,7 @@
 
 require 'mqtt'
 require 'mqtt/packet'
+require 'thread'
 require 'socket'
 
 
@@ -27,6 +28,7 @@ module MQTT
       @last_pingreq = Time.now
       @last_pingresp = Time.now
       @socket = nil
+      @write_semaphore = Mutex.new
     end
     
     # Connect to the MQTT broker
@@ -53,7 +55,7 @@ module MQTT
         packet.add_string(clientid)
         
         # Send packet
-        @socket.write(packet)
+        send(packet)
       end
       
       # If a block is given, then yield and disconnect
@@ -69,7 +71,7 @@ module MQTT
       if connected?
         if send_msg
           packet = MQTT::Packet.new(:type => :disconnect)
-          @socket.write(packet)
+          send(packet)
         end
         @socket.close
         @socket = nil
@@ -84,7 +86,7 @@ module MQTT
     # Send a MQTT ping message to indicate that the MQTT client is alive.
     def ping
       packet = MQTT::Packet.new(:type => :pingreq)
-      @socket.write(packet)
+      send(packet)
       @last_pingreq = Time.now
     end
 
@@ -108,7 +110,7 @@ module MQTT
       packet.add_data(payload)
       
       # Send the packet
-      @socket.write(packet)
+      send(packet)
     end
     
     # Send a subscribe message for one or more topics on the MQTT broker.
@@ -135,8 +137,6 @@ module MQTT
         end
       end
       
-      p hash
-      
       # Create the packet
       packet = MQTT::Packet.new(:type => :subscribe, :qos => 1)
       packet.add_short(@message_id.next)
@@ -144,7 +144,7 @@ module MQTT
         packet.add_string(topic)
         packet.add_bytes(qos)
       end
-      @socket.write(packet)
+      send(packet)
     end
     
     # Return the next message recieved from the MQTT broker.
@@ -194,9 +194,19 @@ module MQTT
     def unsubscribe(*topics)
       packet = MQTT::Packet.new(:type => :unsubscribe, :qos => 1)
       topics.each { |topic| packet.add_string(topic) }
-      @socket.write(packet)
+      send(packet)
     end
   
+  private
+  
+    # Send a packet to broker
+    def send(data)
+      # Only allow one thread to write to socket at a time
+      @write_semaphore.synchronize do
+        @socket.write(data)
+      end
+    end
+    
   end
 
 end
