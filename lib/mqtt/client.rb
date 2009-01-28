@@ -122,27 +122,30 @@ module MQTT
     # For example:
     #   client.subscribe( 'a/b' )
     #   client.subscribe( 'a/b', 'c/d' )
-    #   client.subscribe( 'a/b' => 0 )
+    #   client.subscribe( ['a/b',0], ['c/d',1] )
+    #   client.subscribe( 'a/b' => 0, 'c/d' => 1 )
     #
     def subscribe(*topics)
-      hash = {}
+      array = []
       topics.each do |item|
         if item.is_a?(Hash)
-          hash.merge!(item)
+          # Convert hash into an ordered array of arrays
+          array += item.sort
         elsif item.is_a?(Array)
-          # Default to QOS 0
-          item.each { |i| hash[i] = 0 }
+          # Already in [topic,qos] format 
+          array.push item
         else
-          hash[item.to_s] = 0
+          # Default to QOS 0
+          array.push [item.to_s,0]
         end
       end
       
       # Create the packet
       packet = MQTT::Packet.new(:type => :subscribe, :qos => 1)
       packet.add_short(@message_id.next)
-      hash.each_pair do |topic,qos|
-        packet.add_string(topic)
-        packet.add_bytes(qos)
+      array.each do |item|
+        packet.add_string(item[0])
+        packet.add_bytes(item[1])
       end
       send(packet)
     end

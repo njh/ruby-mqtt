@@ -4,7 +4,7 @@ require 'spec_helper'
 require 'mqtt/client'
 
 describe MQTT::Client do
-  
+
   before(:each) do
     @client = MQTT::Client.new
     @socket = StringIO.new
@@ -70,7 +70,25 @@ describe MQTT::Client do
   end
 
   describe "when calling the 'subscribe' method" do
+    it "should write a valid SUBSCRIBE packet with QoS 0 to the socket when given a single topic String" do
+      @client.subscribe('a/b')
+      @socket.string.should == "\x82\x08\x00\x01\x00\x03a/b\x00"
+    end
 
+    it "should write a valid SUBSCRIBE packet with QoS 0 to the socket when given a two topic Strings in an Array" do
+      @client.subscribe('a/b','c/d')
+      @socket.string.should == "\x82\x0e\x00\x01\x00\x03a/b\x00\x00\x03c/d\x00"
+    end
+
+    it "should write a valid SUBSCRIBE packet to the socket when given a two topic Strings with QoS in an Array" do
+      @client.subscribe(['a/b',0],['c/d',1])
+      @socket.string.should == "\x82\x0e\x00\x01\x00\x03a/b\x00\x00\x03c/d\x01"
+    end
+
+    it "should write a valid SUBSCRIBE packet to the socket when given a two topic Strings with QoS in a Hash" do
+      @client.subscribe('a/b' => 0,'c/d' => 1)
+      @socket.string.should == "\x82\x0e\x00\x01\x00\x03a/b\x00\x00\x03c/d\x01"
+    end
   end
 
   describe "when calling the 'get' method" do
@@ -78,7 +96,15 @@ describe MQTT::Client do
   end
 
   describe "when calling the 'unsubscribe' method" do
-
+    it "should write a valid UNSUBSCRIBE packet to the socket when given a single topic String" do
+      @client.unsubscribe('a/b')
+      @socket.string.should == "\xa2\x05\x00\x03a/b"
+    end
+    
+    it "should write a valid UNSUBSCRIBE packet to the socket when given a two topic Strings" do
+      @client.unsubscribe('a/b','c/d')
+      @socket.string.should == "\xa2\x0a\x00\x03a/b\x00\x03c/d"
+    end
   end
   
   

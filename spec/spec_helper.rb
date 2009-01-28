@@ -6,6 +6,9 @@ rescue LoadError
   require 'spec'
 end
 
+require 'rubygems'
+require 'mocha'
+
 $:.unshift(File.dirname(__FILE__) + '/../lib')
 
 Spec::Runner.configure do |config|
