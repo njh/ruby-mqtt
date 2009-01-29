@@ -9,6 +9,7 @@ describe MQTT::Client do
     @client = MQTT::Client.new
     @socket = StringIO.new
     @client.instance_variable_set(:@socket, @socket)
+    @client.instance_variable_set(:@read_thread, stub_everything('Read Thread'))
   end
   
   describe "when calling the 'connect' method" do
@@ -92,7 +93,28 @@ describe MQTT::Client do
   end
 
   describe "when calling the 'get' method" do
+    def inject_packet(topic, payload, opts={})
+      opts[:type] = :publish
+      packet = MQTT::Packet.new(opts)
+      packet.add_string(topic)
+      packet.add_short(2) unless packet.qos == 0
+      packet.add_data(payload)
+      @client.instance_variable_get('@read_queue').push(packet)
+    end
 
+    it "should successfull receive a valid PUBLISH packet with a QoS 0" do
+      inject_packet('topic0','payload0', :qos => 0)
+      topic,payload = @client.get
+      topic.should == 'topic0'
+      payload.should == 'payload0'
+    end
+
+    it "should successfull receive a valid PUBLISH packet with a QoS 1" do
+      inject_packet('topic1','payload1', :qos => 1)
+      topic,payload = @client.get
+      topic.should == 'topic1'
+      payload.should == 'payload1'
+    end
   end
 
   describe "when calling the 'unsubscribe' method" do
