@@ -28,6 +28,8 @@ module MQTT
       @last_pingreq = Time.now
       @last_pingresp = Time.now
       @socket = nil
+      @read_queue = Queue.new
+      @read_thread = nil
       @write_semaphore = Mutex.new
     end
     
@@ -35,10 +37,13 @@ module MQTT
     # If a block is given, then yield to that block and then disconnect again.
     def connect(clientid)
       if not connected?
+      
+        # Create socket and start reader thread
         @socket = TCPSocket.new(@remote_host,@remote_port)
-        packet = MQTT::Packet.new(:type => :connect)
+        start_reader_thread
 
         # Protocol name and version
+        packet = MQTT::Packet.new(:type => :connect)
         packet.add_string('MQIsdp')
         packet.add_bytes(0x03)
         
@@ -73,9 +78,12 @@ module MQTT
           packet = MQTT::Packet.new(:type => :disconnect)
           send(packet)
         end
+        @read_thread.kill
+        @read_thread = nil
         @socket.close
         @socket = nil
       end
+      
     end
     
     # Checks whether the client is connected to the broker. 
@@ -152,45 +160,18 @@ module MQTT
     
     # Return the next message recieved from the MQTT broker.
     # This method blocks until a message is available.
-    # NOTE: It is currently necessary to keep calling this method in 
-    # order to keep the connection to the broker alive.
     #
-    # If you supply the optional block then the topic and message
-    # will be passed to that block:
-    #   client.get { |topic,message|  ... }
-    #
-    # The method also returns the topic and message:
+    # The method returns the topic and message as an array:
     #   topic,message = client.get
     #
     def get
-      loop do
-        # Poll socket - is there data waiting?
-        result = IO.select([@socket], nil, nil, SELECT_TIMEOUT)
-        
-        # Is there a packet waiting?
-        unless result.nil?
-          packet = MQTT::Packet.read(@socket)
-          if packet.type == :publish
-            # Parse the variable header
-            topic = packet.shift_string
-            msg_id = packet.shift_short unless (packet.qos == 0)
-            payload = packet.body
-            yield(topic,payload) if block_given?
-            return topic,payload
-          else
-            # Ignore all other packets
-            # FIXME: implement responses for QOS 1 and 2
-          end
-        end
-        
-        # Time to send a keep-alive ping request?
-        if Time.now > @last_pingreq + @keep_alive
-          ping
-        end
-        
-        # FIXME: check we received a ping response recently?
-        
-      end
+      # Wait for a packet to be available
+      packet = @read_queue.pop
+      
+      # Parse the variable header
+      topic = packet.shift_string
+      msg_id = packet.shift_short unless (packet.qos == 0)
+      return topic,packet.body
     end
     
     # Send a unsubscribe message for one or more topics on the MQTT broker
@@ -201,6 +182,46 @@ module MQTT
     end
   
   private
+  
+    def start_reader_thread
+      @read_thread = Thread.new do
+        begin
+          loop do
+            # Poll socket - is there data waiting?
+            result = IO.select([@socket], nil, nil, SELECT_TIMEOUT)
+            
+            # Is there a packet waiting?
+            unless result.nil?
+              packet = MQTT::Packet.read(@socket)
+              if packet.type == :publish
+                
+                # Add to queue
+                @read_queue.push(packet)
+              else
+                # Ignore all other packets
+                # FIXME: implement responses for QOS 1 and 2
+              end
+            end
+            
+            # Time to send a keep-alive ping request?
+            if Time.now > @last_pingreq + @keep_alive
+              ping
+            end
+            
+            # FIXME: check we received a ping response recently?
+          end
+        
+        # Pass exceptions up to parent thread
+        rescue Exception => exp
+          @socket.close
+          @socket = nil
+          Thread.current[:parent].raise(exp)
+        end
+      end
+      
+      # Store tell reader thread about its parent
+      @read_thread[:parent] = Thread.current
+    end
   
     # Send a packet to broker
     def send(data)
