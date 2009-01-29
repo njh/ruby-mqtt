@@ -83,7 +83,6 @@ module MQTT
         @socket.close
         @socket = nil
       end
-      
     end
     
     # Checks whether the client is connected to the broker. 
@@ -213,8 +212,10 @@ module MQTT
         
         # Pass exceptions up to parent thread
         rescue Exception => exp
-          @socket.close
-          @socket = nil
+          unless @socket.nil?
+            @socket.close 
+            @socket = nil
+          end
           Thread.current[:parent].raise(exp)
         end
       end
