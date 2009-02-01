@@ -37,10 +37,14 @@ module MQTT
     # If a block is given, then yield to that block and then disconnect again.
     def connect(clientid)
       if not connected?
-      
-        # Create socket and start reader thread
+        # Create network socket
         @socket = TCPSocket.new(@remote_host,@remote_port)
-        start_reader_thread
+        
+        # Start packet reading thread
+        @read_thread = Thread.new(Thread.current) do |parent|
+          Thread.current[:parent] = parent
+          loop { receive_packet } 
+        end
 
         # Protocol name and version
         packet = MQTT::Packet.new(:type => :connect)
@@ -60,7 +64,7 @@ module MQTT
         packet.add_string(clientid)
         
         # Send packet
-        send(packet)
+        send_packet(packet)
       end
       
       # If a block is given, then yield and disconnect
@@ -76,11 +80,11 @@ module MQTT
       if connected?
         if send_msg
           packet = MQTT::Packet.new(:type => :disconnect)
-          send(packet)
+          send_packet(packet)
         end
-        @read_thread.kill
+        @read_thread.kill unless @read_thread.nil?
         @read_thread = nil
-        @socket.close
+        @socket.close unless @socket.nil?
         @socket = nil
       end
     end
@@ -93,7 +97,7 @@ module MQTT
     # Send a MQTT ping message to indicate that the MQTT client is alive.
     def ping
       packet = MQTT::Packet.new(:type => :pingreq)
-      send(packet)
+      send_packet(packet)
       @last_pingreq = Time.now
     end
 
@@ -117,7 +121,7 @@ module MQTT
       packet.add_data(payload)
       
       # Send the packet
-      send(packet)
+      send_packet(packet)
     end
     
     # Send a subscribe message for one or more topics on the MQTT broker.
@@ -154,7 +158,7 @@ module MQTT
         packet.add_string(item[0])
         packet.add_bytes(item[1])
       end
-      send(packet)
+      send_packet(packet)
     end
     
     # Return the next message recieved from the MQTT broker.
@@ -177,55 +181,52 @@ module MQTT
     def unsubscribe(*topics)
       packet = MQTT::Packet.new(:type => :unsubscribe, :qos => 1)
       topics.each { |topic| packet.add_string(topic) }
-      send(packet)
+      send_packet(packet)
     end
   
   private
   
-    def start_reader_thread
-      @read_thread = Thread.new do
-        begin
-          loop do
-            # Poll socket - is there data waiting?
-            result = IO.select([@socket], nil, nil, SELECT_TIMEOUT)
-            
-            # Is there a packet waiting?
-            unless result.nil?
-              packet = MQTT::Packet.read(@socket)
-              if packet.type == :publish
-                
-                # Add to queue
-                @read_queue.push(packet)
-              else
-                # Ignore all other packets
-                # FIXME: implement responses for QOS 1 and 2
-              end
-            end
-            
-            # Time to send a keep-alive ping request?
-            if Time.now > @last_pingreq + @keep_alive
-              ping
-            end
-            
-            # FIXME: check we received a ping response recently?
+    # Try to read a packet from the broker
+    # Also sends keep-alive ping packets.
+    def receive_packet
+      begin
+        # Poll socket - is there data waiting?
+        result = IO.select([@socket], nil, nil, SELECT_TIMEOUT)
+        unless result.nil?
+          # Yes - read in the packet
+          packet = MQTT::Packet.read(@socket)
+          if packet.type == :publish
+            # Add to queue
+            @read_queue.push(packet)
+          else
+            # Ignore all other packets
+            nil
+            # FIXME: implement responses for QOS 1 and 2
           end
-        
-        # Pass exceptions up to parent thread
-        rescue Exception => exp
-          unless @socket.nil?
-            @socket.close 
-            @socket = nil
-          end
-          Thread.current[:parent].raise(exp)
         end
+        
+        # Time to send a keep-alive ping request?
+        if Time.now > @last_pingreq + @keep_alive
+          ping
+        end
+        
+        # FIXME: check we received a ping response recently?
+
+      # Pass exceptions up to parent thread
+      rescue Exception => exp
+        unless @socket.nil?
+          @socket.close 
+          @socket = nil
+        end
+        Thread.current[:parent].raise(exp)
       end
-      
-      # Store tell reader thread about its parent
-      @read_thread[:parent] = Thread.current
     end
   
     # Send a packet to broker
-    def send(data)
+    def send_packet(data)
+      # Throw exception if we aren't connected
+      raise MQTT::NotConnectedException if not connected?
+    
       # Only allow one thread to write to socket at a time
       @write_semaphore.synchronize do
         @socket.write(data)
