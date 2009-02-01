@@ -28,8 +28,11 @@ spec = Gem::Specification.new do |s|
   s.has_rdoc          = true
   s.extra_rdoc_files  = ["README", "NEWS", "COPYING"]
   
-  # Dependencies
-  s.add_dependency "rake"
+  # Build Dependencies
+  #s.add_dependency 'rake'     '~> 0.8'
+  #s.add_dependency 'rspec',   '~> 1.1'
+  #s.add_dependency 'rcov',    '~> 0.8'
+  #s.add_dependency 'mocha',   '~> 0.9'
 end
 
 desc "Default: test the gem."
