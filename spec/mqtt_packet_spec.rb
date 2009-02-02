@@ -172,6 +172,13 @@ describe MQTT::Packet do
         "\xed\x02" + # fixed header 0xed = 0b11101101
         "\x00\x0A"   # message id
     end
+  
+    it "should output the correct bytes for a message with a body of 314 bytes" do
+      packet = MQTT::Packet.new(:type => :publish)
+      packet.add_string('topic')
+      packet.add_data('x'*314)
+      packet.to_s.should == "\x30\xC1\x02\x00\x05topic" + ('x' * 314)
+    end
   end
   
   it "should have a custom inspector that does not output the packet body" do
@@ -244,6 +251,45 @@ describe MQTT::Packet do
       
       it "should correctly decode the body as being an integer" do
         @packet.shift_short == 10
+      end
+    end
+
+    describe "a packet with a body of 314 bytes" do
+      before(:each) do
+        # 0x30 = publish
+        # 0xC1 = (65 * 1)
+        # 0x02 = (2 * 128)
+        @io = StringIO.new("\x30\xC1\x02\x00\x05topic" + ('x' * 314) + 'more data')
+        @packet = MQTT::Packet.read( @io )
+      end
+
+      it "should parse the packet type correctly" do
+        @packet.type.should == :publish
+      end
+      
+      it "should get the body length correctly" do
+        @packet.shift_string  # topic name
+        @packet.body.size.should == 314
+      end
+    end
+
+    describe "a packet with a body of 16kbytes" do
+      before(:each) do
+        # 0x30 = publish
+        # 0x87 = (7 * 1)
+        # 0x80 = (0 * 128)
+        # 0x01 = (1 * 16384)
+        @io = StringIO.new("\x30\x87\x80\x01\x00\x05topic" + ('x'*16384) + 'more data')
+        @packet = MQTT::Packet.read( @io )
+      end
+     
+      it "should parse the packet type correctly" do
+        @packet.type.should == :publish
+      end
+      
+      it "should get the body length correctly" do
+        @packet.shift_string  # topic name
+        @packet.body.size.should == 16384
       end
     end
 

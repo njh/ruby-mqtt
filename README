@@ -22,8 +22,8 @@ You may get the latest stable version from Rubyforge. Source gems are also avail
 
 == TODO
 
-* Support payloads longer than 128 bytes
 * Process acknowledgement packets
+* Automatic uninque client identifier if none given
 * Create classes for each type of packet?
 * More validations of data/parameters
 * Implement exception throwing
