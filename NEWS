@@ -1,6 +1,6 @@
 = Ruby MQTT NEWS
 
-== Ruby MQTT Version 0.0.2 (2009-02-02)
+== Ruby MQTT Version 0.0.2 (2009-02-03)
 
 Added support for packets longer than 127 bytes.
 
