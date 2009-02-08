@@ -14,6 +14,7 @@ describe MQTT::Client do
     before(:each) do
       TCPSocket.stubs(:new).returns(@socket)
       Thread.stubs(:new)
+      @client.stubs(:receive_connack)
     end
     
     it "should create a TCP Socket if not connected" do
@@ -37,6 +38,11 @@ describe MQTT::Client do
       @socket.string.should == "\020\026\x00\x06MQIsdp\x03\x00\x00\x0a\x00\x08myclient"
     end
     
+    it "should try and read an acknowledgement packet to the socket if not connected" do
+      @client.expects(:receive_connack).once
+      @client.connect('myclient')
+    end
+    
     it "should disconnect after connecting, if a block is given" do
       @client.expects(:disconnect).once
       @client.connect('myclient') { nil }
@@ -46,7 +52,49 @@ describe MQTT::Client do
       @client.expects(:disconnect).never
       @client.connect('myclient')
     end
+  end
+
+  describe "when calling the 'receive_connack' method" do
+    before(:each) do
+      @client.instance_variable_set(:@socket, @socket)
+      IO.stubs(:select).returns([[@socket], [], []])
+    end
     
+    it "should not throw an exception for a successful CONNACK packet" do
+      @socket.write("\x20\x02\x00\x00")
+      @socket.rewind
+      lambda { @client.send(:receive_connack) }.should_not raise_error
+    end
+    
+    it "should throw an exception if the packet type isn't CONNACK" do
+      @socket.write("\xD0\x00")
+      @socket.rewind
+      lambda { @client.send(:receive_connack) }.should raise_error(MQTT::ProtocolException)
+    end
+    
+    it "should throw an exception if the CONNACK packet return code is 'unacceptable protocol version'" do
+      @socket.write("\x20\x02\x00\x01")
+      @socket.rewind
+      lambda { @client.send(:receive_connack) }.should raise_error(MQTT::ProtocolException, /unacceptable protocol version/i)
+    end
+    
+    it "should throw an exception if the CONNACK packet return code is 'client identifier rejected'" do
+      @socket.write("\x20\x02\x00\x02")
+      @socket.rewind
+      lambda { @client.send(:receive_connack) }.should raise_error(MQTT::ProtocolException, /client identifier rejected/i)
+    end
+    
+    it "should throw an exception if the CONNACK packet return code is 'broker unavailable'" do
+      @socket.write("\x20\x02\x00\x03")
+      @socket.rewind
+      lambda { @client.send(:receive_connack) }.should raise_error(MQTT::ProtocolException, /broker unavailable/i)
+    end
+    
+    it "should throw an exception if the CONNACK packet return code is an unknown" do
+      @socket.write("\x20\x02\x00\xAA")
+      @socket.rewind
+      lambda { @client.send(:receive_connack) }.should raise_error(MQTT::ProtocolException, /connection refused/i)
+    end
   end
   
   describe "when calling the 'disconnect' method" do
