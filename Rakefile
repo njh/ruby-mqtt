@@ -8,7 +8,7 @@ require 'spec/rake/verify_rcov'
 
 
 NAME = "mqtt"
-VERS = "0.0.2"
+VERS = "0.0.3"
 CLEAN.include ['pkg', 'rdoc']
 
 spec = Gem::Specification.new do |s|
