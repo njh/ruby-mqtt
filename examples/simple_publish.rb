@@ -2,7 +2,7 @@
 
 $:.unshift File.dirname(__FILE__)+'/../lib'
 
-require 'mqtt'
+require 'mqtt/client'
 
 client = MQTT::Client.new('mqtt.example.com')
 client.connect do |c|

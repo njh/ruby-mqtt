@@ -1,7 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'mqtt/client'
-
 # Pure-ruby implementation of the MQTT protocol
 module MQTT
 
