@@ -44,6 +44,7 @@ You may get the latest stable version from Rubyforge. Source gems are also avail
 * Refactor to add callbacks that are called from seperate thread
 * Implement QOS Level 1 in client
 * Implement QOS Level 2 in client
+* Prevent proxy from connecting to itself
 * Add support for binding socket to specific local address
 
 == Resources
