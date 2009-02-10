@@ -149,12 +149,12 @@ describe MQTT::Client do
       @client.instance_variable_set(:@socket, @socket)
     end
 
-    it "should write a valid PUBLISH packet to the socket without the detain flag" do
+    it "should write a valid PUBLISH packet to the socket without the retain flag" do
       @client.publish('topic','payload', false, 0)
       @socket.string.should == "\x30\x0e\x00\x05topicpayload"
     end
     
-    it "should write a valid PUBLISH packet to the socket with the detain flag set" do
+    it "should write a valid PUBLISH packet to the socket with the retain flag set" do
       @client.publish('topic','payload', true, 0)
       @socket.string.should == "\x31\x0e\x00\x05topicpayload"
     end
