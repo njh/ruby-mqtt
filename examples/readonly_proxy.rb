@@ -11,5 +11,15 @@ proxy = MQTT::Proxy.new(
     :broker_port => 1883
 )
 
+proxy.client_filter = lambda { |packet|
+  puts "From client: #{packet.inspect}"
+  return packet
+}
+
+proxy.broker_filter = lambda { |packet|
+  puts "From broker: #{packet.inspect}"
+  return packet
+}
+
 # Start the proxy
 proxy.run
