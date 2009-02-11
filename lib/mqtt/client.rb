@@ -48,7 +48,7 @@ module MQTT
         @socket = TCPSocket.new(@remote_host,@remote_port)
 
         # Protocol name and version
-        packet = MQTT::Packet.new(:type => :connect)
+        packet = MQTT::Packet::Connect.new
         packet.add_string('MQIsdp')
         packet.add_bytes(0x03)
         
@@ -89,7 +89,7 @@ module MQTT
     def disconnect(send_msg=true)
       if connected?
         if send_msg
-          packet = MQTT::Packet.new(:type => :disconnect)
+          packet = MQTT::Packet::Disconnect.new
           send_packet(packet)
         end
         @read_thread.kill if @read_thread and @read_thread.alive?
@@ -106,15 +106,14 @@ module MQTT
   
     # Send a MQTT ping message to indicate that the MQTT client is alive.
     def ping
-      packet = MQTT::Packet.new(:type => :pingreq)
+      packet = MQTT::Packet::Pingreq.new
       send_packet(packet)
       @last_pingreq = Time.now
     end
 
     # Publish a message on a particular topic to the MQTT broker.
     def publish(topic, payload, retain=false, qos=0)
-      packet = MQTT::Packet.new(
-        :type => :publish,
+      packet = MQTT::Packet::Publish.new(
         :qos => qos,
         :retain => retain
       )
@@ -162,7 +161,7 @@ module MQTT
       end
       
       # Create the packet
-      packet = MQTT::Packet.new(:type => :subscribe, :qos => 1)
+      packet = MQTT::Packet::Subscribe.new(:qos => 1)
       packet.add_short(@message_id.next)
       array.each do |item|
         packet.add_string(item[0])
@@ -189,7 +188,7 @@ module MQTT
     
     # Send a unsubscribe message for one or more topics on the MQTT broker
     def unsubscribe(*topics)
-      packet = MQTT::Packet.new(:type => :unsubscribe, :qos => 1)
+      packet = MQTT::Packet::Unsubscribe.new(:qos => 1)
       topics.each { |topic| packet.add_string(topic) }
       send_packet(packet)
     end
@@ -205,7 +204,7 @@ module MQTT
         unless result.nil?
           # Yes - read in the packet
           packet = MQTT::Packet.read(@socket)
-          if packet.type == :publish
+          if packet.class == MQTT::Packet::Publish
             # Add to queue
             @read_queue.push(packet)
           else
@@ -236,8 +235,8 @@ module MQTT
     def receive_connack
       Timeout.timeout(@ack_timeout) do
         packet = MQTT::Packet.read(@socket)
-        if packet.type != :connack
-          raise MQTT::ProtocolException.new("Response wan't a connection acknowledgement: #{packet.type}") 
+        if packet.class != MQTT::Packet::Connack
+          raise MQTT::ProtocolException.new("Response wan't a connection acknowledgement: #{packet.class}") 
         end
         
         # Read in the return code

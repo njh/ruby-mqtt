@@ -6,10 +6,10 @@ require 'mqtt/packet'
 describe MQTT::Packet do
 
   describe "when creating a new packet" do
-    it "should allow you to set the packet type as a hash parameter" do
-      packet = MQTT::Packet.new( :type => :connect )
-      packet.type.should == :connect
-    end
+    #it "should allow you to set the packet type as a hash parameter" do
+    #  packet = MQTT::Packet.new( :type => :connect )
+    #  packet.type.should == :connect
+    #end
   
     it "should allow you to set the packet dup flag as a hash parameter" do
       packet = MQTT::Packet.new( :dup => true )
@@ -35,7 +35,6 @@ describe MQTT::Packet do
   describe "when setting packet parameters" do
     before(:each) do
       @packet = MQTT::Packet.new(
-        :type => nil,
         :dup => false,
         :qos => 0,
         :retain => false,
@@ -43,18 +42,18 @@ describe MQTT::Packet do
       )
     end
     
-    it "should let you change the type of a packet" do
-      @packet.type = :pingreq
-      @packet.type.should == :pingreq
-    end
-    
-    it "should let you set the packet type based on its integer id" do
-      @packet.type = 10
-      @packet.type.should == :unsubscribe
-    end
+#     it "should let you change the type of a packet" do
+#       @packet.type = :pingreq
+#       @packet.type.should == :pingreq
+#     end
+#     
+#     it "should let you set the packet type based on its integer id" do
+#       @packet.type = 10
+#       @packet.type.should == :unsubscribe
+#     end
     
     it "should have a type_id method to get the integer ID of the packet type" do
-      @packet.type = :pingreq
+      @packet = MQTT::Packet::Pingreq.new
       @packet.type_id.should == 12
     end
     
@@ -142,18 +141,18 @@ describe MQTT::Packet do
   
   describe "when serialising a packet" do
     it "should output the correct bytes for a basic ping packet with no flags and no body" do
-      packet = MQTT::Packet.new(:type => :pingreq)
+      packet = MQTT::Packet::Pingreq.new
       packet.to_s.should == "\xC0\x00"
     end
   
     it "should output the correct bytes for a message with a body and no flags" do
-      packet = MQTT::Packet.new(:type => :connack)
+      packet = MQTT::Packet::Connack.new
       packet.add_bytes(0x00, 0x00)
       packet.to_s.should == "\x20\x02\x00\x00"
     end
   
     it "should output the correct bytes for a message with a qos set to 1" do
-      packet = MQTT::Packet.new(:type => :publish, :qos => 1)
+      packet = MQTT::Packet::Publish.new(:qos => 1)
       packet.add_string('a/b')
       packet.add_short(10)
       packet.add_data('message')
@@ -166,7 +165,7 @@ describe MQTT::Packet do
   
     it "should output the correct bytes for a message with a qos set to 2 and retain and dup flags set" do
       # This isn't really a valid MQTT packet, but it tests packet serialisation
-      packet = MQTT::Packet.new(:type => :disconnect, :qos => 2, :retain => true, :dup => true)
+      packet = MQTT::Packet::Disconnect.new(:qos => 2, :retain => true, :dup => true)
       packet.add_short(10)
       packet.to_s.should ==
         "\xed\x02" + # fixed header 0xed = 0b11101101
@@ -174,7 +173,7 @@ describe MQTT::Packet do
     end
   
     it "should output the correct bytes for a message with a body of 314 bytes" do
-      packet = MQTT::Packet.new(:type => :publish)
+      packet = MQTT::Packet::Publish.new
       packet.add_string('topic')
       packet.add_data('x'*314)
       packet.to_s.should == "\x30\xC1\x02\x00\x05topic" + ('x' * 314)
@@ -182,8 +181,8 @@ describe MQTT::Packet do
   end
   
   it "should have a custom inspector that does not output the packet body" do
-    packet = MQTT::Packet.new(:type => :pingreq)
-    packet.inspect.should match(/^#<MQTT::Packet:0x([0-9a-f]+) type=pingreq, dup=false, retain=false, qos=0, body.size=0>$/)
+    packet = MQTT::Packet::Pingreq.new
+    packet.inspect.should match(/^#<MQTT::Packet::Pingreq:0x([0-9a-f]+) dup=false, retain=false, qos=0, body.size=0>$/)
   end
   
   describe "when reading and deserialising a packet from a socket" do
@@ -199,7 +198,7 @@ describe MQTT::Packet do
       end
      
       it "should parse the packet type correctly" do
-        @packet.type.should == :pingreq
+        @packet.class.should == MQTT::Packet::Pingreq
       end
       
       it "should parse the QOS level correctly" do
@@ -230,7 +229,7 @@ describe MQTT::Packet do
       end
      
       it "should parse the packet type correctly" do
-        @packet.type.should == :disconnect
+        @packet.class.should == MQTT::Packet::Disconnect
       end
       
       it "should parse the QOS level correctly" do
@@ -264,7 +263,7 @@ describe MQTT::Packet do
       end
 
       it "should parse the packet type correctly" do
-        @packet.type.should == :publish
+        @packet.class.should == MQTT::Packet::Publish
       end
       
       it "should get the body length correctly" do
@@ -284,7 +283,7 @@ describe MQTT::Packet do
       end
      
       it "should parse the packet type correctly" do
-        @packet.type.should == :publish
+        @packet.class.should == MQTT::Packet::Publish
       end
       
       it "should get the body length correctly" do

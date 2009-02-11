@@ -7,7 +7,6 @@ module MQTT
   # Class representing a MQTT Packet
   # Performs binary encoding and decoding of headers
   class Packet
-    attr_reader :type      # The packet type
     attr_reader :dup       # Duplicate delivery flag
     attr_reader :retain    # Retain flag
     attr_reader :qos       # Quality of Service level
@@ -15,11 +14,13 @@ module MQTT
   
     # Read in a packet from a socket
     def self.read(socket)
-
-      # Create a packet object
+      # Read in the packet header and work out the class
       header = read_byte(socket)
-      packet = MQTT::Packet.new(
-        :type => ((header & 0xF0) >> 4),
+      type_id = ((header & 0xF0) >> 4)
+      packet_class = MQTT::PACKET_TYPES[type_id]
+      
+      # Create a new packet object
+      packet = packet_class.new(
         :dup => ((header & 0x08) >> 3),
         :qos => ((header & 0x06) >> 1),
         :retain => ((header & 0x01) >> 0)
@@ -43,32 +44,16 @@ module MQTT
 
     # Create a new empty packet
     def initialize(args={})
-      self.type = args[:type] || :invalid
       self.dup = args[:dup] || false
       self.qos = args[:qos] || 0
       self.retain = args[:retain] || false
       self.body = args[:body] || ''
     end
     
-    # Set the packet type
-    # Can either by the packet type id (integer)
-    # Or the packet type as a symbol/string
-    # See the MQTT module for an enumeration of packet types.
-    def type=(arg)
-      if arg.kind_of?(Integer)
-        # Convert type identifier to symbol
-        @type = MQTT::PACKET_TYPES[arg]
-      else
-        @type = arg.to_sym
-        # FIXME: raise exception if packet type is invalid?
-      end
-    end
-
     # Return the identifer for this packet type
     def type_id
-      raise "No packet type set for this packet" if @type.nil?
-      index = MQTT::PACKET_TYPES.index(@type)
-      raise "Invalid packet type: #{@type}" if index.nil?
+      index = MQTT::PACKET_TYPES.index(self.class)
+      raise "Invalid packet type: #{self.class}" if index.nil?
       return index
     end
     
@@ -130,23 +115,23 @@ module MQTT
     end
 
 
-    # Remove a 16-bit unsigned integer from the front on the body
+    # Remove a 16-bit unsigned integer from the front of the body
     def shift_short
       bytes = @body.slice!(0..1)
       bytes.unpack('n').first
     end
     
-    # Remove n bytes from the front on the body
+    # Remove n bytes from the front of the body
     def shift_bytes(bytes)
       @body.slice!(0...bytes).unpack('C*')
     end
     
-    # Remove n bytes from the front on the body
+    # Remove n bytes from the front of the body
     def shift_data(bytes)
       @body.slice!(0...bytes)
     end
     
-    # Remove string from the front on the body
+    # Remove string from the front of the body
     def shift_string
       len = shift_short
       shift_data(len)
@@ -178,8 +163,8 @@ module MQTT
     end
     
     def inspect
-      format("#<MQTT::Packet:0x%01x ", object_id)+
-      "type=#{@type}, dup=#{@dup}, retain=#{@retain}, "+
+      format("#<#{self.class}:0x%01x ", object_id)+
+      "dup=#{@dup}, retain=#{@retain}, "+
       "qos=#{@qos}, body.size=#{@body.size}>"
     end
     
@@ -192,6 +177,97 @@ module MQTT
       byte.unpack('C').first
     end
     
+    # Class representing an MQTT Connect Packet
+    class Connect < MQTT::Packet
+    
+    end
+
+    # Class representing an MQTT Connect Acknowledgment Packet
+    class Connack < MQTT::Packet
+    
+    end
+
+    # Class representing an MQTT Publish message
+    class Publish < MQTT::Packet
+    
+    end
+
+    # Class representing an MQTT Publish Acknowledgment packet
+    class Puback < MQTT::Packet
+    
+    end
+
+    # Class representing an MQTT Publish Received packet
+    class Pubrec < MQTT::Packet
+    
+    end
+
+    # Class representing an MQTT Publish Release packet
+    class Pubrel < MQTT::Packet
+    
+    end
+
+    # Class representing an MQTT Publish Complete packet
+    class Pubcomp < MQTT::Packet
+    
+    end
+
+    # Class representing an MQTT Client Subscribe packet
+    class Subscribe < MQTT::Packet
+    
+    end
+
+    # Class representing an MQTT Subscribe Acknowledgment packet
+    class Suback < MQTT::Packet
+    
+    end
+
+    # Class representing an MQTT Client Unsubscribe packet
+    class Unsubscribe < MQTT::Packet
+    
+    end
+
+    # Class representing an MQTT Unsubscribe Acknowledgment packet
+    class Unsuback < MQTT::Packet
+    
+    end
+
+    # Class representing an MQTT Ping Request packet
+    class Pingreq < MQTT::Packet
+    
+    end
+
+    # Class representing an MQTT Ping Response packet
+    class Pingresp < MQTT::Packet
+    
+    end
+
+    # Class representing an MQTT Client Disconnect packet
+    class Disconnect < MQTT::Packet
+    
+    end
+    
   end
+
+
+  # An enumeration of the MQTT packet types
+  PACKET_TYPES = [
+    nil,
+    MQTT::Packet::Connect,
+    MQTT::Packet::Connack,
+    MQTT::Packet::Publish,
+    MQTT::Packet::Puback,
+    MQTT::Packet::Pubrec,
+    MQTT::Packet::Pubrel,
+    MQTT::Packet::Pubcomp,
+    MQTT::Packet::Subscribe,
+    MQTT::Packet::Suback,
+    MQTT::Packet::Unsubscribe,
+    MQTT::Packet::Unsuback,
+    MQTT::Packet::Pingreq,
+    MQTT::Packet::Pingresp,
+    MQTT::Packet::Disconnect,
+    nil
+  ]
   
 end
