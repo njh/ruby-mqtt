@@ -175,12 +175,12 @@ describe MQTT::Client do
       @client.instance_variable_set(:@socket, @socket)
     end
 
-    it "should write a valid SUBSCRIBE packet with QoS 0 to the socket if given a single topic String" do
+    it "should write a valid SUBSCRIBE packet to the socket if given a single topic String" do
       @client.subscribe('a/b')
       @socket.string.should == "\x82\x08\x00\x01\x00\x03a/b\x00"
     end
 
-    it "should write a valid SUBSCRIBE packet with QoS 0 to the socket if given a two topic Strings in an Array" do
+    it "should write a valid SUBSCRIBE packet to the socket if given a two topic Strings in an Array" do
       @client.subscribe('a/b','c/d')
       @socket.string.should == "\x82\x0e\x00\x01\x00\x03a/b\x00\x00\x03c/d\x00"
     end
@@ -201,24 +201,20 @@ describe MQTT::Client do
       @client.instance_variable_set(:@socket, @socket)
     end
 
-    def inject_packet(topic, payload, opts={})
-      opts[:type] = :publish
-      packet = MQTT::Packet.new(opts)
-      packet.add_string(topic)
-      packet.add_short(2) unless packet.qos == 0
-      packet.add_data(payload)
+    def inject_packet(opts={})
+      packet = MQTT::Packet::Publish.new(opts)
       @client.instance_variable_get('@read_queue').push(packet)
     end
 
     it "should successfull receive a valid PUBLISH packet with a QoS 0" do
-      inject_packet('topic0','payload0', :qos => 0)
+      inject_packet(:topic => 'topic0', :payload => 'payload0', :qos => 0)
       topic,payload = @client.get
       topic.should == 'topic0'
       payload.should == 'payload0'
     end
 
     it "should successfull receive a valid PUBLISH packet with a QoS 1" do
-      inject_packet('topic1','payload1', :qos => 1)
+      inject_packet(:topic => 'topic1', :payload => 'payload1', :qos => 1)
       topic,payload = @client.get
       topic.should == 'topic1'
       payload.should == 'payload1'
@@ -232,12 +228,12 @@ describe MQTT::Client do
 
     it "should write a valid UNSUBSCRIBE packet to the socket if given a single topic String" do
       @client.unsubscribe('a/b')
-      @socket.string.should == "\xa2\x05\x00\x03a/b"
+      @socket.string.should == "\xa2\x07\x00\x01\x00\x03a/b"
     end
     
     it "should write a valid UNSUBSCRIBE packet to the socket if given a two topic Strings" do
       @client.unsubscribe('a/b','c/d')
-      @socket.string.should == "\xa2\x0a\x00\x03a/b\x00\x03c/d"
+      @socket.string.should == "\xa2\x0c\x00\x01\x00\x03a/b\x00\x03c/d"
     end
   end
   

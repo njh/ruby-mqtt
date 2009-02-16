@@ -48,22 +48,12 @@ module MQTT
         @socket = TCPSocket.new(@remote_host,@remote_port)
 
         # Protocol name and version
-        packet = MQTT::Packet::Connect.new
-        packet.add_string('MQIsdp')
-        packet.add_bytes(0x03)
-        
-        # Connect flags
-        connect_flags = 0x00
-        connect_flags ||= 0x02 if @clean_start
-        # FIXME: implement Will and Testament
-        packet.add_bytes(connect_flags)
-        
-        # Keep Alive timer: 10 seconds
-        packet.add_short(@keep_alive)
-        
-        # Add the client identifier
-        packet.add_string(@client_id)
-        
+        packet = MQTT::Packet::Connect.new(
+          :clean_start => @clean_start,
+          :keep_alive => @keep_alive,
+          :client_id => @client_id
+        )
+
         # Send packet
         send_packet(packet)
 
@@ -115,20 +105,12 @@ module MQTT
     def publish(topic, payload, retain=false, qos=0)
       packet = MQTT::Packet::Publish.new(
         :qos => qos,
-        :retain => retain
+        :retain => retain,
+        :topic => topic,
+        :payload => payload,
+        :message_id => @message_id.next
       )
-      
-      # Add the topic name
-      packet.add_string(topic)
-      
-      # Add Message ID for qos1 and qos2
-      unless qos == 0
-        packet.add_short(@message_id.next)
-      end
-      
-      # Add the packet payload
-      packet.add_data(payload)
-      
+
       # Send the packet
       send_packet(packet)
     end
@@ -146,27 +128,10 @@ module MQTT
     #   client.subscribe( 'a/b' => 0, 'c/d' => 1 )
     #
     def subscribe(*topics)
-      array = []
-      topics.each do |item|
-        if item.is_a?(Hash)
-          # Convert hash into an ordered array of arrays
-          array += item.sort
-        elsif item.is_a?(Array)
-          # Already in [topic,qos] format 
-          array.push item
-        else
-          # Default to QOS 0
-          array.push [item.to_s,0]
-        end
-      end
-      
-      # Create the packet
-      packet = MQTT::Packet::Subscribe.new(:qos => 1)
-      packet.add_short(@message_id.next)
-      array.each do |item|
-        packet.add_string(item[0])
-        packet.add_bytes(item[1])
-      end
+      packet = MQTT::Packet::Subscribe.new(
+        :topics => topics,
+        :message_id => @message_id.next
+      )
       send_packet(packet)
     end
     
@@ -179,17 +144,17 @@ module MQTT
     def get
       # Wait for a packet to be available
       packet = @read_queue.pop
-      
-      # Parse the variable header
-      topic = packet.shift_string
-      msg_id = packet.shift_short unless (packet.qos == 0)
-      return topic,packet.body
+      topic = packet.topic
+      payload = packet.payload
+      return topic,payload
     end
     
     # Send a unsubscribe message for one or more topics on the MQTT broker
     def unsubscribe(*topics)
-      packet = MQTT::Packet::Unsubscribe.new(:qos => 1)
-      topics.each { |topic| packet.add_string(topic) }
+      packet = MQTT::Packet::Unsubscribe.new(
+        :topics => topics,
+        :message_id => @message_id.next
+      )
       send_packet(packet)
     end
   
@@ -239,19 +204,9 @@ module MQTT
           raise MQTT::ProtocolException.new("Response wan't a connection acknowledgement: #{packet.class}") 
         end
         
-        # Read in the return code
-        byte1, return_code = packet.shift_bytes(2)
-        if return_code == 0x00
-          # Success
-          nil
-        elsif return_code == 0x01
-          raise MQTT::ProtocolException.new("Connection refused: unacceptable protocol version")
-        elsif return_code == 0x02
-          raise MQTT::ProtocolException.new("Connection refused: client identifier rejected")
-        elsif return_code == 0x03
-          raise MQTT::ProtocolException.new("Connection refused: broker unavailable")
-        else
-          raise MQTT::ProtocolException.new("Connection refused: #{return_code}")
+        # Check the return code
+        if packet.return_code != 0x00
+          raise MQTT::ProtocolException.new(packet.return_msg)
         end
       end
     end

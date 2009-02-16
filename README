@@ -35,9 +35,10 @@ You may get the latest stable version from Rubyforge. Source gems are also avail
 == TODO
 
 * Process acknowledgement packets
-* Create classes for each type of packet?
 * More validations of data/parameters
 * More error checking and exception throwing
+  - Check that packet data is valid - don't blindly read values
+  - Subscribe and Unsubscribe packets should always have QOS of 1
 * Implement Will and Testament
 * More examples
 * Integration tests
