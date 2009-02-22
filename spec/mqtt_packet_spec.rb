@@ -560,6 +560,10 @@ describe MQTT::Packet::Subscribe do
       @packet.topics = [['a/b', 0], ['b/c', 1]]
       @packet.topics.should == [['a/b', 0], ['b/c', 1]]
     end
+
+    it "should throw an exception when setting topic with a non-string" do
+      lambda { @packet.topics = 56 }.should raise_error
+    end
   end
 
   describe "when serialising a packet" do

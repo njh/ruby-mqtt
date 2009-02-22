@@ -34,16 +34,15 @@ You may get the latest stable version from Rubyforge. Source gems are also avail
 
 == TODO
 
-* Process acknowledgement packets
+* Implement Will and Testament
+* Process acknowledgement packets / Implement QOS 1 in client
 * More validations of data/parameters
 * More error checking and exception throwing
   - Check that packet data is valid - don't blindly read values
   - Subscribe and Unsubscribe packets should always have QOS of 1
-* Implement Will and Testament
 * More examples
 * Integration tests
 * Refactor to add callbacks that are called from seperate thread
-* Implement QOS Level 1 in client
 * Implement QOS Level 2 in client
 * Prevent proxy from connecting to itself
 * Add support for binding socket to specific local address
