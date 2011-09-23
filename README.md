@@ -62,7 +62,7 @@ Resources
 Contact
 -------
 
-Author::     Nicholas J Humfrey
-Email::      njh@aelius.com
-Home Page::  http://www.aelius.com/njh/
-License::    Distributes under the same terms as Ruby
+* Author:    Nicholas J Humfrey
+* Email:     njh@aelius.com
+* Home Page: http://www.aelius.com/njh/
+* License:   Distributes under the same terms as Ruby
