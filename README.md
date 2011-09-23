@@ -1,38 +1,41 @@
-= ruby-mqtt
+ruby-mqtt
+=========
 
 Pure Ruby gem that implements the MQTT (Message Queue Telemetry Transport) protocol, a lightweight protocol for publish/subscribe messaging.
 
-RubyForge Project Page  http://rubyforge.org/projects/mqtt/
 
-== Installing
+Installing
+----------
 
 You may get the latest stable version from Rubyforge. Source gems are also available.
 
-  $ gem install mqtt
+    $ gem install mqtt
 
-== Synopsis
+Synopsis
+--------
 
-  require 'rubygems'
-  require 'mqtt/client'
-  
-  # Publish example
-  mqtt = MQTT::Client.new('mqtt.example.com')
-  mqtt.connect do |c|
-    c.publish('topic','message')
-  end
-
-  # Subscribe example
-  mqtt = MQTT::Client.new('mqtt.example.com')
-  client.connect do
-    client.subscribe('test')
-    loop do
-      topic,message = client.get
-      puts "#{topic}: #{message}"
+    require 'rubygems'
+    require 'mqtt/client'
+    
+    # Publish example
+    mqtt = MQTT::Client.new('mqtt.example.com')
+    mqtt.connect do |c|
+      c.publish('topic','message')
     end
-  end
+    
+    # Subscribe example
+    mqtt = MQTT::Client.new('mqtt.example.com')
+    client.connect do
+      client.subscribe('test')
+      loop do
+        topic,message = client.get
+        puts "#{topic}: #{message}"
+      end
+    end
 
 
-== TODO
+TODO
+----
 
 * Implement Will and Testament
 * Process acknowledgement packets / Implement QOS 1 in client
@@ -47,11 +50,17 @@ You may get the latest stable version from Rubyforge. Source gems are also avail
 * Prevent proxy from connecting to itself
 * Add support for binding socket to specific local address
 
-== Resources
 
-http://www.mqtt.org
+Resources
+---------
 
-== Contact
+MQTT Homepage: http://www.mqtt.org/
+GitHub Project: http://github.com/njh/ruby-mqtt
+Rdoc Documentation: http://rdoc.info/github/njh/ruby-mqtt/master/frames
+
+
+Contact
+-------
 
 Author::     Nicholas J Humfrey
 Email::      njh@aelius.com
