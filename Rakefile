@@ -16,7 +16,7 @@ spec = Gem::Specification.new do |s|
   s.version           = VERS
   s.author            = "Nicholas J Humfrey"
   s.email             = "njh@aelius.com"
-  s.homepage          = "http://mqtt.rubyforge.org"
+  s.homepage          = "http://github.com/njh/ruby-mqtt"
   s.platform          = Gem::Platform::RUBY
   s.summary           = "Implementation of the MQTT (Message Queue Telemetry Transport) protocol" 
   s.rubyforge_project = "mqtt" 
@@ -26,13 +26,7 @@ spec = Gem::Specification.new do |s|
   
   # rdoc
   s.has_rdoc          = true
-  s.extra_rdoc_files  = ["README", "NEWS", "COPYING"]
-  
-  # Build Dependencies
-  #s.add_dependency 'rake'     '~> 0.8'
-  #s.add_dependency 'rspec',   '~> 1.1'
-  #s.add_dependency 'rcov',    '~> 0.8'
-  #s.add_dependency 'mocha',   '~> 0.9'
+  s.extra_rdoc_files  = ["README.md", "NEWS.md", "COPYING"]
 end
 
 desc "Default: test the gem."
@@ -103,10 +97,5 @@ Rake::RDocTask.new("rdoc") { |rdoc|
   rdoc.title    = "mqtt Documentation"
   rdoc.options << '--line-numbers' << '--inline-source'
   rdoc.main = "README"
-  rdoc.rdoc_files.include("README", "NEWS", "COPYING", "lib/*.rb", "lib/mqtt/*.rb")
+  rdoc.rdoc_files.include("README.md", "NEWS.md", "COPYING", "lib/*.rb", "lib/mqtt/*.rb")
 }
-
-desc "Upload rdoc to rubyforge"
-task :upload_rdoc => [:rdoc] do
-  sh %{/usr/bin/scp -r -p rdoc/* mqtt.rubyforge.org:/var/www/gforge-projects/mqtt}
-end
