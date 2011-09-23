@@ -54,9 +54,9 @@ TODO
 Resources
 ---------
 
-MQTT Homepage: http://www.mqtt.org/
-GitHub Project: http://github.com/njh/ruby-mqtt
-Rdoc Documentation: http://rdoc.info/github/njh/ruby-mqtt/master/frames
+* MQTT Homepage: http://www.mqtt.org/
+* Ruby GitHub Project: http://github.com/njh/ruby-mqtt
+* Rdoc Documentation: http://rdoc.info/github/njh/ruby-mqtt/master/frames
 
 
 Contact
