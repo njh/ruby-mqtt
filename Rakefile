@@ -19,7 +19,6 @@ spec = Gem::Specification.new do |s|
   s.homepage          = "http://github.com/njh/ruby-mqtt"
   s.platform          = Gem::Platform::RUBY
   s.summary           = "Implementation of the MQTT (Message Queue Telemetry Transport) protocol" 
-  s.rubyforge_project = "mqtt" 
   s.description       = "Pure Ruby gem that implements the MQTT (Message Queue Telemetry Transport) protocol, a lightweight protocol for publish/subscribe messaging."
   s.files             = FileList["Rakefile", "lib/*.rb", "lib/mqtt/*.rb", "examples/*"]
   s.require_path      = "lib"
@@ -96,6 +95,6 @@ Rake::RDocTask.new("rdoc") { |rdoc|
   rdoc.rdoc_dir = 'rdoc'
   rdoc.title    = "mqtt Documentation"
   rdoc.options << '--line-numbers' << '--inline-source'
-  rdoc.main = "README"
+  rdoc.main = "README.md"
   rdoc.rdoc_files.include("README.md", "NEWS.md", "COPYING", "lib/*.rb", "lib/mqtt/*.rb")
 }
