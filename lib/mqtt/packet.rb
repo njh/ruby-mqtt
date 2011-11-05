@@ -181,7 +181,7 @@ module MQTT
       attr_accessor :message_id
       attr_accessor :payload
 
-      # Create a new Unsubscribe Acknowledgment packet
+      # Create a new Publish packet
       def initialize(args={})
         super(args)
         self.topic = args[:topic] || nil
@@ -306,7 +306,7 @@ module MQTT
     class Puback < MQTT::Packet
       attr_accessor :message_id
   
-      # Create a new Unsubscribe Acknowledgment packet
+      # Create a new Publish Acknowledgment packet
       def initialize(args={})
         super(args)
         self.message_id = args[:message_id] || 0
@@ -327,7 +327,7 @@ module MQTT
     class Pubrec < MQTT::Packet
       attr_accessor :message_id
   
-      # Create a new Unsubscribe Acknowledgment packet
+      # Create a new Publish Recieved packet
       def initialize(args={})
         super(args)
         self.message_id = args[:message_id] || 0
@@ -348,7 +348,7 @@ module MQTT
     class Pubrel < MQTT::Packet
       attr_accessor :message_id
   
-      # Create a new Unsubscribe Acknowledgment packet
+      # Create a new Publish Release packet
       def initialize(args={})
         super(args)
         self.message_id = args[:message_id] || 0
@@ -369,7 +369,7 @@ module MQTT
     class Pubcomp < MQTT::Packet
       attr_accessor :message_id
   
-      # Create a new Unsubscribe Acknowledgment packet
+      # Create a new Publish Complete packet
       def initialize(args={})
         super(args)
         self.message_id = args[:message_id] || 0
@@ -391,7 +391,7 @@ module MQTT
       attr_reader :topics
       attr_accessor :message_id
   
-      # Create a new Unsubscribe Acknowledgment packet
+      # Create a new Subscribe packet
       def initialize(args={})
         super(args)
         self.topics = args[:topics] || []
@@ -469,7 +469,7 @@ module MQTT
       attr_accessor :message_id
       attr_reader :granted_qos
   
-      # Create a new Unsubscribe Acknowledgment packet
+      # Create a new Subscribe Acknowledgment packet
       def initialize(args={})
         super(args)
         self.message_id = args[:message_id] || 0
@@ -503,7 +503,7 @@ module MQTT
       attr_reader :topics
       attr_accessor :message_id
   
-      # Create a new Unsubscribe Acknowledgment packet
+      # Create a new Unsubscribe packet
       def initialize(args={})
         super(args)
         self.topics = args[:topics] || []
