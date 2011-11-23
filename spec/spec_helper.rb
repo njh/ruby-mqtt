@@ -1,9 +1,13 @@
-require 'rubygems'
-require 'rspec'     # Rspec 2
-require 'mocha'
+$:.unshift(File.join(File.dirname(__FILE__),'..','lib'))
 
-$:.unshift(File.dirname(__FILE__) + '/../lib')
+require 'rubygems'
+require 'bundler'
+
+Bundler.require(:default, :development)
+
+# This is needed by rcov
+require 'rspec/autorun'
 
 RSpec.configure do |config|
-  config.mock_with :mocha
+  config.mock_framework = :mocha
 end
