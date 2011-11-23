@@ -1,18 +1,22 @@
 #!/usr/bin/env ruby
 
+$:.push File.expand_path("../lib", __FILE__)
+
 require 'rubygems'
 require 'yard'
 require 'rspec/core/rake_task'
 
+require "mqtt/version"
+
 namespace :gem do
-  desc "Build the mqtt-#{File.read('VERSION').chomp}.gem file"
+  desc "Build the mqtt-#{MQTT::VERSION}.gem file"
   task :build do
     sh "gem build mqtt.gemspec"
   end
 
-  desc "Release the mqtt-#{File.read('VERSION').chomp}.gem file"
+  desc "Release the mqtt-#{MQTT::VERSION}.gem file"
   task :release do
-    sh "gem push mqtt-#{File.read('VERSION').chomp}.gem"
+    sh "gem push mqtt-#{MQTT::VERSION}.gem"
   end
 end
 

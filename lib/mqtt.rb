@@ -5,6 +5,8 @@ require 'socket'
 require 'thread'
 require 'timeout'
 
+require "mqtt/version"
+
 module MQTT
 
   class Exception < Exception
