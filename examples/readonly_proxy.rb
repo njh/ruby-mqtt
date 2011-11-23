@@ -2,7 +2,7 @@
 
 $:.unshift File.dirname(__FILE__)+'/../lib'
 
-require 'mqtt/proxy'
+require 'mqtt'
 
 proxy = MQTT::Proxy.new(
     :local_host => '0.0.0.0',
