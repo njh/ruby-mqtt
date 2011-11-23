@@ -15,7 +15,7 @@ Synopsis
 --------
 
     require 'rubygems'
-    require 'mqtt/client'
+    require 'mqtt'
     
     # Publish example
     mqtt = MQTT::Client.new('mqtt.example.com')
