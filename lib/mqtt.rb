@@ -1,18 +1,23 @@
 #!/usr/bin/env ruby
 
-# Pure-ruby implementation of the MQTT protocol
+require 'logger'
+require 'socket'
+require 'thread'
+require 'timeout'
+
 module MQTT
 
   class Exception < Exception
-  
   end
 
   class ProtocolException < MQTT::Exception
-  
   end
   
   class NotConnectedException < MQTT::Exception
-  
   end
+
+  autoload :Client,   'mqtt/client'
+  autoload :Packet,   'mqtt/packet'
+  autoload :Proxy,    'mqtt/proxy'
 
 end
