@@ -18,12 +18,18 @@ end
 
 RSpec::Core::RakeTask.new(:spec)
 
-desc "Run specs through RCov"
-RSpec::Core::RakeTask.new("spec:rcov") do |spec|
-  spec.pattern = "./spec/**/*_spec.rb"
-  spec.rcov = true
-  spec.rcov_opts =  %q[--exclude "spec"]
-  spec.rspec_opts =  %q[--format progress]
+namespace :spec do
+  desc 'Run RSpec code examples in specdoc mode'
+  RSpec::Core::RakeTask.new(:doc) do |t|
+    t.rspec_opts = %w(--backtrace --colour --format doc)
+  end
+
+  desc 'Run RSpec code examples with rcov'
+  RSpec::Core::RakeTask.new(:rcov) do |t|
+    t.rcov = true
+    t.rcov_opts = %w(--text-report --exclude /gems/,/Library/,/usr/,.bundle,spec)
+    t.rspec_opts = %w(--no-colour --format progress)
+  end
 end
 
 namespace :doc do

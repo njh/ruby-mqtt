@@ -1,6 +1,4 @@
 source "http://rubygems.org"
 
-gem 'rake'
-
-# Dependencies are specified in mqtt.gemspec
+# Gem's dependencies are specified in mqtt.gemspec
 gemspec
