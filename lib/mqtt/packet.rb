@@ -3,11 +3,12 @@ module MQTT
   # Class representing a MQTT Packet
   # Performs binary encoding and decoding of headers
   class MQTT::Packet
-    attr_reader :dup       # Duplicate delivery flag
-    attr_reader :retain    # Retain flag
-    attr_reader :qos       # Quality of Service level
+    attr_reader :dup         # Duplicate delivery flag
+    attr_reader :retain      # Retain flag
+    attr_reader :qos         # Quality of Service level
+    attr_reader :body_length # The length of the parsed packet body
 
-    # Read in a packet from a socket
+    # Deprecate this: Read in a packet from a socket
     def self.read(socket)
       # Read in the packet header and work out the class
       header = read_byte(socket)
@@ -23,25 +24,71 @@ module MQTT
 
       # Read in the packet length
       multiplier = 1
-      body_len = 0
+      body_length = 0
       begin
         digit = read_byte(socket)
-        body_len += ((digit & 0x7F) * multiplier)
+        body_length += ((digit & 0x7F) * multiplier)
         multiplier *= 0x80
       end while ((digit & 0x80) != 0x00)
       # FIXME: only allow 4 bytes?
 
       # Read in the packet body
-      packet.parse_body( socket.read(body_len) )
+      packet.parse_body( socket.read(body_length) )
 
       return packet
     end
+
+    # Parse buffer into new packet object
+    def self.parse(buffer)
+      packet = parse_header(buffer)
+      packet.parse_body(buffer)
+      return packet
+    end
+
+    # Parse the header and create a new packet object of the correct type
+    # The header is removed from the buffer passed into this function
+    def self.parse_header(buffer)
+      # Work out the class
+      type_id = ((buffer[0] & 0xF0) >> 4)
+      packet_class = MQTT::PACKET_TYPES[type_id]
+
+      # Create a new packet object
+      packet = packet_class.new(
+        :dup => ((buffer[0] & 0x08) >> 3),
+        :qos => ((buffer[0] & 0x06) >> 1),
+        :retain => ((buffer[0] & 0x01) >> 0)
+      )
+
+      # Parse the packet length
+      body_length = 0
+      multiplier = 1
+      pos = 1
+      begin
+        if buffer.length <= pos
+          raise MQTT::ProtocolException.new("The packet length header is incomplete")
+        end
+        digit = buffer[pos]
+        body_length += ((digit & 0x7F) * multiplier)
+        multiplier *= 0x80
+        pos += 1
+      end while ((digit & 0x80) != 0x00) and pos <= 4
+
+      # Store the expected body length in the packet
+      packet.instance_variable_set('@body_length', body_length)
+
+      # Delete the variable length header from the raw packet passed in
+      buffer.slice!(0...pos)
+
+      return packet
+    end
+
 
     # Create a new empty packet
     def initialize(args={})
       self.dup = args[:dup] || false
       self.qos = args[:qos] || 0
       self.retain = args[:retain] || false
+      @body_length = nil
     end
 
     # Get the identifer for this packet type
@@ -76,8 +123,10 @@ module MQTT
 
     # Parse the body (variable header and payload) of a packet
     def parse_body(buffer)
-      unless buffer.size == 0
-        raise MQTT::ProtocolException.new("Error: parse_body was not sub-classed for a packet with a payload")
+      if buffer.length != body_length
+        raise MQTT::ProtocolException.new(
+          "Failed to parse packet - input buffer (#{buffer.length}) is not the same as the body length buffer (#{body_length})"
+        )
       end
     end
 
@@ -101,14 +150,14 @@ module MQTT
       body = self.encode_body
 
       # Build up the body length field bytes
-      body_size = body.size
+      body_length = body.length
       begin
-        digit = (body_size % 128)
-        body_size = (body_size / 128)
+        digit = (body_length % 128)
+        body_length = (body_length / 128)
         # if there are more digits to encode, set the top bit of this digit
-        digit |= 0x80 if (body_size > 0)
+        digit |= 0x80 if (body_length > 0)
         header.push(digit)
-      end while (body_size > 0)
+      end while (body_length > 0)
 
       # Convert header to binary and add on body
       header.pack('C*') + body
@@ -131,7 +180,7 @@ module MQTT
     # (preceded by the length of the string)
     def encode_string(str)
       str = str.to_s unless str.is_a?(String)
-      encode_short(str.size) + str
+      encode_short(str.length) + str
     end
 
     # Remove a 16-bit unsigned integer from the front of buffer
@@ -197,6 +246,7 @@ module MQTT
 
       # Parse the body (variable header and payload) of a Publish packet
       def parse_body(buffer)
+        super(buffer)
         @topic = shift_string(buffer)
         @message_id = shift_short(buffer) unless qos == 0
         @payload = buffer.dup
@@ -248,6 +298,7 @@ module MQTT
 
       # Parse the body (variable header and payload) of a Connect packet
       def parse_body(buffer)
+        super(buffer)
         @protocol_name = shift_string(buffer)
         @protocol_version = shift_byte(buffer)
         flags = shift_byte(buffer)
@@ -293,8 +344,10 @@ module MQTT
 
       # Parse the body (variable header and payload) of a Connect Acknowledgment packet
       def parse_body(buffer)
+        super(buffer)
         unused = shift_byte(buffer)
         @return_code = shift_byte(buffer)
+        raise ProtocolException.new("Extra bytes at end of Connect Acknowledgment packet") unless buffer.empty?
       end
     end
 
@@ -315,7 +368,9 @@ module MQTT
 
       # Parse the body (variable header and payload) of a packet
       def parse_body(buffer)
+        super(buffer)
         @message_id = shift_short(buffer)
+        raise ProtocolException.new("Extra bytes at end of Publish Acknowledgment packet") unless buffer.empty?
       end
     end
 
@@ -336,7 +391,9 @@ module MQTT
 
       # Parse the body (variable header and payload) of a packet
       def parse_body(buffer)
+        super(buffer)
         @message_id = shift_short(buffer)
+        raise ProtocolException.new("Extra bytes at end of Publish Received packet") unless buffer.empty?
       end
     end
 
@@ -357,7 +414,9 @@ module MQTT
 
       # Parse the body (variable header and payload) of a packet
       def parse_body(buffer)
+        super(buffer)
         @message_id = shift_short(buffer)
+        raise ProtocolException.new("Extra bytes at end of Publish Release packet") unless buffer.empty?
       end
     end
 
@@ -378,7 +437,9 @@ module MQTT
 
       # Parse the body (variable header and payload) of a packet
       def parse_body(buffer)
+        super(buffer)
         @message_id = shift_short(buffer)
+        raise ProtocolException.new("Extra bytes at end of Publish Complete packet") unless buffer.empty?
       end
     end
 
@@ -416,7 +477,7 @@ module MQTT
         end
 
         @topics = []
-        while(input.size>0)
+        while(input.length>0)
           item = input.shift
           if item.is_a?(Hash)
             # Convert hash into an ordered array of arrays
@@ -450,9 +511,10 @@ module MQTT
 
       # Parse the body (variable header and payload) of a packet
       def parse_body(buffer)
+        super(buffer)
         @message_id = shift_short(buffer)
         @topics = []
-        while(buffer.size>0)
+        while(buffer.length>0)
           topic_name = shift_string(buffer)
           topic_qos = shift_byte(buffer)
           @topics << [topic_name,topic_qos]
@@ -487,8 +549,9 @@ module MQTT
 
       # Parse the body (variable header and payload) of a packet
       def parse_body(buffer)
+        super(buffer)
         @message_id = shift_short(buffer)
-        while(buffer.size>0)
+        while(buffer.length>0)
           @granted_qos << [shift_byte(buffer),shift_byte(buffer)]
         end
       end
@@ -525,8 +588,9 @@ module MQTT
 
       # Parse the body (variable header and payload) of a packet
       def parse_body(buffer)
+        super(buffer)
         @message_id = shift_short(buffer)
-        while(buffer.size>0)
+        while(buffer.length>0)
           @topics << shift_string(buffer)
         end
       end
@@ -549,7 +613,9 @@ module MQTT
 
       # Parse the body (variable header and payload) of a packet
       def parse_body(buffer)
+        super(buffer)
         @message_id = shift_short(buffer)
+        raise ProtocolException.new("Extra bytes at end of Unsubscribe Acknowledgment packet") unless buffer.empty?
       end
     end
 
@@ -559,6 +625,12 @@ module MQTT
       def initialize(args={})
         super(args)
       end
+
+      # Check the body
+      def parse_body(buffer)
+        super(buffer)
+        raise ProtocolException.new("Extra bytes at end of Ping Request packet") unless buffer.empty?
+      end
     end
 
     # Class representing an MQTT Ping Response packet
@@ -567,6 +639,12 @@ module MQTT
       def initialize(args={})
         super(args)
       end
+
+      # Check the body
+      def parse_body(buffer)
+        super(buffer)
+        raise ProtocolException.new("Extra bytes at end of Ping Response packet") unless buffer.empty?
+      end
     end
 
     # Class representing an MQTT Client Disconnect packet
@@ -574,6 +652,12 @@ module MQTT
       # Create a new Client Disconnect packet
       def initialize(args={})
         super(args)
+      end
+
+      # Check the body
+      def parse_body(buffer)
+        super(buffer)
+        raise ProtocolException.new("Extra bytes at end of Disconnect packet") unless buffer.empty?
       end
     end
 
