@@ -246,7 +246,7 @@ describe MQTT::Packet::Connect do
     end
   end
   
-  describe "when reading and deserialising a simple Connect packet" do
+  describe "when parsing a simple Connect packet" do
     before(:each) do
       @data = "\x10\x16\x00\x06MQIsdp\x03\x00\x00\x0a\x00\x08myclient"
       @packet = MQTT::Packet.parse( @data )
@@ -277,7 +277,7 @@ describe MQTT::Packet::Connect do
     end
   end
 
-#   describe "when reading and deserialising a Connect packet with a Will and Testament" do
+#   describe "when parsing a Connect packet with a Will and Testament" do
 #     before(:each) do
 #       @data = "\x10\x24\x00\x06MQIsdp\x03\x0e\x00\x0a\x00\x08myclient\x00\x05topic\x00\x05hello"
 #       @packet = MQTT::Packet.parse( @data )
@@ -334,10 +334,9 @@ describe MQTT::Packet::Connack do
     end
   end
   
-  describe "when reading and deserialising a successful Connection Accepted packet" do
+  describe "when parsing a successful Connection Accepted packet" do
     before(:each) do
-      @data = "\x20\x02\x00\x00"
-      @packet = MQTT::Packet.parse( @data )
+      @packet = MQTT::Packet.parse( "\x20\x02\x00\x00" )
     end
     
     it "should correctly create the right type of packet object" do
@@ -357,7 +356,7 @@ describe MQTT::Packet::Connack do
     end
   end
   
-  describe "when reading and deserialising a unacceptable protocol version packet" do
+  describe "when parsing a unacceptable protocol version packet" do
     before(:each) do
       @data = "\x20\x02\x00\x01"
       @packet = MQTT::Packet.parse( @data )
@@ -376,7 +375,7 @@ describe MQTT::Packet::Connack do
     end
   end
   
-  describe "when reading and deserialising a client identifier rejected packet" do
+  describe "when parsing a client identifier rejected packet" do
     before(:each) do
       @data = "\x20\x02\x00\x02"
       @packet = MQTT::Packet.parse( @data )
@@ -395,7 +394,7 @@ describe MQTT::Packet::Connack do
     end
   end
   
-  describe "when reading and deserialising a broker unavailable packet" do
+  describe "when parsing a broker unavailable packet" do
     before(:each) do
       @data = "\x20\x02\x00\x03"
       @packet = MQTT::Packet.parse( @data )
@@ -414,7 +413,7 @@ describe MQTT::Packet::Connack do
     end
   end
   
-  describe "when reading and deserialising an unknown connection refused packet" do
+  describe "when parsing an unknown connection refused packet" do
     before(:each) do
       @data = "\x20\x02\x00\x04"
       @packet = MQTT::Packet.parse( @data )
@@ -430,6 +429,17 @@ describe MQTT::Packet::Connack do
     
     it "should set the return message of the packet correctly" do
       @packet.return_msg.should match(/Connection refused: error code 4/i)
+    end
+  end
+
+  describe "when parsing packet with extra bytes on the end" do
+    it "should throw an exception" do
+      lambda {
+        @packet = MQTT::Packet.parse( "\x20\x03\x00\x00\x00" )
+      }.should raise_error(
+        MQTT::ProtocolException,
+        "Extra bytes at end of Connect Acknowledgment packet"
+      )
     end
   end
 end
@@ -740,6 +750,12 @@ describe MQTT::Packet::Pingreq do
       packet = MQTT::Packet.parse( "\xC0\x00" )
       packet.class.should == MQTT::Packet::Pingreq
     end
+
+    it "should throw an exception if the packet has a payload" do
+      lambda {
+        MQTT::Packet.parse( "\xC0\x05hello" )
+      }.should raise_error
+    end
   end
 end
 
@@ -755,6 +771,12 @@ describe MQTT::Packet::Pingresp do
     it "should correctly create the right type of packet object" do
       packet = MQTT::Packet.parse( "\xD0\x00" )
       packet.class.should == MQTT::Packet::Pingresp
+    end
+
+    it "should throw an exception if the packet has a payload" do
+      lambda {
+        MQTT::Packet.parse( "\xD0\x05hello" )
+      }.should raise_error
     end
   end
 end
@@ -782,3 +804,40 @@ describe MQTT::Packet::Disconnect do
   end
 end
 
+
+describe "Serialising an invalid packet" do
+  context "that has a no type" do
+    it "should throw an exception" do
+      lambda {
+        MQTT::Packet.new.to_s
+      }.should raise_error(
+        RuntimeError,
+        "Invalid packet type: MQTT::Packet"
+      )
+    end
+  end
+end
+
+describe "Parsing an invalid packet" do
+  context "that has an invalid type identifier" do
+    it "should throw an exception" do
+      lambda {
+        MQTT::Packet.parse( "\x00" )
+      }.should raise_error(
+        MQTT::ProtocolException,
+        "Invalid packet type identifier: 0"
+      )
+    end
+  end
+
+  context "that has an incomplete packet length header" do
+    it "should throw an exception" do
+      lambda {
+        MQTT::Packet.parse( "\x30\xFF" )
+      }.should raise_error(
+        MQTT::ProtocolException,
+        "The packet length header is incomplete"
+      )
+    end
+  end
+end
