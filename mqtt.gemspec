@@ -15,7 +15,7 @@ Gem::Specification.new do |gem|
 
   gem.rubyforge_project = 'mqtt'
 
-  gem.files         = %w(README COPYING GPL VERSION) + Dir.glob('lib/**/*.rb')
+  gem.files         = %w(README COPYING GPL NEWS) + Dir.glob('lib/**/*.rb')
   gem.test_files    = Dir.glob('spec/*_spec.rb')
   gem.executables   = %w()
   gem.require_paths = %w(lib)
