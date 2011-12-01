@@ -64,17 +64,17 @@ describe MQTT::Packet do
     end
 
     it "should provide a encode_bytes method to get some bytes as Integers" do
-      data = @packet.send(:encode_bytes,0x48, 0x65, 0x6c, 0x6c, ?o)
+      data = @packet.send(:encode_bytes, 0x48, 0x65, 0x6c, 0x6c, ?o)
       data.should == 'Hello'
     end
 
     it "should provide a add_short method to get a big-endian unsigned 16-bit integer" do
-      data = @packet.send(:encode_short,1024)
+      data = @packet.send(:encode_short, 1024)
       data.should == "\x04\x00"
     end
 
     it "should provide a add_string method to get a string preceeded by its length" do
-      data = @packet.send(:encode_string,'quack')
+      data = @packet.send(:encode_string, 'quack')
       data.should == "\x00\x05quack"
     end
 
@@ -125,10 +125,10 @@ describe MQTT::Packet::Publish do
     end
   end
   
-  describe "when reading and deserialising a packet with QOS 0 from a socket" do
+  describe "when parsing a packet with QOS 0" do
     before(:each) do
-      @io = StringIO.new("\x30\x11\x00\x04testhello world")
-      @packet = MQTT::Packet.read( @io )
+      @data = "\x30\x11\x00\x04testhello world"
+      @packet = MQTT::Packet.parse( @data )
     end
     
     it "should correctly create the right type of packet object" do
@@ -156,10 +156,10 @@ describe MQTT::Packet::Publish do
     end
   end
   
-  describe "when reading and deserialising a packet with QOS 2 and retain and dup flags set from a socket" do
+  describe "when parsing a packet with QOS 2 and retain and dup flags set" do
     before(:each) do
-      @io = StringIO.new("\x3D\x12\x00\x03c/d\x00\x05hello world")
-      @packet = MQTT::Packet.read( @io )
+      @data = "\x3D\x12\x00\x03c/d\x00\x05hello world"
+      @packet = MQTT::Packet.parse( @data )
     end
     
     it "should correctly create the right type of packet object" do
@@ -187,13 +187,13 @@ describe MQTT::Packet::Publish do
     end
   end
 
-  describe "when reading and deserialising a packet with a body of 314 bytes" do
+  describe "when parsing a packet with a body of 314 bytes" do
     before(:each) do
       # 0x30 = publish
       # 0xC1 = (65 * 1)
       # 0x02 = (2 * 128)
-      @io = StringIO.new("\x30\xC1\x02\x00\x05topic" + ('x' * 314) + 'more data')
-      @packet = MQTT::Packet.read( @io )
+      @data = "\x30\xC1\x02\x00\x05topic" + ('x' * 314)
+      @packet = MQTT::Packet.parse( @data )
     end
 
     it "should parse the packet type correctly" do
@@ -209,14 +209,14 @@ describe MQTT::Packet::Publish do
     end
   end
 
-  describe "when reading and deserialising a packet with a body of 16kbytes" do
+  describe "when parsing a packet with a body of 16kbytes" do
     before(:each) do
       # 0x30 = publish
       # 0x87 = (7 * 1)
       # 0x80 = (0 * 128)
       # 0x01 = (1 * 16384)
-      @io = StringIO.new("\x30\x87\x80\x01\x00\x05topic" + ('x'*16384) + 'more data')
-      @packet = MQTT::Packet.read( @io )
+      @data = "\x30\x87\x80\x01\x00\x05topic" + ('x'*16384)
+      @packet = MQTT::Packet.parse( @data )
     end
    
     it "should parse the packet type correctly" do
@@ -246,10 +246,10 @@ describe MQTT::Packet::Connect do
     end
   end
   
-  describe "when reading and deserialising a simple Connect packet from a socket" do
+  describe "when reading and deserialising a simple Connect packet" do
     before(:each) do
-      @io = StringIO.new("\x10\x16\x00\x06MQIsdp\x03\x00\x00\x0a\x00\x08myclient")
-      @packet = MQTT::Packet.read( @io )
+      @data = "\x10\x16\x00\x06MQIsdp\x03\x00\x00\x0a\x00\x08myclient"
+      @packet = MQTT::Packet.parse( @data )
     end
     
     it "should correctly create the right type of packet object" do
@@ -277,10 +277,10 @@ describe MQTT::Packet::Connect do
     end
   end
 
-#   describe "when reading and deserialising a Connect packet with a Will and Testament from a socket" do
+#   describe "when reading and deserialising a Connect packet with a Will and Testament" do
 #     before(:each) do
-#       @io = StringIO.new("\x10\x24\x00\x06MQIsdp\x03\x0e\x00\x0a\x00\x08myclient\x00\x05topic\x00\x05hello")
-#       @packet = MQTT::Packet.read( @io )
+#       @data = "\x10\x24\x00\x06MQIsdp\x03\x0e\x00\x0a\x00\x08myclient\x00\x05topic\x00\x05hello"
+#       @packet = MQTT::Packet.parse( @data )
 #     end
 #     
 #     it "should correctly create the right type of packet object" do
@@ -334,10 +334,10 @@ describe MQTT::Packet::Connack do
     end
   end
   
-  describe "when reading and deserialising a successful Connection Accepted packet from a socket" do
+  describe "when reading and deserialising a successful Connection Accepted packet" do
     before(:each) do
-      @io = StringIO.new("\x20\x02\x00\x00")
-      @packet = MQTT::Packet.read( @io )
+      @data = "\x20\x02\x00\x00"
+      @packet = MQTT::Packet.parse( @data )
     end
     
     it "should correctly create the right type of packet object" do
@@ -357,10 +357,10 @@ describe MQTT::Packet::Connack do
     end
   end
   
-  describe "when reading and deserialising a unacceptable protocol version packet from a socket" do
+  describe "when reading and deserialising a unacceptable protocol version packet" do
     before(:each) do
-      @io = StringIO.new("\x20\x02\x00\x01")
-      @packet = MQTT::Packet.read( @io )
+      @data = "\x20\x02\x00\x01"
+      @packet = MQTT::Packet.parse( @data )
     end
     
     it "should correctly create the right type of packet object" do
@@ -376,10 +376,10 @@ describe MQTT::Packet::Connack do
     end
   end
   
-  describe "when reading and deserialising a client identifier rejected packet from a socket" do
+  describe "when reading and deserialising a client identifier rejected packet" do
     before(:each) do
-      @io = StringIO.new("\x20\x02\x00\x02")
-      @packet = MQTT::Packet.read( @io )
+      @data = "\x20\x02\x00\x02"
+      @packet = MQTT::Packet.parse( @data )
     end
     
     it "should correctly create the right type of packet object" do
@@ -395,10 +395,10 @@ describe MQTT::Packet::Connack do
     end
   end
   
-  describe "when reading and deserialising a broker unavailable packet from a socket" do
+  describe "when reading and deserialising a broker unavailable packet" do
     before(:each) do
-      @io = StringIO.new("\x20\x02\x00\x03")
-      @packet = MQTT::Packet.read( @io )
+      @data = "\x20\x02\x00\x03"
+      @packet = MQTT::Packet.parse( @data )
     end
     
     it "should correctly create the right type of packet object" do
@@ -414,10 +414,10 @@ describe MQTT::Packet::Connack do
     end
   end
   
-  describe "when reading and deserialising an unknown connection refused packet from a socket" do
+  describe "when reading and deserialising an unknown connection refused packet" do
     before(:each) do
-      @io = StringIO.new("\x20\x02\x00\x04")
-      @packet = MQTT::Packet.read( @io )
+      @data = "\x20\x02\x00\x04"
+      @packet = MQTT::Packet.parse( @data )
     end
     
     it "should correctly create the right type of packet object" do
@@ -442,10 +442,10 @@ describe MQTT::Packet::Puback do
     end
   end
   
-  describe "when reading and deserialising a packet from a socket" do
+  describe "when parsing a packet" do
     before(:each) do
-      @io = StringIO.new("\x40\x02\x12\x34")
-      @packet = MQTT::Packet.read( @io )
+      @data = "\x40\x02\x12\x34"
+      @packet = MQTT::Packet.parse( @data )
     end
     
     it "should correctly create the right type of packet object" do
@@ -466,10 +466,10 @@ describe MQTT::Packet::Pubrec do
     end
   end
   
-  describe "when reading and deserialising a packet from a socket" do
+  describe "when parsing a packet" do
     before(:each) do
-      @io = StringIO.new("\x50\x02\x12\x34")
-      @packet = MQTT::Packet.read( @io )
+      @data = "\x50\x02\x12\x34"
+      @packet = MQTT::Packet.parse( @data )
     end
     
     it "should correctly create the right type of packet object" do
@@ -490,10 +490,10 @@ describe MQTT::Packet::Pubrel do
     end
   end
   
-  describe "when reading and deserialising a packet from a socket" do
+  describe "when parsing a packet" do
     before(:each) do
-      @io = StringIO.new("\x60\x02\x12\x34")
-      @packet = MQTT::Packet.read( @io )
+      @data = "\x60\x02\x12\x34"
+      @packet = MQTT::Packet.parse( @data )
     end
     
     it "should correctly create the right type of packet object" do
@@ -514,10 +514,10 @@ describe MQTT::Packet::Pubcomp do
     end
   end
   
-  describe "when reading and deserialising a packet from a socket" do
+  describe "when parsing a packet" do
     before(:each) do
-      @io = StringIO.new("\x70\x02\x12\x34")
-      @packet = MQTT::Packet.read( @io )
+      @data = "\x70\x02\x12\x34"
+      @packet = MQTT::Packet.parse( @data )
     end
     
     it "should correctly create the right type of packet object" do
@@ -582,10 +582,10 @@ describe MQTT::Packet::Subscribe do
     end
   end
   
-  describe "when reading and deserialising a packet with a single topic from a socket" do
+  describe "when parsing a packet with a single topic" do
     before(:each) do
-      @io = StringIO.new("\x82\x08\x00\x01\x00\x03a/b\x00")
-      @packet = MQTT::Packet.read( @io )
+      @data = "\x82\x08\x00\x01\x00\x03a/b\x00"
+      @packet = MQTT::Packet.parse( @data )
     end
     
     it "should correctly create the right type of packet object" do
@@ -605,10 +605,10 @@ describe MQTT::Packet::Subscribe do
     end
   end
   
-  describe "when reading and deserialising a packet with a two topics from a socket" do
+  describe "when parsing a packet with a two topics" do
     before(:each) do
-      @io = StringIO.new("\x82\x0e\000\x06\x00\x03a/b\x00\x00\x03c/d\x01")
-      @packet = MQTT::Packet.read( @io )
+      @data = "\x82\x0e\000\x06\x00\x03a/b\x00\x00\x03c/d\x01"
+      @packet = MQTT::Packet.parse( @data )
     end
     
     it "should correctly create the right type of packet object" do
@@ -646,10 +646,10 @@ describe MQTT::Packet::Suback do
     end
   end
   
-  describe "when reading and deserialising a packet from a socket" do
+  describe "when parsing a packet" do
     before(:each) do
-      @io = StringIO.new("\x90\x04\x12\x34\x01\x01")
-      @packet = MQTT::Packet.read( @io )
+      @data = "\x90\x04\x12\x34\x01\x01"
+      @packet = MQTT::Packet.parse( @data )
     end
     
     it "should correctly create the right type of packet object" do
@@ -683,10 +683,10 @@ describe MQTT::Packet::Unsubscribe do
     end
   end
   
-  describe "when reading and deserialising a packet from a socket" do
+  describe "when parsing a packet" do
     before(:each) do
-      @io = StringIO.new("\xa2\f\000\005\000\003a/b\000\003c/d")
-      @packet = MQTT::Packet.read( @io )
+      @data = "\xa2\f\000\005\000\003a/b\000\003c/d"
+      @packet = MQTT::Packet.parse( @data )
     end
     
     it "should correctly create the right type of packet object" do
@@ -711,10 +711,10 @@ describe MQTT::Packet::Unsuback do
     end
   end
   
-  describe "when reading and deserialising a packet from a socket" do
+  describe "when parsing a packet" do
     before(:each) do
-      @io = StringIO.new("\xB0\x02\x12\x34")
-      @packet = MQTT::Packet.read( @io )
+      @data = "\xB0\x02\x12\x34"
+      @packet = MQTT::Packet.parse( @data )
     end
     
     it "should correctly create the right type of packet object" do
@@ -735,10 +735,9 @@ describe MQTT::Packet::Pingreq do
     end
   end
   
-  describe "when reading and deserialising a packet from a socket" do
+  describe "when parsing a packet" do
     it "should correctly create the right type of packet object" do
-      io = StringIO.new("\xC0\x00")
-      packet = MQTT::Packet.read( io )
+      packet = MQTT::Packet.parse( "\xC0\x00" )
       packet.class.should == MQTT::Packet::Pingreq
     end
   end
@@ -752,10 +751,9 @@ describe MQTT::Packet::Pingresp do
     end
   end
   
-  describe "when reading and deserialising a packet from a socket" do
+  describe "when parsing a packet" do
     it "should correctly create the right type of packet object" do
-      io = StringIO.new("\xD0\x00")
-      packet = MQTT::Packet.read( io )
+      packet = MQTT::Packet.parse( "\xD0\x00" )
       packet.class.should == MQTT::Packet::Pingresp
     end
   end
@@ -770,16 +768,16 @@ describe MQTT::Packet::Disconnect do
     end
   end
   
-  describe "when reading and deserialising a packet from a socket" do
+  describe "when parsing a packet" do
     it "should correctly create the right type of packet object" do
-      io = StringIO.new("\xE0\x00")
-      packet = MQTT::Packet.read( io )
+      packet = MQTT::Packet.parse( "\xE0\x00" )
       packet.class.should == MQTT::Packet::Disconnect
     end
     
     it "should throw an exception if the packet has a payload" do
-      io = StringIO.new("\xE0\x05hello")
-      lambda { MQTT::Packet.read( io ) }.should raise_error
+      lambda {
+        MQTT::Packet.parse( "\xE0\x05hello" )
+      }.should raise_error
     end
   end
 end
