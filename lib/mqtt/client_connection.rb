@@ -1,5 +1,3 @@
-require 'stringio'
-
 
 class MQTT::ClientConnection < EventMachine::Connection
   include EventMachine::Deferrable
@@ -29,6 +27,8 @@ class MQTT::ClientConnection < EventMachine::Connection
     @timer = nil
     @last_sent = 0
     @last_received = 0
+    @packet = nil
+    @data = ''
   end
 
   def connection_completed
@@ -64,10 +64,21 @@ class MQTT::ClientConnection < EventMachine::Connection
   end
 
   def receive_data(data)
-    # FIXME: re-factor so we don't need this buffer
-    buffer = StringIO.new(data)
-    # FIXME: cope with partial reads of large packets
-    process_packet MQTT::Packet.read(buffer)
+    @data << data
+
+    # Are we at the start of a new packet?
+    if @packet.nil? and @data.length >= 2
+      @packet = MQTT::Packet.parse_header(@data)
+    end
+
+    # Do we have the the full packet body now?
+    if @packet and @data.length >= @packet.body_length
+      @packet.parse_body(
+        @data.slice!(0...@packet.body_length)
+      )
+      process_packet(@packet)
+      @packet = nil
+    end
   end
   
   # Disconnect from the MQTT broker.
