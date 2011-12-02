@@ -121,7 +121,11 @@ describe MQTT::Packet::Publish do
     end
 
     it "should throw an exception when there is no topic name" do
-      lambda { MQTT::Packet::Publish.new.to_s }.should raise_error
+      lambda {
+        MQTT::Packet::Publish.new.to_s
+      }.should raise_error(
+        'Invalid topic name when serialising packet'
+      )
     end
   end
 
@@ -238,7 +242,11 @@ describe MQTT::Packet::Connect do
     end
 
     it "should throw an exception when there is no client identifier" do
-      lambda { MQTT::Packet::Connect.new.to_s }.should raise_error
+      lambda {
+        MQTT::Packet::Connect.new.to_s
+      }.should raise_error(
+        'Invalid client identifier when serialising packet'
+      )
     end
   end
 
@@ -325,10 +333,6 @@ describe MQTT::Packet::Connack do
     it "should output the correct bytes for a sucessful connection acknowledgement packet" do
       packet = MQTT::Packet::Connack.new( :return_code => 0x00 )
       packet.to_s.should == "\x20\x02\x00\x00"
-    end
-
-    it "should throw an exception when there is no client identifier" do
-      lambda { MQTT::Packet::Connect.new.to_s }.should raise_error
     end
   end
 
@@ -606,7 +610,11 @@ describe MQTT::Packet::Subscribe do
     end
 
     it "should throw an exception when setting topic with a non-string" do
-      lambda { @packet.topics = 56 }.should raise_error
+      lambda {
+        @packet.topics = 56
+      }.should raise_error(
+        'Invalid topics input: 56'
+      )
     end
   end
 
@@ -622,7 +630,11 @@ describe MQTT::Packet::Subscribe do
     end
 
     it "should throw an exception when no topics are given" do
-      lambda { MQTT::Packet::Subscribe.new.to_s }.should raise_error
+      lambda {
+        MQTT::Packet::Subscribe.new.to_s
+      }.should raise_error(
+        'no topics given when serialising packet'
+      )
     end
   end
 
@@ -684,13 +696,19 @@ describe MQTT::Packet::Suback do
     end
 
     it "should throw an exception when no granted QOSs are given" do
-      lambda { MQTT::Packet::Suback.new(:message_id => 7).to_s }.should raise_error
+      lambda {
+        MQTT::Packet::Suback.new(:message_id => 7).to_s
+      }.should raise_error(
+        'no granted QOS given when serialising packet'
+      )
     end
 
     it "should throw an exception if the granted QOSs are not an array" do
       lambda {
         MQTT::Packet::Suback.new(:message_id => 8, :granted_qos => :foo).to_s
-      }.should raise_error
+      }.should raise_error(
+        'granted QOS should be an array of arrays'
+      )
     end
   end
 
@@ -726,7 +744,11 @@ describe MQTT::Packet::Unsubscribe do
     end
 
     it "should throw an exception when no topics are given" do
-      lambda { MQTT::Packet::Unsubscribe.new.to_s }.should raise_error
+      lambda {
+        MQTT::Packet::Unsubscribe.new.to_s
+      }.should raise_error(
+        'no topics given when serialising packet'
+      )
     end
   end
 
@@ -777,7 +799,7 @@ describe MQTT::Packet::Unsuback do
         @packet = MQTT::Packet.parse( "\xB0\x03\x12\x34\x00" )
       }.should raise_error(
         MQTT::ProtocolException,
-        "Extra bytes at end of Connect Acknowledgment packet"
+        "Extra bytes at end of Unsubscribe Acknowledgment packet"
       )
     end
   end
@@ -800,7 +822,9 @@ describe MQTT::Packet::Pingreq do
     it "should throw an exception if the packet has a payload" do
       lambda {
         MQTT::Packet.parse( "\xC0\x05hello" )
-      }.should raise_error
+      }.should raise_error(
+        'Extra bytes at end of Ping Request packet'
+      )
     end
   end
 end
@@ -822,7 +846,9 @@ describe MQTT::Packet::Pingresp do
     it "should throw an exception if the packet has a payload" do
       lambda {
         MQTT::Packet.parse( "\xD0\x05hello" )
-      }.should raise_error
+      }.should raise_error(
+        'Extra bytes at end of Ping Response packet'
+      )
     end
   end
 end
@@ -845,7 +871,9 @@ describe MQTT::Packet::Disconnect do
     it "should throw an exception if the packet has a payload" do
       lambda {
         MQTT::Packet.parse( "\xE0\x05hello" )
-      }.should raise_error
+      }.should raise_error(
+        'Extra bytes at end of Disconnect packet'
+      )
     end
   end
 end
