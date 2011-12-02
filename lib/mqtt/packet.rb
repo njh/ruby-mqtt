@@ -32,6 +32,9 @@ module MQTT
       end while ((digit & 0x80) != 0x00)
       # FIXME: only allow 4 bytes?
 
+      # Store the expected body length in the packet
+      packet.instance_variable_set('@body_length', body_length)
+
       # Read in the packet body
       packet.parse_body( socket.read(body_length) )
 
