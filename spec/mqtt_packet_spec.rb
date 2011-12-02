@@ -10,18 +10,18 @@ describe MQTT::Packet do
       packet = MQTT::Packet.new( :dup => true )
       packet.dup.should == true
     end
-  
+
     it "should allow you to set the packet QOS level as a hash parameter" do
       packet = MQTT::Packet.new( :qos => 2 )
       packet.qos.should == 2
     end
-  
+
     it "should allow you to set the packet retain flag as a hash parameter" do
       packet = MQTT::Packet.new( :retain => true )
       packet.retain.should == true
     end
-  end   
-  
+  end
+
   describe "when setting packet parameters" do
     before(:each) do
       @packet = MQTT::Packet.new(
@@ -30,34 +30,34 @@ describe MQTT::Packet do
         :retain => false
       )
     end
-    
+
     it "should have a type_id method to get the integer ID of the packet type" do
       @packet = MQTT::Packet::Pingreq.new
       @packet.type_id.should == 12
     end
-    
+
     it "should let you change the dup flag of a packet" do
       @packet.dup = true
       @packet.dup.should == true
     end
-    
+
     it "should let you change the dup flag of a packet using an integer" do
       @packet.dup = 1
       @packet.dup.should == true
     end
-    
+
     it "should let you change the retain flag of a packet" do
       @packet.retain = true
       @packet.retain.should == true
     end
-    
+
     it "should let you change the retain flag of a packet using an integer" do
       @packet.retain = 1
       @packet.retain.should == true
     end
   end
-  
-  
+
+
   describe "protected methods" do
     before(:each) do
       @packet = MQTT::Packet.new
@@ -119,69 +119,69 @@ describe MQTT::Packet::Publish do
       packet = MQTT::Packet::Publish.new( :qos => 2, :dup => true, :message_id => 5, :topic => 'c/d', :payload => 'hello world' )
       packet.to_s.should == "\x3C\x12\x00\x03c/d\x00\x05hello world"
     end
-    
+
     it "should throw an exception when there is no topic name" do
       lambda { MQTT::Packet::Publish.new.to_s }.should raise_error
     end
   end
-  
+
   describe "when parsing a packet with QOS 0" do
     before(:each) do
       @data = "\x30\x11\x00\x04testhello world"
       @packet = MQTT::Packet.parse( @data )
     end
-    
+
     it "should correctly create the right type of packet object" do
       @packet.class.should == MQTT::Packet::Publish
     end
-    
+
     it "should set the QOS level correctly" do
       @packet.qos.should == 0
     end
-    
+
     it "should set the RETAIN flag correctly" do
       @packet.retain.should == false
     end
-    
+
     it "should set the DUP flag correctly" do
       @packet.dup.should == false
     end
-    
+
     it "should set the topic name correctly" do
       @packet.topic.should == 'test'
     end
-    
+
     it "should set the payload correctly" do
       @packet.payload.should == 'hello world'
     end
   end
-  
+
   describe "when parsing a packet with QOS 2 and retain and dup flags set" do
     before(:each) do
       @data = "\x3D\x12\x00\x03c/d\x00\x05hello world"
       @packet = MQTT::Packet.parse( @data )
     end
-    
+
     it "should correctly create the right type of packet object" do
       @packet.class.should == MQTT::Packet::Publish
     end
-    
+
     it "should set the QOS level correctly" do
       @packet.qos.should == 2
     end
-    
+
     it "should set the RETAIN flag correctly" do
       @packet.retain.should == true
     end
-    
+
     it "should set the DUP flag correctly" do
       @packet.dup.should == true
     end
-    
+
     it "should set the topic name correctly" do
       @packet.topic.should == 'c/d'
     end
-    
+
     it "should set the payload correctly" do
       @packet.payload.should == 'hello world'
     end
@@ -199,11 +199,11 @@ describe MQTT::Packet::Publish do
     it "should parse the packet type correctly" do
       @packet.class.should == MQTT::Packet::Publish
     end
- 
+
     it "should get the topic name correctly" do
       @packet.topic.should == 'topic'
     end
-   
+
     it "should get the body length correctly" do
       @packet.payload.size.should == 314
     end
@@ -218,7 +218,7 @@ describe MQTT::Packet::Publish do
       @data = "\x30\x87\x80\x01\x00\x05topic" + ('x'*16384)
       @packet = MQTT::Packet.parse( @data )
     end
-   
+
     it "should parse the packet type correctly" do
       @packet.class.should == MQTT::Packet::Publish
     end
@@ -226,7 +226,7 @@ describe MQTT::Packet::Publish do
     it "should get the topic name correctly" do
       @packet.topic.should == 'topic'
     end
-    
+
     it "should get the body length correctly" do
       @packet.payload.size.should == 16384
     end
@@ -240,38 +240,38 @@ describe MQTT::Packet::Connect do
       packet = MQTT::Packet::Connect.new( :client_id => 'myclient' )
       packet.to_s.should == "\020\026\x00\x06MQIsdp\x03\x00\x00\x0a\x00\x08myclient"
     end
-    
+
     it "should throw an exception when there is no client identifier" do
       lambda { MQTT::Packet::Connect.new.to_s }.should raise_error
     end
   end
-  
+
   describe "when parsing a simple Connect packet" do
     before(:each) do
       @data = "\x10\x16\x00\x06MQIsdp\x03\x00\x00\x0a\x00\x08myclient"
       @packet = MQTT::Packet.parse( @data )
     end
-    
+
     it "should correctly create the right type of packet object" do
       @packet.class.should == MQTT::Packet::Connect
     end
-    
+
     it "should set the QOS of the packet correctly" do
       @packet.qos.should == 0
     end
-    
+
     it "should set the Protocol Name of the packet correctly" do
       @packet.protocol_name.should == 'MQIsdp'
     end
-    
+
     it "should set the Protocol Version of the packet correctly" do
       @packet.protocol_version.should == 3
     end
-    
+
     it "should set the Client Identifier of the packet correctly" do
       @packet.client_id.should == 'myclient'
     end
-    
+
     it "should set the Client Identifier of the packet correctly" do
       @packet.keep_alive.should == 10
     end
@@ -282,39 +282,39 @@ describe MQTT::Packet::Connect do
 #       @data = "\x10\x24\x00\x06MQIsdp\x03\x0e\x00\x0a\x00\x08myclient\x00\x05topic\x00\x05hello"
 #       @packet = MQTT::Packet.parse( @data )
 #     end
-#     
+#
 #     it "should correctly create the right type of packet object" do
 #       @packet.class.should == MQTT::Packet::Connect
 #     end
-#     
+#
 #     it "should set the QOS of the packet correctly" do
 #       @packet.qos.should == 0
 #     end
-#     
+#
 #     it "should set the Protocol Name of the packet correctly" do
 #       @packet.protocol_name.should == 'MQIsdp'
 #     end
-#     
+#
 #     it "should set the Protocol Version of the packet correctly" do
 #       @packet.protocol_version.should == 3
 #     end
-#     
+#
 #     it "should set the Client Identifier of the packet correctly" do
 #       @packet.client_id.should == 'myclient'
 #     end
-#     
+#
 #     it "should set the Client Identifier of the packet correctly" do
 #       @packet.will_qos.should == 1
 #     end
-#     
+#
 #     it "should set the Client Identifier of the packet correctly" do
 #       @packet.will_topic.should == 'topic'
 #     end
-#     
+#
 #     it "should set the Client Identifier of the packet correctly" do
 #       @packet.will_payload.should == 'hello'
 #     end
-#     
+#
 #     it "should set the Client Identifier of the packet correctly" do
 #       @packet.keep_alive.should == 10
 #     end
@@ -328,105 +328,105 @@ describe MQTT::Packet::Connack do
       packet = MQTT::Packet::Connack.new( :return_code => 0x00 )
       packet.to_s.should == "\x20\x02\x00\x00"
     end
-    
+
     it "should throw an exception when there is no client identifier" do
       lambda { MQTT::Packet::Connect.new.to_s }.should raise_error
     end
   end
-  
+
   describe "when parsing a successful Connection Accepted packet" do
     before(:each) do
       @packet = MQTT::Packet.parse( "\x20\x02\x00\x00" )
     end
-    
+
     it "should correctly create the right type of packet object" do
       @packet.class.should == MQTT::Packet::Connack
     end
-    
+
     it "should set the QOS of the packet correctly" do
       @packet.qos.should == 0
     end
-    
+
     it "should set the return code of the packet correctly" do
       @packet.return_code.should == 0x00
     end
-    
+
     it "should set the return message of the packet correctly" do
       @packet.return_msg.should match(/Connection Accepted/i)
     end
   end
-  
+
   describe "when parsing a unacceptable protocol version packet" do
     before(:each) do
       @data = "\x20\x02\x00\x01"
       @packet = MQTT::Packet.parse( @data )
     end
-    
+
     it "should correctly create the right type of packet object" do
       @packet.class.should == MQTT::Packet::Connack
     end
-    
+
     it "should set the return code of the packet correctly" do
       @packet.return_code.should == 0x01
     end
-    
+
     it "should set the return message of the packet correctly" do
       @packet.return_msg.should match(/unacceptable protocol version/i)
     end
   end
-  
+
   describe "when parsing a client identifier rejected packet" do
     before(:each) do
       @data = "\x20\x02\x00\x02"
       @packet = MQTT::Packet.parse( @data )
     end
-    
+
     it "should correctly create the right type of packet object" do
       @packet.class.should == MQTT::Packet::Connack
     end
-    
+
     it "should set the return code of the packet correctly" do
       @packet.return_code.should == 0x02
     end
-    
+
     it "should set the return message of the packet correctly" do
       @packet.return_msg.should match(/client identifier rejected/i)
     end
   end
-  
+
   describe "when parsing a broker unavailable packet" do
     before(:each) do
       @data = "\x20\x02\x00\x03"
       @packet = MQTT::Packet.parse( @data )
     end
-    
+
     it "should correctly create the right type of packet object" do
       @packet.class.should == MQTT::Packet::Connack
     end
-    
+
     it "should set the return code of the packet correctly" do
       @packet.return_code.should == 0x03
     end
-    
+
     it "should set the return message of the packet correctly" do
       @packet.return_msg.should match(/broker unavailable/i)
     end
   end
-  
+
   describe "when parsing an unknown connection refused packet" do
     before(:each) do
       @data = "\x20\x02\x00\x04"
       @packet = MQTT::Packet.parse( @data )
     end
-    
+
     it "should correctly create the right type of packet object" do
       @packet.class.should == MQTT::Packet::Connack
     end
-    
+
     it "should set the return code of the packet correctly" do
       @packet.return_code.should == 0x04
     end
-    
+
     it "should set the return message of the packet correctly" do
       @packet.return_msg.should match(/Connection refused: error code 4/i)
     end
@@ -451,19 +451,30 @@ describe MQTT::Packet::Puback do
       packet.to_s.should == "\x40\x02\x12\x34"
     end
   end
-  
+
   describe "when parsing a packet" do
     before(:each) do
       @data = "\x40\x02\x12\x34"
       @packet = MQTT::Packet.parse( @data )
     end
-    
+
     it "should correctly create the right type of packet object" do
       @packet.class.should == MQTT::Packet::Puback
     end
-    
+
     it "should set the message id of the packet correctly" do
       @packet.message_id.should == 0x1234
+    end
+  end
+
+  describe "when parsing packet with extra bytes on the end" do
+    it "should throw an exception" do
+      lambda {
+        @packet = MQTT::Packet.parse( "\x40\x03\x12\x34\x00" )
+      }.should raise_error(
+        MQTT::ProtocolException,
+        "Extra bytes at end of Publish Acknowledgment packet"
+      )
     end
   end
 end
@@ -475,19 +486,30 @@ describe MQTT::Packet::Pubrec do
       packet.to_s.should == "\x50\x02\x12\x34"
     end
   end
-  
+
   describe "when parsing a packet" do
     before(:each) do
       @data = "\x50\x02\x12\x34"
       @packet = MQTT::Packet.parse( @data )
     end
-    
+
     it "should correctly create the right type of packet object" do
       @packet.class.should == MQTT::Packet::Pubrec
     end
-    
+
     it "should set the message id of the packet correctly" do
       @packet.message_id.should == 0x1234
+    end
+  end
+
+  describe "when parsing packet with extra bytes on the end" do
+    it "should throw an exception" do
+      lambda {
+        @packet = MQTT::Packet.parse( "\x50\x03\x12\x34\x00" )
+      }.should raise_error(
+        MQTT::ProtocolException,
+        "Extra bytes at end of Publish Received packet"
+      )
     end
   end
 end
@@ -499,19 +521,30 @@ describe MQTT::Packet::Pubrel do
       packet.to_s.should == "\x60\x02\x12\x34"
     end
   end
-  
+
   describe "when parsing a packet" do
     before(:each) do
       @data = "\x60\x02\x12\x34"
       @packet = MQTT::Packet.parse( @data )
     end
-    
+
     it "should correctly create the right type of packet object" do
       @packet.class.should == MQTT::Packet::Pubrel
     end
-    
+
     it "should set the message id of the packet correctly" do
       @packet.message_id.should == 0x1234
+    end
+  end
+
+  describe "when parsing packet with extra bytes on the end" do
+    it "should throw an exception" do
+      lambda {
+        @packet = MQTT::Packet.parse( "\x60\x03\x12\x34\x00" )
+      }.should raise_error(
+        MQTT::ProtocolException,
+        "Extra bytes at end of Publish Release packet"
+      )
     end
   end
 end
@@ -523,19 +556,30 @@ describe MQTT::Packet::Pubcomp do
       packet.to_s.should == "\x70\x02\x12\x34"
     end
   end
-  
+
   describe "when parsing a packet" do
     before(:each) do
       @data = "\x70\x02\x12\x34"
       @packet = MQTT::Packet.parse( @data )
     end
-    
+
     it "should correctly create the right type of packet object" do
       @packet.class.should == MQTT::Packet::Pubcomp
     end
-    
+
     it "should set the message id of the packet correctly" do
       @packet.message_id.should == 0x1234
+    end
+  end
+
+  describe "when parsing packet with extra bytes on the end" do
+    it "should throw an exception" do
+      lambda {
+        @packet = MQTT::Packet.parse( "\x70\x03\x12\x34\x00" )
+      }.should raise_error(
+        MQTT::ProtocolException,
+        "Extra bytes at end of Publish Complete packet"
+      )
     end
   end
 end
@@ -545,27 +589,27 @@ describe MQTT::Packet::Subscribe do
     before(:each) do
       @packet = MQTT::Packet::Subscribe.new
     end
-  
+
     it "should be able to set the topics from a String 'a/b'" do
       @packet.topics = 'a/b'
       @packet.topics.should == [["a/b", 0]]
     end
-  
+
     it "should be able to set the multiple topics from an array ['a/b', 'b/c']" do
       @packet.topics = ['a/b', 'b/c']
       @packet.topics.should == [["a/b", 0], ['b/c', 0]]
     end
-  
+
     it "should be able to set the topics from a Hash {'a/b' => 0, 'b/c' => 1}" do
       @packet.topics = {'a/b' => 0, 'b/c' => 1}
       @packet.topics.should == [["a/b", 0], ["b/c", 1]]
     end
-  
+
     it "should be able to set the topics from a single level array ['a/b', 0]" do
       @packet.topics = ['a/b', 0]
       @packet.topics.should == [["a/b", 0]]
     end
-  
+
     it "should be able to set the topics from a two level array [['a/b' => 0], ['b/c' => 1]]" do
       @packet.topics = [['a/b', 0], ['b/c', 1]]
       @packet.topics.should == [['a/b', 0], ['b/c', 1]]
@@ -586,53 +630,53 @@ describe MQTT::Packet::Subscribe do
       packet = MQTT::Packet::Subscribe.new( :topics => [['a/b', 0], ['c/d', 1]], :message_id => 6 )
       packet.to_s.should == "\x82\x0e\000\x06\x00\x03a/b\x00\x00\x03c/d\x01"
     end
-    
+
     it "should throw an exception when no topics are given" do
       lambda { MQTT::Packet::Subscribe.new.to_s }.should raise_error
     end
   end
-  
+
   describe "when parsing a packet with a single topic" do
     before(:each) do
       @data = "\x82\x08\x00\x01\x00\x03a/b\x00"
       @packet = MQTT::Packet.parse( @data )
     end
-    
+
     it "should correctly create the right type of packet object" do
       @packet.class.should == MQTT::Packet::Subscribe
     end
-    
+
     it "should set the QOS level correctly" do
       @packet.qos.should == 1
     end
-    
+
     it "should set the Message ID correctly" do
       @packet.message_id.should == 1
     end
-   
+
     it "should set the topic name correctly" do
       @packet.topics.should == [['a/b',0]]
     end
   end
-  
+
   describe "when parsing a packet with a two topics" do
     before(:each) do
       @data = "\x82\x0e\000\x06\x00\x03a/b\x00\x00\x03c/d\x01"
       @packet = MQTT::Packet.parse( @data )
     end
-    
+
     it "should correctly create the right type of packet object" do
       @packet.class.should == MQTT::Packet::Subscribe
     end
-    
+
     it "should set the QOS level correctly" do
       @packet.qos.should == 1
     end
-    
+
     it "should set the Message ID correctly" do
       @packet.message_id.should == 6
     end
-   
+
     it "should set the topic name correctly" do
       @packet.topics.should == [['a/b',0],['c/d',1]]
     end
@@ -650,26 +694,32 @@ describe MQTT::Packet::Suback do
       packet = MQTT::Packet::Suback.new( :granted_qos => [[0,0],[1,0]], :message_id => 6 )
       packet.to_s.should == "\x90\x06\x00\x06\x00\x00\x01\x00"
     end
-    
+
     it "should throw an exception when no granted QOSs are given" do
-      lambda { MQTT::Packet::Unsubscribe.new.to_s }.should raise_error
+      lambda { MQTT::Packet::Suback.new(:message_id => 7).to_s }.should raise_error
+    end
+
+    it "should throw an exception if the granted QOSs are not an array" do
+      lambda {
+        MQTT::Packet::Suback.new(:message_id => 8, :granted_qos => :foo).to_s
+      }.should raise_error
     end
   end
-  
+
   describe "when parsing a packet" do
     before(:each) do
       @data = "\x90\x04\x12\x34\x01\x01"
       @packet = MQTT::Packet.parse( @data )
     end
-    
+
     it "should correctly create the right type of packet object" do
       @packet.class.should == MQTT::Packet::Suback
     end
-    
+
     it "should set the message id of the packet correctly" do
       @packet.message_id.should == 0x1234
     end
-    
+
     it "should set the Granted QOS of the packet correctly" do
       @packet.granted_qos.should == [[1,1]]
     end
@@ -687,26 +737,26 @@ describe MQTT::Packet::Unsubscribe do
       packet = MQTT::Packet::Unsubscribe.new( :topics => ['a/b','c/d'], :message_id => 6 )
       packet.to_s.should == "\xa2\x0c\000\006\000\003a/b\000\003c/d"
     end
-    
+
     it "should throw an exception when no topics are given" do
       lambda { MQTT::Packet::Unsubscribe.new.to_s }.should raise_error
     end
   end
-  
+
   describe "when parsing a packet" do
     before(:each) do
       @data = "\xa2\f\000\005\000\003a/b\000\003c/d"
       @packet = MQTT::Packet.parse( @data )
     end
-    
+
     it "should correctly create the right type of packet object" do
       @packet.class.should == MQTT::Packet::Unsubscribe
     end
-    
+
     it "should set the QOS level correctly" do
       @packet.qos.should == 1
     end
-    
+
     it "should set the topic name correctly" do
       @packet.topics.should == ['a/b','c/d']
     end
@@ -720,19 +770,30 @@ describe MQTT::Packet::Unsuback do
       packet.to_s.should == "\xB0\x02\x12\x34"
     end
   end
-  
+
   describe "when parsing a packet" do
     before(:each) do
       @data = "\xB0\x02\x12\x34"
       @packet = MQTT::Packet.parse( @data )
     end
-    
+
     it "should correctly create the right type of packet object" do
       @packet.class.should == MQTT::Packet::Unsuback
     end
-    
+
     it "should set the message id of the packet correctly" do
       @packet.message_id.should == 0x1234
+    end
+  end
+
+  describe "when parsing packet with extra bytes on the end" do
+    it "should throw an exception" do
+      lambda {
+        @packet = MQTT::Packet.parse( "\xB0\x03\x12\x34\x00" )
+      }.should raise_error(
+        MQTT::ProtocolException,
+        "Extra bytes at end of Connect Acknowledgment packet"
+      )
     end
   end
 end
@@ -744,7 +805,7 @@ describe MQTT::Packet::Pingreq do
       packet.to_s.should == "\xC0\x00"
     end
   end
-  
+
   describe "when parsing a packet" do
     it "should correctly create the right type of packet object" do
       packet = MQTT::Packet.parse( "\xC0\x00" )
@@ -766,7 +827,7 @@ describe MQTT::Packet::Pingresp do
       packet.to_s.should == "\xD0\x00"
     end
   end
-  
+
   describe "when parsing a packet" do
     it "should correctly create the right type of packet object" do
       packet = MQTT::Packet.parse( "\xD0\x00" )
@@ -789,13 +850,13 @@ describe MQTT::Packet::Disconnect do
       packet.to_s.should == "\xE0\x00"
     end
   end
-  
+
   describe "when parsing a packet" do
     it "should correctly create the right type of packet object" do
       packet = MQTT::Packet.parse( "\xE0\x00" )
       packet.class.should == MQTT::Packet::Disconnect
     end
-    
+
     it "should throw an exception if the packet has a payload" do
       lambda {
         MQTT::Packet.parse( "\xE0\x05hello" )
