@@ -127,8 +127,7 @@ describe MQTT::Packet::Publish do
 
   describe "when parsing a packet with QOS 0" do
     before(:each) do
-      @data = "\x30\x11\x00\x04testhello world"
-      @packet = MQTT::Packet.parse( @data )
+      @packet = MQTT::Packet.parse( "\x30\x11\x00\x04testhello world" )
     end
 
     it "should correctly create the right type of packet object" do
@@ -158,8 +157,7 @@ describe MQTT::Packet::Publish do
 
   describe "when parsing a packet with QOS 2 and retain and dup flags set" do
     before(:each) do
-      @data = "\x3D\x12\x00\x03c/d\x00\x05hello world"
-      @packet = MQTT::Packet.parse( @data )
+      @packet = MQTT::Packet.parse( "\x3D\x12\x00\x03c/d\x00\x05hello world" )
     end
 
     it "should correctly create the right type of packet object" do
@@ -192,8 +190,7 @@ describe MQTT::Packet::Publish do
       # 0x30 = publish
       # 0xC1 = (65 * 1)
       # 0x02 = (2 * 128)
-      @data = "\x30\xC1\x02\x00\x05topic" + ('x' * 314)
-      @packet = MQTT::Packet.parse( @data )
+      @packet = MQTT::Packet.parse( "\x30\xC1\x02\x00\x05topic" + ('x' * 314) )
     end
 
     it "should parse the packet type correctly" do
@@ -215,8 +212,7 @@ describe MQTT::Packet::Publish do
       # 0x87 = (7 * 1)
       # 0x80 = (0 * 128)
       # 0x01 = (1 * 16384)
-      @data = "\x30\x87\x80\x01\x00\x05topic" + ('x'*16384)
-      @packet = MQTT::Packet.parse( @data )
+      @packet = MQTT::Packet.parse( "\x30\x87\x80\x01\x00\x05topic" + ('x'*16384) )
     end
 
     it "should parse the packet type correctly" do
@@ -248,8 +244,9 @@ describe MQTT::Packet::Connect do
 
   describe "when parsing a simple Connect packet" do
     before(:each) do
-      @data = "\x10\x16\x00\x06MQIsdp\x03\x00\x00\x0a\x00\x08myclient"
-      @packet = MQTT::Packet.parse( @data )
+      @packet = MQTT::Packet.parse(
+        "\x10\x16\x00\x06MQIsdp\x03\x00\x00\x0a\x00\x08myclient"
+      )
     end
 
     it "should correctly create the right type of packet object" do
@@ -279,8 +276,9 @@ describe MQTT::Packet::Connect do
 
 #   describe "when parsing a Connect packet with a Will and Testament" do
 #     before(:each) do
-#       @data = "\x10\x24\x00\x06MQIsdp\x03\x0e\x00\x0a\x00\x08myclient\x00\x05topic\x00\x05hello"
-#       @packet = MQTT::Packet.parse( @data )
+#       @packet = MQTT::Packet.parse(
+#         "\x10\x24\x00\x06MQIsdp\x03\x0e\x00\x0a\x00\x08myclient\x00\x05topic\x00\x05hello"
+#       )
 #     end
 #
 #     it "should correctly create the right type of packet object" do
@@ -358,8 +356,7 @@ describe MQTT::Packet::Connack do
 
   describe "when parsing a unacceptable protocol version packet" do
     before(:each) do
-      @data = "\x20\x02\x00\x01"
-      @packet = MQTT::Packet.parse( @data )
+      @packet = MQTT::Packet.parse( "\x20\x02\x00\x01" )
     end
 
     it "should correctly create the right type of packet object" do
@@ -377,8 +374,7 @@ describe MQTT::Packet::Connack do
 
   describe "when parsing a client identifier rejected packet" do
     before(:each) do
-      @data = "\x20\x02\x00\x02"
-      @packet = MQTT::Packet.parse( @data )
+      @packet = MQTT::Packet.parse( "\x20\x02\x00\x02" )
     end
 
     it "should correctly create the right type of packet object" do
@@ -396,8 +392,7 @@ describe MQTT::Packet::Connack do
 
   describe "when parsing a broker unavailable packet" do
     before(:each) do
-      @data = "\x20\x02\x00\x03"
-      @packet = MQTT::Packet.parse( @data )
+      @packet = MQTT::Packet.parse( "\x20\x02\x00\x03" )
     end
 
     it "should correctly create the right type of packet object" do
@@ -415,8 +410,7 @@ describe MQTT::Packet::Connack do
 
   describe "when parsing an unknown connection refused packet" do
     before(:each) do
-      @data = "\x20\x02\x00\x04"
-      @packet = MQTT::Packet.parse( @data )
+      @packet = MQTT::Packet.parse( "\x20\x02\x00\x04" )
     end
 
     it "should correctly create the right type of packet object" do
@@ -454,8 +448,7 @@ describe MQTT::Packet::Puback do
 
   describe "when parsing a packet" do
     before(:each) do
-      @data = "\x40\x02\x12\x34"
-      @packet = MQTT::Packet.parse( @data )
+      @packet = MQTT::Packet.parse( "\x40\x02\x12\x34" )
     end
 
     it "should correctly create the right type of packet object" do
@@ -489,8 +482,7 @@ describe MQTT::Packet::Pubrec do
 
   describe "when parsing a packet" do
     before(:each) do
-      @data = "\x50\x02\x12\x34"
-      @packet = MQTT::Packet.parse( @data )
+      @packet = MQTT::Packet.parse( "\x50\x02\x12\x34" )
     end
 
     it "should correctly create the right type of packet object" do
@@ -524,8 +516,7 @@ describe MQTT::Packet::Pubrel do
 
   describe "when parsing a packet" do
     before(:each) do
-      @data = "\x60\x02\x12\x34"
-      @packet = MQTT::Packet.parse( @data )
+      @packet = MQTT::Packet.parse( "\x60\x02\x12\x34" )
     end
 
     it "should correctly create the right type of packet object" do
@@ -559,8 +550,7 @@ describe MQTT::Packet::Pubcomp do
 
   describe "when parsing a packet" do
     before(:each) do
-      @data = "\x70\x02\x12\x34"
-      @packet = MQTT::Packet.parse( @data )
+      @packet = MQTT::Packet.parse( "\x70\x02\x12\x34" )
     end
 
     it "should correctly create the right type of packet object" do
@@ -638,8 +628,7 @@ describe MQTT::Packet::Subscribe do
 
   describe "when parsing a packet with a single topic" do
     before(:each) do
-      @data = "\x82\x08\x00\x01\x00\x03a/b\x00"
-      @packet = MQTT::Packet.parse( @data )
+      @packet = MQTT::Packet.parse( "\x82\x08\x00\x01\x00\x03a/b\x00" )
     end
 
     it "should correctly create the right type of packet object" do
@@ -661,8 +650,7 @@ describe MQTT::Packet::Subscribe do
 
   describe "when parsing a packet with a two topics" do
     before(:each) do
-      @data = "\x82\x0e\000\x06\x00\x03a/b\x00\x00\x03c/d\x01"
-      @packet = MQTT::Packet.parse( @data )
+      @packet = MQTT::Packet.parse( "\x82\x0e\000\x06\x00\x03a/b\x00\x00\x03c/d\x01" )
     end
 
     it "should correctly create the right type of packet object" do
@@ -708,8 +696,7 @@ describe MQTT::Packet::Suback do
 
   describe "when parsing a packet" do
     before(:each) do
-      @data = "\x90\x04\x12\x34\x01\x01"
-      @packet = MQTT::Packet.parse( @data )
+      @packet = MQTT::Packet.parse( "\x90\x04\x12\x34\x01\x01" )
     end
 
     it "should correctly create the right type of packet object" do
@@ -745,8 +732,7 @@ describe MQTT::Packet::Unsubscribe do
 
   describe "when parsing a packet" do
     before(:each) do
-      @data = "\xa2\f\000\005\000\003a/b\000\003c/d"
-      @packet = MQTT::Packet.parse( @data )
+      @packet = MQTT::Packet.parse( "\xa2\f\000\005\000\003a/b\000\003c/d" )
     end
 
     it "should correctly create the right type of packet object" do
@@ -773,8 +759,7 @@ describe MQTT::Packet::Unsuback do
 
   describe "when parsing a packet" do
     before(:each) do
-      @data = "\xB0\x02\x12\x34"
-      @packet = MQTT::Packet.parse( @data )
+      @packet = MQTT::Packet.parse( "\xB0\x02\x12\x34" )
     end
 
     it "should correctly create the right type of packet object" do
