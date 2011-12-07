@@ -10,6 +10,11 @@ class MQTT::ServerConnection < MQTT::Connection
   attr_accessor :subscriptions
 
   attr_reader :timer
+  attr_reader :logger
+
+  def initialize(logger)
+    @logger = logger
+  end
 
   def post_init
     super
@@ -27,7 +32,7 @@ class MQTT::ServerConnection < MQTT::Connection
   end
 
   def process_packet(packet)
-    puts "#{client_id}: #{packet.inspect}"
+    logger.debug("#{client_id}: #{packet.inspect}")
 
     if state == :wait_connect and packet.class == MQTT::Packet::Connect
       connect(packet)
@@ -38,11 +43,13 @@ class MQTT::ServerConnection < MQTT::Connection
     elsif state == :connected and packet.class == MQTT::Packet::Publish
       publish(packet)
     elsif packet.class == MQTT::Packet::Disconnect
-      puts "#{client_id} has disconnected"
+      logger.info("#{client_id} has disconnected")
       disconnect
     else
       # FIXME: deal with other packet types
-      puts "Protocol Error."
+      raise MQTT::ProtocolException.new(
+        "Wasn't expecting packet of type #{packet.class} when in state #{state}"
+      )
       disconnect
     end
   end
@@ -55,16 +62,16 @@ class MQTT::ServerConnection < MQTT::Connection
     send_packet MQTT::Packet::Connack.new
     @state = :connected
     @@clients << self
-    puts "#{client_id} is now connected"
+    logger.info("#{client_id} is now connected")
 
     # Setup a keep-alive timer
     if packet.keep_alive
       @keep_alive = packet.keep_alive
-      puts "#{client_id}: Setting keep alive timer to #{@keep_alive} seconds"
+      logger.debug("#{client_id}: Setting keep alive timer to #{@keep_alive} seconds")
       @timer = EventMachine::PeriodicTimer.new(@keep_alive / 2) do
         last_seen = Time.now - @last_received
         if last_seen > @keep_alive * 1.5
-         puts "Disconnecting '#{client_id}' because it hasn't been seen for #{last_seen} seconds"
+         logger.info("Disconnecting '#{client_id}' because it hasn't been seen for #{last_seen} seconds")
          disconnect
         end
       end
@@ -84,7 +91,7 @@ class MQTT::ServerConnection < MQTT::Connection
     packet.topics.each do |topic,qos|
       self.subscriptions << topic
     end
-    puts "#{client_id} has subscriptions: #{self.subscriptions}"
+    logger.info("#{client_id} has subscriptions: #{self.subscriptions}")
     # FIXME: send subscribe acknowledgement?
   end
 

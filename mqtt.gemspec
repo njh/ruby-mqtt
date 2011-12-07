@@ -17,7 +17,7 @@ Gem::Specification.new do |gem|
 
   gem.files         = %w(README COPYING GPL NEWS) + Dir.glob('lib/**/*.rb')
   gem.test_files    = Dir.glob('spec/*_spec.rb')
-  gem.executables   = %w()
+  gem.executables   = %w(bin/rmqtt)
   gem.require_paths = %w(lib)
 
   gem.add_runtime_dependency     'eventmachine'

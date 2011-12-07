@@ -10,6 +10,8 @@ require "mqtt/version"
 
 module MQTT
 
+  DEFAULT_PORT = 1883
+
   class Exception < Exception
   end
 
@@ -24,6 +26,7 @@ module MQTT
   autoload :Connection,       'mqtt/connection'
   autoload :Packet,           'mqtt/packet'
   autoload :Proxy,            'mqtt/proxy'
+  autoload :Server,           'mqtt/server'
   autoload :ServerConnection, 'mqtt/server_connection'
 
 end
