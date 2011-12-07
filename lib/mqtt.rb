@@ -21,7 +21,9 @@ module MQTT
 
   autoload :Client,           'mqtt/client'
   autoload :ClientConnection, 'mqtt/client_connection'
+  autoload :Connection,       'mqtt/connection'
   autoload :Packet,           'mqtt/packet'
   autoload :Proxy,            'mqtt/proxy'
+  autoload :ServerConnection, 'mqtt/server_connection'
 
 end

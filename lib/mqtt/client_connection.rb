@@ -1,16 +1,13 @@
 
-class MQTT::ClientConnection < EventMachine::Connection
+class MQTT::ClientConnection < MQTT::Connection
   include EventMachine::Deferrable
 
-  attr_reader :state
   attr_reader :client_id
   attr_reader :keep_alive
   attr_reader :clean_start
   attr_reader :message_id
   attr_reader :ack_timeout
   attr_reader :timer
-  attr_reader :last_sent
-  attr_reader :last_received
 
   # FIXME: change this to optionally take hash of options
   def self.connect(host='localhost', port=1883, *args, &blk)
@@ -18,6 +15,7 @@ class MQTT::ClientConnection < EventMachine::Connection
   end
 
   def post_init
+    super
     @state = :connecting
     @client_id = random_letters(16)
     @keep_alive = 10
@@ -25,10 +23,6 @@ class MQTT::ClientConnection < EventMachine::Connection
     @message_id = 0
     @ack_timeout = 5
     @timer = nil
-    @last_sent = 0
-    @last_received = 0
-    @packet = nil
-    @data = ''
   end
 
   def connection_completed
@@ -42,11 +36,6 @@ class MQTT::ClientConnection < EventMachine::Connection
     send_packet(packet)
 
     @state = :connect_sent
-  end
-
-  # Checks whether the client is connected to the broker.
-  def connected?
-    state == :connected
   end
 
   # Publish a message on a particular topic to the MQTT broker.
@@ -63,24 +52,6 @@ class MQTT::ClientConnection < EventMachine::Connection
     send_packet(packet)
   end
 
-  def receive_data(data)
-    @data << data
-
-    # Are we at the start of a new packet?
-    if @packet.nil? and @data.length >= 2
-      @packet = MQTT::Packet.parse_header(@data)
-    end
-
-    # Do we have the the full packet body now?
-    if @packet and @data.length >= @packet.body_length
-      @packet.parse_body(
-        @data.slice!(0...@packet.body_length)
-      )
-      process_packet(@packet)
-      @packet = nil
-    end
-  end
-  
   # Disconnect from the MQTT broker.
   # If you don't want to say goodbye to the broker, set send_msg to false.
   def disconnect(send_msg=true)
@@ -148,7 +119,6 @@ class MQTT::ClientConnection < EventMachine::Connection
 private
 
   def process_packet(packet)
-    @last_received = Time.now
     if state == :connect_sent and packet.class == MQTT::Packet::Connack
       connect_ack(packet)
     elsif state == :connected and packet.class == MQTT::Packet::Pingresp
@@ -178,16 +148,6 @@ private
     
     # We are now connected - can now execute deferred calls
     set_deferred_success
-  end
-
-  def send_packet(packet)
-    # Throw exception if we aren't connected
-    unless packet.class == MQTT::Packet::Connect
-      raise MQTT::NotConnectedException if not connected?
-    end
-
-    send_data(packet.to_s)
-    @last_sent = Time.now
   end
 
   # Generate a string of random letters (0-9,a-z)
