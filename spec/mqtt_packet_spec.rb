@@ -412,7 +412,7 @@ describe MQTT::Packet::Connack do
     end
   end
 
-  describe "when parsing an unknown connection refused packet" do
+  describe "when parsing a broker unavailable packet" do
     before(:each) do
       @packet = MQTT::Packet.parse( "\x20\x02\x00\x04" )
     end
@@ -426,7 +426,43 @@ describe MQTT::Packet::Connack do
     end
 
     it "should set the return message of the packet correctly" do
-      @packet.return_msg.should match(/Connection refused: error code 4/i)
+      @packet.return_msg.should match(/bad user name or password/i)
+    end
+  end
+
+  describe "when parsing a broker unavailable packet" do
+    before(:each) do
+      @packet = MQTT::Packet.parse( "\x20\x02\x00\x05" )
+    end
+
+    it "should correctly create the right type of packet object" do
+      @packet.class.should == MQTT::Packet::Connack
+    end
+
+    it "should set the return code of the packet correctly" do
+      @packet.return_code.should == 0x05
+    end
+
+    it "should set the return message of the packet correctly" do
+      @packet.return_msg.should match(/not authorised/i)
+    end
+  end
+
+  describe "when parsing an unknown connection refused packet" do
+    before(:each) do
+      @packet = MQTT::Packet.parse( "\x20\x02\x00\x10" )
+    end
+
+    it "should correctly create the right type of packet object" do
+      @packet.class.should == MQTT::Packet::Connack
+    end
+
+    it "should set the return code of the packet correctly" do
+      @packet.return_code.should == 0x10
+    end
+
+    it "should set the return message of the packet correctly" do
+      @packet.return_msg.should match(/Connection refused: error code 16/i)
     end
   end
 

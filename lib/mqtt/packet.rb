@@ -343,6 +343,10 @@ module MQTT
             "Connection refused: client identifier rejected"
           when 0x03
             "Connection refused: broker unavailable"
+          when 0x04
+            "Connection refused: bad user name or password"
+          when 0x05
+            "Connection refused: not authorised"
           else
             "Connection refused: error code #{return_code}"
         end
