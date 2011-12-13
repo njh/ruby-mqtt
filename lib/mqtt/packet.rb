@@ -60,9 +60,9 @@ module MQTT
 
       # Create a new packet object
       packet = packet_class.new(
-        :dup => ((buffer[0] & 0x08) >> 3),
+        :dup => ((buffer[0] & 0x08) >> 3) == 0x01,
         :qos => ((buffer[0] & 0x06) >> 1),
-        :retain => ((buffer[0] & 0x01) >> 0)
+        :retain => ((buffer[0] & 0x01) >> 0) == 0x01
       )
 
       # Parse the packet length
@@ -109,7 +109,7 @@ module MQTT
     # Set the dup flag (true/false)
     def dup=(arg)
       if arg.kind_of?(Integer)
-        @dup = (arg != 0 ? true : false)
+        @dup = (arg != 0)
       else
         @dup = arg
       end
@@ -118,7 +118,7 @@ module MQTT
     # Set the retain flag (true/false)
     def retain=(arg)
       if arg.kind_of?(Integer)
-        @retain = (arg != 0 ? true : false)
+        @retain = (arg != 0)
       else
         @retain = arg
       end
@@ -276,6 +276,8 @@ module MQTT
       attr_accessor :will_qos
       attr_accessor :will_retain
       attr_accessor :will_payload
+      attr_accessor :username
+      attr_accessor :password
 
       # Create a new Client Connect packet
       def initialize(args={})
@@ -289,6 +291,8 @@ module MQTT
         self.will_qos = args[:will_qos] || 0
         self.will_retain = args[:will_retain] || false
         self.will_payload = args[:will_payload] || ''
+        self.username = args[:username] || nil
+        self.password = args[:password] || nil
       end
 
       # Get serialisation of packet's body
@@ -315,10 +319,23 @@ module MQTT
         super(buffer)
         @protocol_name = shift_string(buffer)
         @protocol_version = shift_byte(buffer)
-        flags = shift_byte(buffer)
+        @connect_flags = shift_byte(buffer)
+        @clean_start = ((@connect_flags & 0x02) >> 1) == 0x01
         @keep_alive = shift_short(buffer)
         @client_id = shift_string(buffer)
-        # FIXME: implement Will
+        if ((@connect_flags & 0x04) >> 2) == 0x01
+          # Last Will and Testament
+          @will_qos = ((@connect_flags & 0x18) >> 3)
+          @will_retain = ((@connect_flags & 0x20) >> 5) == 0x01
+          @will_topic = shift_string(buffer)
+          @will_payload = shift_string(buffer)
+        end
+        if ((@connect_flags & 0x80) >> 7) == 0x01 and buffer.length > 0
+          @username = shift_string(buffer)
+        end
+        if ((@connect_flags & 0x40) >> 6) == 0x01 and buffer.length > 0
+          @password = shift_string(buffer)
+        end
       end
     end
 
