@@ -8,7 +8,7 @@ describe MQTT::Packet do
   describe "when creating a new packet" do
     it "should allow you to set the packet dup flag as a hash parameter" do
       packet = MQTT::Packet.new( :dup => true )
-      packet.dup.should == true
+      packet.dup.should be_true
     end
 
     it "should allow you to set the packet QOS level as a hash parameter" do
@@ -18,7 +18,7 @@ describe MQTT::Packet do
 
     it "should allow you to set the packet retain flag as a hash parameter" do
       packet = MQTT::Packet.new( :retain => true )
-      packet.retain.should == true
+      packet.retain.should be_true
     end
   end
 
@@ -38,22 +38,22 @@ describe MQTT::Packet do
 
     it "should let you change the dup flag of a packet" do
       @packet.dup = true
-      @packet.dup.should == true
+      @packet.dup.should be_true
     end
 
     it "should let you change the dup flag of a packet using an integer" do
       @packet.dup = 1
-      @packet.dup.should == true
+      @packet.dup.should be_true
     end
 
     it "should let you change the retain flag of a packet" do
       @packet.retain = true
-      @packet.retain.should == true
+      @packet.retain.should be_true
     end
 
     it "should let you change the retain flag of a packet using an integer" do
       @packet.retain = 1
-      @packet.retain.should == true
+      @packet.retain.should be_true
     end
   end
 
@@ -143,11 +143,11 @@ describe MQTT::Packet::Publish do
     end
 
     it "should set the RETAIN flag correctly" do
-      @packet.retain.should == false
+      @packet.retain.should be_false
     end
 
     it "should set the DUP flag correctly" do
-      @packet.dup.should == false
+      @packet.dup.should be_false
     end
 
     it "should set the topic name correctly" do
@@ -173,11 +173,11 @@ describe MQTT::Packet::Publish do
     end
 
     it "should set the RETAIN flag correctly" do
-      @packet.retain.should == true
+      @packet.retain.should be_true
     end
 
     it "should set the DUP flag correctly" do
-      @packet.dup.should == true
+      @packet.dup.should be_true
     end
 
     it "should set the topic name correctly" do
@@ -277,54 +277,239 @@ describe MQTT::Packet::Connect do
       @packet.client_id.should == 'myclient'
     end
 
-    it "should set the Client Identifier of the packet correctly" do
+    it "should set the Keep Alive timer of the packet correctly" do
       @packet.keep_alive.should == 10
+    end
+
+    it "should set not have the clean start flag set" do
+      @packet.clean_start.should be_false
+    end
+
+    it "should set the the username field of the packet to nil" do
+      @packet.username.should be_nil
+    end
+
+    it "should set the the password field of the packet to nil" do
+      @packet.password.should be_nil
     end
   end
 
-#   describe "when parsing a Connect packet with a Will and Testament" do
-#     before(:each) do
-#       @packet = MQTT::Packet.parse(
-#         "\x10\x24\x00\x06MQIsdp\x03\x0e\x00\x0a\x00\x08myclient\x00\x05topic\x00\x05hello"
-#       )
-#     end
-#
-#     it "should correctly create the right type of packet object" do
-#       @packet.class.should == MQTT::Packet::Connect
-#     end
-#
-#     it "should set the QOS of the packet correctly" do
-#       @packet.qos.should == 0
-#     end
-#
-#     it "should set the Protocol Name of the packet correctly" do
-#       @packet.protocol_name.should == 'MQIsdp'
-#     end
-#
-#     it "should set the Protocol Version of the packet correctly" do
-#       @packet.protocol_version.should == 3
-#     end
-#
-#     it "should set the Client Identifier of the packet correctly" do
-#       @packet.client_id.should == 'myclient'
-#     end
-#
-#     it "should set the Client Identifier of the packet correctly" do
-#       @packet.will_qos.should == 1
-#     end
-#
-#     it "should set the Client Identifier of the packet correctly" do
-#       @packet.will_topic.should == 'topic'
-#     end
-#
-#     it "should set the Client Identifier of the packet correctly" do
-#       @packet.will_payload.should == 'hello'
-#     end
-#
-#     it "should set the Client Identifier of the packet correctly" do
-#       @packet.keep_alive.should == 10
-#     end
-#   end
+  describe "when parsing a Connect packet with the clean flag set" do
+    before(:each) do
+      @packet = MQTT::Packet.parse(
+        "\x10\x16\x00\x06MQIsdp\x03\x02\x00\x0a\x00\x08myclient"
+      )
+    end
+
+    it "should set the clean start flag" do
+      @packet.clean_start.should be_true
+    end
+  end
+
+  describe "when parsing a Connect packet with a Will and Testament" do
+    before(:each) do
+      @packet = MQTT::Packet.parse(
+        "\x10\x24\x00\x06MQIsdp\x03\x0e\x00\x0a\x00\x08myclient\x00\x05topic\x00\x05hello"
+      )
+    end
+
+    it "should correctly create the right type of packet object" do
+      @packet.class.should == MQTT::Packet::Connect
+    end
+
+    it "should set the QOS of the packet correctly" do
+      @packet.qos.should == 0
+    end
+
+    it "should set the Protocol Name of the packet correctly" do
+      @packet.protocol_name.should == 'MQIsdp'
+    end
+
+    it "should set the Protocol Version of the packet correctly" do
+      @packet.protocol_version.should == 3
+    end
+
+    it "should set the Client Identifier of the packet correctly" do
+      @packet.client_id.should == 'myclient'
+    end
+
+    it "should set the clean start flag should be set" do
+      @packet.clean_start.should be_true
+    end
+
+    it "should set the QOS of the Will should be 1" do
+      @packet.will_qos.should == 1
+    end
+
+    it "should set the Will retain flag should be false" do
+      @packet.will_retain.should be_false
+    end
+
+    it "should set the Will topic of the packet correctly" do
+      @packet.will_topic.should == 'topic'
+    end
+
+    it "should set the Will payload of the packet correctly" do
+      @packet.will_payload.should == 'hello'
+    end
+  end
+
+  describe "when parsing a Connect packet with a username and password" do
+    before(:each) do
+      @packet = MQTT::Packet.parse(
+        "\x10\x2A"+
+        "\x00\x06MQIsdp"+
+        "\x03\xC0\x00\x0a\x00"+
+        "\x08myclient"+
+        "\x00\x08username"+
+        "\x00\x08password"
+      )
+    end
+
+    it "should correctly create the right type of packet object" do
+      @packet.class.should == MQTT::Packet::Connect
+    end
+
+    it "should set the QOS of the packet correctly" do
+      @packet.qos.should == 0
+    end
+
+    it "should set the Protocol Name of the packet correctly" do
+      @packet.protocol_name.should == 'MQIsdp'
+    end
+
+    it "should set the Protocol Version of the packet correctly" do
+      @packet.protocol_version.should == 3
+    end
+
+    it "should set the Client Identifier of the packet correctly" do
+      @packet.client_id.should == 'myclient'
+    end
+
+    it "should set the Keep Alive Timer of the packet correctly" do
+      @packet.keep_alive.should == 10
+    end
+
+    it "should set the Username of the packet correctly" do
+      @packet.username.should == 'username'
+    end
+
+    it "should set the Username of the packet correctly" do
+      @packet.password.should == 'password'
+    end
+  end
+
+  describe "when parsing a Connect that has a username but no password" do
+    before(:each) do
+      @packet = MQTT::Packet.parse(
+        "\x10\x20\x00\x06MQIsdp\x03\x80\x00\x0a\x00\x08myclient\x00\x08username"
+      )
+    end
+
+    it "should set the Username of the packet correctly" do
+      @packet.username.should == 'username'
+    end
+
+    it "should set the Username of the packet correctly" do
+      @packet.password.should be_nil
+    end
+  end
+
+  describe "when parsing a Connect that has a password but no username" do
+    before(:each) do
+      @packet = MQTT::Packet.parse(
+        "\x10\x20\x00\x06MQIsdp\x03\x40\x00\x0a\x00\x08myclient\x00\x08password"
+      )
+    end
+
+    it "should set the Username of the packet correctly" do
+      @packet.username.should be_nil
+    end
+
+    it "should set the Username of the packet correctly" do
+      @packet.password.should == 'password'
+    end
+  end
+
+  describe "when parsing a Connect packet has the username and password flags set but doesn't have the fields" do
+    before(:each) do
+      @packet = MQTT::Packet.parse(
+        "\x10\x16\x00\x06MQIsdp\x03\xC0\x00\x0a\x00\x08myclient"
+      )
+    end
+
+    it "should set the Username of the packet correctly" do
+      @packet.username.should be_nil
+    end
+
+    it "should set the Username of the packet correctly" do
+      @packet.password.should be_nil
+    end
+  end
+
+  describe "when parsing a Connect packet with every option set" do
+    before(:each) do
+      @packet = MQTT::Packet.parse(
+        "\x10\x5F"+ # fixed header (2)
+        "\x00\x06MQIsdp"+ # protocol name (8)
+        "\x03\xf6"+ # protocol version + flags (2)
+        "\xff\xff"+ # keep alive (2)
+        "\x00\x1712345678901234567890123"+ # client identifier (25)
+        "\x00\x0Awill_topic"+ # will topic (12)
+        "\x00\x0Cwill_message"+ # will message (14)
+        "\x00\x0Euser0123456789"+ # username (16)
+        "\x00\x0Epass0123456789"  # password (16)
+      )
+    end
+
+    it "should correctly create the right type of packet object" do
+      @packet.class.should == MQTT::Packet::Connect
+    end
+
+    it "should set the QOS of the packet correctly" do
+      @packet.qos.should == 0
+    end
+
+    it "should set the Protocol Name of the packet correctly" do
+      @packet.protocol_name.should == 'MQIsdp'
+    end
+
+    it "should set the Protocol Version of the packet correctly" do
+      @packet.protocol_version.should == 3
+    end
+
+    it "should set the Keep Alive Timer of the packet correctly" do
+      @packet.keep_alive.should == 65535
+    end
+
+    it "should set the Client Identifier of the packet correctly" do
+      @packet.client_id.should == '12345678901234567890123'
+    end
+
+    it "should set the Will QoS of the packet correctly" do
+      @packet.will_qos.should == 2
+    end
+
+    it "should set the Will retain flag of the packet correctly" do
+      @packet.will_retain.should be_true
+    end
+
+    it "should set the Will topic of the packet correctly" do
+      @packet.will_topic.should == 'will_topic'
+    end
+
+    it "should set the Will payload of the packet correctly" do
+      @packet.will_payload.should == 'will_message'
+    end
+
+    it "should set the Username of the packet correctly" do
+      @packet.username.should == 'user0123456789'
+    end
+
+    it "should set the Username of the packet correctly" do
+      @packet.password.should == 'pass0123456789'
+    end
+  end
 
 end
 
