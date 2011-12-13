@@ -35,7 +35,7 @@ describe MQTT::Client do
     
     it "should write a valid CONNECT packet to the socket if not connected" do
       @client.connect('myclient')
-      @socket.string.should == "\020\026\x00\x06MQIsdp\x03\x00\x00\x0a\x00\x08myclient"
+      @socket.string.should == "\020\026\x00\x06MQIsdp\x03\x02\x00\x0a\x00\x08myclient"
     end
     
     it "should try and read an acknowledgement packet to the socket if not connected" do
