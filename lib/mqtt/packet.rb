@@ -285,7 +285,7 @@ module MQTT
         self.protocol_name = args[:protocol_name] || 'MQIsdp'
         self.protocol_version = args[:protocol_version] || 0x03
         self.client_id = args[:client_id] || nil
-        self.clean_start = args[:clean_start] || true
+        self.clean_start = args[:clean_start] || false
         self.keep_alive = args[:keep_alive] || 10
         self.will_topic = args[:will_topic] || nil
         self.will_qos = args[:will_qos] || 0
@@ -303,14 +303,25 @@ module MQTT
         end
         body += encode_string(@protocol_name)
         body += encode_bytes(@protocol_version.to_i)
-        body += encode_bytes(0) # Connect Flags
-        body += encode_short(@keep_alive) # Keep Alive timer
+
+        # Set the Connect flags
+        @connect_flags = 0
+        @connect_flags |= 0x02 if @clean_start
+        @connect_flags |= 0x04 unless @will_topic.nil?
+        @connect_flags |= ((@will_qos & 0x03) << 3)
+        @connect_flags |= 0x20 if @will_retain
+        @connect_flags |= 0x40 unless @password.nil?
+        @connect_flags |= 0x80 unless @username.nil?
+        body += encode_bytes(@connect_flags)
+
+        body += encode_short(@keep_alive)
         body += encode_string(@client_id)
-        # FIXME: implement Will
-        #unless @will_topic.nil?
-        #  body += encode_string(@will_topic)
-        #  body += will_payload.to_s
-        #end
+        unless will_topic.nil?
+          body += encode_string(@will_topic)
+          body += encode_string(@will_payload)
+        end
+        body += encode_string(@username) unless @username.nil?
+        body += encode_string(@password) unless @password.nil?
         return body
       end
 
