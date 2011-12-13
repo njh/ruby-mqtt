@@ -248,6 +248,63 @@ describe MQTT::Packet::Connect do
         'Invalid client identifier when serialising packet'
       )
     end
+
+    it "should output the correct bytes for a packet with a Will" do
+      packet = MQTT::Packet::Connect.new(
+        :client_id => 'myclient',
+        :clean_start => true,
+        :will_qos => 1,
+        :will_retain => false,
+        :will_topic => 'topic',
+        :will_payload => 'hello'
+      )
+      packet.to_s.should ==
+        "\x10\x24"+
+        "\x00\x06MQIsdp"+
+        "\x03\x0e\x00\x0a"+
+        "\x00\x08myclient"+
+        "\x00\x05topic\x00\x05hello"
+    end
+
+    it "should output the correct bytes for a packet with a username and password" do
+      packet = MQTT::Packet::Connect.new(
+        :client_id => 'myclient',
+        :username => 'username',
+        :password => 'password'
+      )
+      packet.to_s.should ==
+        "\x10\x2A"+
+        "\x00\x06MQIsdp"+
+        "\x03\xC0\x00\x0a\x00"+
+        "\x08myclient"+
+        "\x00\x08username"+
+        "\x00\x08password"
+    end
+
+    it "should output the correct bytes for a packet with everything" do
+      packet = MQTT::Packet::Connect.new(
+        :client_id => '12345678901234567890123',
+        :clean_start => true,
+        :keep_alive => 65535,
+        :will_qos => 2,
+        :will_retain => true,
+        :will_topic => 'will_topic',
+        :will_payload => 'will_message',
+        :username => 'user0123456789',
+        :password => 'pass0123456789'
+      )
+      packet.to_s.should ==
+        "\x10\x5F"+ # fixed header (2)
+        "\x00\x06MQIsdp"+ # protocol name (8)
+        "\x03\xf6"+ # protocol version + flags (2)
+        "\xff\xff"+ # keep alive (2)
+        "\x00\x1712345678901234567890123"+ # client identifier (25)
+        "\x00\x0Awill_topic"+ # will topic (12)
+        "\x00\x0Cwill_message"+ # will message (14)
+        "\x00\x0Euser0123456789"+ # username (16)
+        "\x00\x0Epass0123456789"  # password (16)
+    end
+
   end
 
   describe "when parsing a simple Connect packet" do
