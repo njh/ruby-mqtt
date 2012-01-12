@@ -20,7 +20,6 @@ Gem::Specification.new do |gem|
   gem.executables   = %w()
   gem.require_paths = %w(lib)
 
-  gem.add_runtime_dependency     'eventmachine'
   gem.add_development_dependency 'bundler',     '>= 1.0.7'
   gem.add_development_dependency 'yard',        '>= 0.7.2'
   gem.add_development_dependency 'rake',        '>= 0.8.7'
