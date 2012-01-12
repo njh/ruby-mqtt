@@ -22,8 +22,8 @@ class MQTT::Proxy
   # NOTE: be careful not to connect to yourself!
   def initialize(args={})
     @local_host = args[:local_host] || '0.0.0.0'
-    @local_port = args[:local_port] || DEFAULT_PORT
-    @broker_host = args[:broker_host] || DEFAULT_HOST
+    @local_port = args[:local_port] || MQTT::DEFAULT_PORT
+    @broker_host = args[:broker_host] || MQTT::DEFAULT_HOST
     @broker_port = args[:broker_port] || 18830
     @select_timeout = args[:select_timeout] || 60
 
