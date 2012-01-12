@@ -11,7 +11,7 @@ class MQTT::Client
   SELECT_TIMEOUT = 0.5
 
   # Create a new MQTT Client instance
-  def initialize(remote_host='localhost', remote_port=1883)
+  def initialize(remote_host=DEFAULT_HOST, remote_port=DEFAULT_PORT)
     @remote_host = remote_host
     @remote_port = remote_port
     @keep_alive = 10
