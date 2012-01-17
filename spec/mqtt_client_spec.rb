@@ -65,6 +65,13 @@ describe MQTT::Client do
         "\x00\x08username"+
         "\x00\x08password"
     end
+
+    it "should reset clean session flag to true, if no client id is given" do
+      @client.client_id = nil
+      @client.clean_session = false
+      @client.connect
+      @client.clean_session.should be_true
+    end
   end
 
   describe "when calling the 'receive_connack' method" do

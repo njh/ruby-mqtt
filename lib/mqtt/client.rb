@@ -22,7 +22,7 @@ class MQTT::Client
     @remote_port = remote_port
     @keep_alive = 10
     @clean_session = true
-    @client_id = random_letters(16)
+    @client_id = nil
     @message_id = 0
     @ack_timeout = 5
     @last_pingreq = Time.now
@@ -38,7 +38,12 @@ class MQTT::Client
   # Connect to the MQTT broker
   # If a block is given, then yield to that block and then disconnect again.
   def connect(clientid=nil)
-    @client_id = clientid unless clientid.nil?
+    if !clientid.nil?
+      @client_id = clientid
+    elsif clientid.nil?
+      @client_id = random_letters(16)
+      @clean_session = true
+    end
 
     if not connected?
       # Create network socket
