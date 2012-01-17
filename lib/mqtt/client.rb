@@ -6,6 +6,8 @@ class MQTT::Client
   attr_accessor :clean_session # Set the 'Clean Session' flag when connecting?
   attr_accessor :client_id     # Client Identifier
   attr_accessor :ack_timeout   # Number of seconds to wait for acknowledgement packets
+  attr_accessor :username      # Username to authenticate to the broker with
+  attr_accessor :password      # Password to authenticate to the broker with
 
   # OLD deprecated clean_start
   alias :clean_start :clean_session
@@ -29,6 +31,8 @@ class MQTT::Client
     @read_queue = Queue.new
     @read_thread = nil
     @write_semaphore = Mutex.new
+    @username = nil
+    @password = nil
   end
 
   # Connect to the MQTT broker
@@ -44,7 +48,9 @@ class MQTT::Client
       packet = MQTT::Packet::Connect.new(
         :clean_session => @clean_session,
         :keep_alive => @keep_alive,
-        :client_id => @client_id
+        :client_id => @client_id,
+        :username => @username,
+        :password => @password
       )
 
       # Send packet

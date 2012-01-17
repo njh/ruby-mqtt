@@ -52,6 +52,19 @@ describe MQTT::Client do
       @client.expects(:disconnect).never
       @client.connect('myclient')
     end
+
+    it "should include the username and password for an authenticated connection" do
+      @client.username = 'username'
+      @client.password = 'password'
+      @client.connect('myclient')
+      @socket.string.should ==
+        "\x10\x2A"+
+        "\x00\x06MQIsdp"+
+        "\x03\xC2\x00\x0a\x00"+
+        "\x08myclient"+
+        "\x00\x08username"+
+        "\x00\x08password"
+    end
   end
 
   describe "when calling the 'receive_connack' method" do
