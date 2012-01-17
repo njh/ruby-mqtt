@@ -246,6 +246,14 @@ describe MQTT::Packet::Connect do
       packet.to_s.should == "\020\026\x00\x06MQIsdp\x03\x02\x00\x0a\x00\x08myclient"
     end
 
+    it "should output the correct bytes for a packet with clean session turned off" do
+      packet = MQTT::Packet::Connect.new(
+        :client_id => 'myclient',
+        :clean_session => false
+      )
+      packet.to_s.should == "\020\026\x00\x06MQIsdp\x03\x00\x00\x0a\x00\x08myclient"
+    end
+
     it "should throw an exception when there is no client identifier" do
       lambda {
         MQTT::Packet::Connect.new.to_s
@@ -257,7 +265,7 @@ describe MQTT::Packet::Connect do
     it "should output the correct bytes for a packet with a Will" do
       packet = MQTT::Packet::Connect.new(
         :client_id => 'myclient',
-        :clean_start => true,
+        :clean_session => true,
         :will_qos => 1,
         :will_retain => false,
         :will_topic => 'topic',
@@ -289,7 +297,7 @@ describe MQTT::Packet::Connect do
     it "should output the correct bytes for a packet with everything" do
       packet = MQTT::Packet::Connect.new(
         :client_id => '12345678901234567890123',
-        :clean_start => true,
+        :clean_session => true,
         :keep_alive => 65535,
         :will_qos => 2,
         :will_retain => true,
@@ -343,8 +351,8 @@ describe MQTT::Packet::Connect do
       @packet.keep_alive.should == 10
     end
 
-    it "should set not have the clean start flag set" do
-      @packet.clean_start.should be_false
+    it "should set not have the clean session flag set" do
+      @packet.clean_session.should be_false
     end
 
     it "should set the the username field of the packet to nil" do
@@ -356,15 +364,15 @@ describe MQTT::Packet::Connect do
     end
   end
 
-  describe "when parsing a Connect packet with the clean flag set" do
+  describe "when parsing a Connect packet with the clean session flag set" do
     before(:each) do
       @packet = MQTT::Packet.parse(
         "\x10\x16\x00\x06MQIsdp\x03\x02\x00\x0a\x00\x08myclient"
       )
     end
 
-    it "should set the clean start flag" do
-      @packet.clean_start.should be_true
+    it "should set the clean session flag" do
+      @packet.clean_session.should be_true
     end
   end
 
@@ -395,8 +403,8 @@ describe MQTT::Packet::Connect do
       @packet.client_id.should == 'myclient'
     end
 
-    it "should set the clean start flag should be set" do
-      @packet.clean_start.should be_true
+    it "should set the clean session flag should be set" do
+      @packet.clean_session.should be_true
     end
 
     it "should set the QOS of the Will should be 1" do

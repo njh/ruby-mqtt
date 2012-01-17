@@ -284,7 +284,7 @@ module MQTT
       attr_accessor :protocol_name
       attr_accessor :protocol_version
       attr_accessor :client_id
-      attr_accessor :clean_start
+      attr_accessor :clean_session
       attr_accessor :keep_alive
       attr_accessor :will_topic
       attr_accessor :will_qos
@@ -293,13 +293,17 @@ module MQTT
       attr_accessor :username
       attr_accessor :password
 
+      # OLD deprecated clean_start
+      alias :clean_start :clean_session
+      alias :clean_start= :clean_session=
+
       # Create a new Client Connect packet
       def initialize(args={})
         super({
           :protocol_name => 'MQIsdp',
           :protocol_version => 0x03,
           :client_id => nil,
-          :clean_start => true,
+          :clean_session => true,
           :keep_alive => 10,
           :will_topic => nil,
           :will_qos => 0,
@@ -321,7 +325,7 @@ module MQTT
 
         # Set the Connect flags
         @connect_flags = 0
-        @connect_flags |= 0x02 if @clean_start
+        @connect_flags |= 0x02 if @clean_session
         @connect_flags |= 0x04 unless @will_topic.nil?
         @connect_flags |= ((@will_qos & 0x03) << 3)
         @connect_flags |= 0x20 if @will_retain
@@ -346,7 +350,7 @@ module MQTT
         @protocol_name = shift_string(buffer)
         @protocol_version = shift_byte(buffer)
         @connect_flags = shift_byte(buffer)
-        @clean_start = ((@connect_flags & 0x02) >> 1) == 0x01
+        @clean_session = ((@connect_flags & 0x02) >> 1) == 0x01
         @keep_alive = shift_short(buffer)
         @client_id = shift_string(buffer)
         if ((@connect_flags & 0x04) >> 2) == 0x01

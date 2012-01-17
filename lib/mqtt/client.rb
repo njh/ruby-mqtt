@@ -1,11 +1,15 @@
 # Client class for talking to an MQTT broker
 class MQTT::Client
-  attr_reader :remote_host    # Hostname of the remote broker
-  attr_reader :remote_port    # Port number of the remote broker
-  attr_accessor :keep_alive   # Time (in seconds) between pings to remote broker
-  attr_accessor :clean_start  # Set the 'Clean Start' flag when connecting?
-  attr_accessor :client_id    # Client Identifier
-  attr_accessor :ack_timeout  # Number of seconds to wait for acknowledgement packets
+  attr_reader :remote_host     # Hostname of the remote broker
+  attr_reader :remote_port     # Port number of the remote broker
+  attr_accessor :keep_alive    # Time (in seconds) between pings to remote broker
+  attr_accessor :clean_session # Set the 'Clean Session' flag when connecting?
+  attr_accessor :client_id     # Client Identifier
+  attr_accessor :ack_timeout   # Number of seconds to wait for acknowledgement packets
+
+  # OLD deprecated clean_start
+  alias :clean_start :clean_session
+  alias :clean_start= :clean_session=
 
   # Timeout between select polls (in seconds)
   SELECT_TIMEOUT = 0.5
@@ -15,7 +19,7 @@ class MQTT::Client
     @remote_host = remote_host
     @remote_port = remote_port
     @keep_alive = 10
-    @clean_start = true
+    @clean_session = true
     @client_id = random_letters(16)
     @message_id = 0
     @ack_timeout = 5
@@ -38,7 +42,7 @@ class MQTT::Client
 
       # Protocol name and version
       packet = MQTT::Packet::Connect.new(
-        :clean_start => @clean_start,
+        :clean_session => @clean_session,
         :keep_alive => @keep_alive,
         :client_id => @client_id
       )
