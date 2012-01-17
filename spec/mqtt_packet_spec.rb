@@ -57,6 +57,11 @@ describe MQTT::Packet do
     end
   end
 
+  it "should let you attributes using the update_attributes method" do
+    @packet = MQTT::Packet.new(:qos => 1)
+    @packet.update_attributes(:qos => 2)
+    @packet.qos.should == 2
+  end
 
   describe "protected methods" do
     before(:each) do
@@ -238,7 +243,7 @@ describe MQTT::Packet::Connect do
   describe "when serialising a packet" do
     it "should output the correct bytes for a packet with no flags" do
       packet = MQTT::Packet::Connect.new( :client_id => 'myclient' )
-      packet.to_s.should == "\020\026\x00\x06MQIsdp\x03\x00\x00\x0a\x00\x08myclient"
+      packet.to_s.should == "\020\026\x00\x06MQIsdp\x03\x02\x00\x0a\x00\x08myclient"
     end
 
     it "should throw an exception when there is no client identifier" do
@@ -275,7 +280,7 @@ describe MQTT::Packet::Connect do
       packet.to_s.should ==
         "\x10\x2A"+
         "\x00\x06MQIsdp"+
-        "\x03\xC0\x00\x0a\x00"+
+        "\x03\xC2\x00\x0a\x00"+
         "\x08myclient"+
         "\x00\x08username"+
         "\x00\x08password"

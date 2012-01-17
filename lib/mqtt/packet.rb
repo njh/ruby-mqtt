@@ -91,10 +91,18 @@ module MQTT
 
     # Create a new empty packet
     def initialize(args={})
-      self.dup = args[:dup] || false
-      self.qos = args[:qos] || 0
-      self.retain = args[:retain] || false
-      @body_length = nil
+      update_attributes({
+        :dup => false,
+        :qos => 0,
+        :retain => false,
+        :body_length => nil
+      }.merge(args))
+    end
+
+    def update_attributes(attr={})
+      attr.each_pair do |k,v|
+        send("#{k}=", v)
+      end
     end
 
     # Get the identifer for this packet type
@@ -127,6 +135,11 @@ module MQTT
     # Set the Quality of Service level (0/1/2)
     def qos=(arg)
       @qos = arg.to_i
+    end
+
+    # Set the length of the packet body
+    def body_length=(arg)
+      @body_length = arg.to_i
     end
 
     # Parse the body (variable header and payload) of a packet
@@ -238,10 +251,11 @@ module MQTT
 
       # Create a new Publish packet
       def initialize(args={})
-        super(args)
-        self.topic = args[:topic] || nil
-        self.message_id = args[:message_id] || 0
-        self.payload = args[:payload] || ''
+        super({
+          :topic => nil,
+          :message_id => 0,
+          :payload => ''
+        }.merge(args))
       end
 
       # Get serialisation of packet's body
@@ -281,18 +295,19 @@ module MQTT
 
       # Create a new Client Connect packet
       def initialize(args={})
-        super(args)
-        self.protocol_name = args[:protocol_name] || 'MQIsdp'
-        self.protocol_version = args[:protocol_version] || 0x03
-        self.client_id = args[:client_id] || nil
-        self.clean_start = args[:clean_start] || false
-        self.keep_alive = args[:keep_alive] || 10
-        self.will_topic = args[:will_topic] || nil
-        self.will_qos = args[:will_qos] || 0
-        self.will_retain = args[:will_retain] || false
-        self.will_payload = args[:will_payload] || ''
-        self.username = args[:username] || nil
-        self.password = args[:password] || nil
+        super({
+          :protocol_name => 'MQIsdp',
+          :protocol_version => 0x03,
+          :client_id => nil,
+          :clean_start => true,
+          :keep_alive => 10,
+          :will_topic => nil,
+          :will_qos => 0,
+          :will_retain => false,
+          :will_payload => '',
+          :username => nil,
+          :password => nil,
+        }.merge(args))
       end
 
       # Get serialisation of packet's body
@@ -356,8 +371,9 @@ module MQTT
 
       # Create a new Client Connect packet
       def initialize(args={})
-        super(args)
-        self.return_code = args[:return_code] || 0
+        super({
+          :return_code => 0x00
+        }.merge(args))
       end
 
       # Get a string message corresponding to a return code
@@ -405,8 +421,9 @@ module MQTT
 
       # Create a new Publish Acknowledgment packet
       def initialize(args={})
-        super(args)
-        self.message_id = args[:message_id] || 0
+        super({
+          :message_id => 0
+        }.merge(args))
       end
 
       # Get serialisation of packet's body
@@ -430,8 +447,9 @@ module MQTT
 
       # Create a new Publish Recieved packet
       def initialize(args={})
-        super(args)
-        self.message_id = args[:message_id] || 0
+        super({
+          :message_id => 0
+        }.merge(args))
       end
 
       # Get serialisation of packet's body
@@ -455,8 +473,9 @@ module MQTT
 
       # Create a new Publish Release packet
       def initialize(args={})
-        super(args)
-        self.message_id = args[:message_id] || 0
+        super({
+          :message_id => 0
+        }.merge(args))
       end
 
       # Get serialisation of packet's body
@@ -480,8 +499,9 @@ module MQTT
 
       # Create a new Publish Complete packet
       def initialize(args={})
-        super(args)
-        self.message_id = args[:message_id] || 0
+        super({
+          :message_id => 0
+        }.merge(args))
       end
 
       # Get serialisation of packet's body
@@ -501,14 +521,15 @@ module MQTT
 
     # Class representing an MQTT Client Subscribe packet
     class Subscribe < MQTT::Packet
-      attr_reader :topics
       attr_accessor :message_id
+      attr_reader :topics
 
       # Create a new Subscribe packet
       def initialize(args={})
-        super(args)
-        self.topics = args[:topics] || []
-        self.message_id = args[:message_id] || 0
+        super({
+          :topics => [],
+          :message_id => 0
+        }.merge(args))
         self.qos = 1 # Force a QOS of 1
       end
 
@@ -587,9 +608,10 @@ module MQTT
 
       # Create a new Subscribe Acknowledgment packet
       def initialize(args={})
-        super(args)
-        self.message_id = args[:message_id] || 0
-        self.granted_qos = args[:granted_qos] || []
+        super({
+          :granted_qos => [],
+          :message_id => 0
+        }.merge(args))
       end
 
       def granted_qos=(value)
@@ -626,9 +648,10 @@ module MQTT
 
       # Create a new Unsubscribe packet
       def initialize(args={})
-        super(args)
-        self.topics = args[:topics] || []
-        self.message_id = args[:message_id] || 0
+        super({
+          :topics => [],
+          :message_id => 0
+        }.merge(args))
         self.qos = 1 # Force a QOS of 1
       end
 
@@ -666,8 +689,9 @@ module MQTT
 
       # Create a new Unsubscribe Acknowledgment packet
       def initialize(args={})
-        super(args)
-        self.message_id = args[:message_id] || 0
+        super({
+          :message_id => 0
+        }.merge(args))
       end
 
       # Get serialisation of packet's body
