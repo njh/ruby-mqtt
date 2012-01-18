@@ -13,11 +13,11 @@ describe MQTT do
     it "should be a string" do
       MQTT::VERSION.should be_a(String)
     end
- 
+
     it "should be in the format x.y.z" do
       MQTT::VERSION.should =~ /^\d{1,2}\.\d{1,2}\.\d{1,2}$/
     end
-  
-  end   
+
+  end
 
 end

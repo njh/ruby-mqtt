@@ -17,7 +17,7 @@ module MQTT
 
   class ProtocolException < MQTT::Exception
   end
-  
+
   class NotConnectedException < MQTT::Exception
   end
 
