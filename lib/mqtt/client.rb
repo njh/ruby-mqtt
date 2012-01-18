@@ -69,7 +69,7 @@ class MQTT::Client
   def connect(clientid=nil)
     if !clientid.nil?
       @client_id = clientid
-    elsif clientid.nil?
+    elsif @clientid.nil?
       @client_id = random_letters(16)
       @clean_session = true
     end
