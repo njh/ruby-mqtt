@@ -7,7 +7,7 @@ Pure Ruby gem that implements the MQTT (Message Queue Telemetry Transport) proto
 Installing
 ----------
 
-You may get the latest stable version from Rubyforge. Source gems are also available.
+You may get the latest stable version from Rubygems:
 
     $ gem install mqtt
 
