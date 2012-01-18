@@ -9,6 +9,59 @@ describe MQTT::Client do
     @client = MQTT::Client.new
     @socket = StringIO.new
   end
+
+  describe "initializing a client" do
+    it "with no arguments, it should use the defaults" do
+      @client = MQTT::Client.new
+      @client.remote_host.should == 'localhost'
+      @client.remote_port.should == 1883
+      @client.keep_alive.should == 15
+    end
+
+    it "with a single string argument, it should use it has the host" do
+      @client = MQTT::Client.new('otherhost.mqtt.org')
+      @client.remote_host.should == 'otherhost.mqtt.org'
+      @client.remote_port.should == 1883
+      @client.keep_alive.should == 15
+    end
+
+    it "with two arguments, it should use it as the host and port" do
+      @client = MQTT::Client.new('otherhost.mqtt.org', 1000)
+      @client.remote_host.should == 'otherhost.mqtt.org'
+      @client.remote_port.should == 1000
+      @client.keep_alive.should == 15
+    end
+
+    it "with names arguments, it should use those as arguments" do
+      @client = MQTT::Client.new(:remote_host => 'otherhost.mqtt.org', :remote_port => 1000)
+      @client.remote_host.should == 'otherhost.mqtt.org'
+      @client.remote_port.should == 1000
+      @client.keep_alive.should == 15
+    end
+
+    it "with a hash, it should use those as arguments" do
+      @client = MQTT::Client.new({:remote_host => 'otherhost.mqtt.org', :remote_port => 1000})
+      @client.remote_host.should == 'otherhost.mqtt.org'
+      @client.remote_port.should == 1000
+      @client.keep_alive.should == 15
+    end
+
+    it "with a hash containing just a keep alive setting" do
+      @client = MQTT::Client.new(:keep_alive => 60)
+      @client.remote_host.should == 'localhost'
+      @client.remote_port.should == 1883
+      @client.keep_alive.should == 60
+    end
+
+    it "with three arguments" do
+      lambda {
+        @client = MQTT::Client.new(1, 2, 3)
+      }.should raise_error(
+        'Unsupported number of arguments'
+      )
+    end
+  end
+
   
   describe "when calling the 'connect' method" do
     before(:each) do
@@ -35,7 +88,7 @@ describe MQTT::Client do
     
     it "should write a valid CONNECT packet to the socket if not connected" do
       @client.connect('myclient')
-      @socket.string.should == "\020\026\x00\x06MQIsdp\x03\x02\x00\x0a\x00\x08myclient"
+      @socket.string.should == "\020\026\x00\x06MQIsdp\x03\x02\x00\x0f\x00\x08myclient"
     end
     
     it "should try and read an acknowledgement packet to the socket if not connected" do
@@ -60,8 +113,8 @@ describe MQTT::Client do
       @socket.string.should ==
         "\x10\x2A"+
         "\x00\x06MQIsdp"+
-        "\x03\xC2\x00\x0a\x00"+
-        "\x08myclient"+
+        "\x03\xC2\x00\x0f"+
+        "\x00\x08myclient"+
         "\x00\x08username"+
         "\x00\x08password"
     end

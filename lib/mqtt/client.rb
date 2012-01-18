@@ -16,23 +16,52 @@ class MQTT::Client
   # Timeout between select polls (in seconds)
   SELECT_TIMEOUT = 0.5
 
+  # Default attribute values
+  ATTR_DEFAULTS = {
+    :remote_host => MQTT::DEFAULT_HOST,
+    :remote_port => MQTT::DEFAULT_PORT,
+    :keep_alive => 15,
+    :clean_session => true,
+    :client_id => nil,
+    :ack_timeout => 5,
+    :username => nil,
+    :password => nil
+  }
+
   # Create a new MQTT Client instance
-  def initialize(remote_host=MQTT::DEFAULT_HOST, remote_port=MQTT::DEFAULT_PORT)
-    @remote_host = remote_host
-    @remote_port = remote_port
-    @keep_alive = 10
-    @clean_session = true
-    @client_id = nil
+  #
+  # Examples:
+  #  mqtt = MQTT::Client.new('myserver.example.com')
+  #  mqtt = MQTT::Client.new('myserver.example.com', 18830)
+  #  mqtt = MQTT::Client.new(:remote_host => 'myserver.example.com')
+  #  mqtt = MQTT::Client.new(:remote_host => 'myserver.example.com', :keep_alive => 30)
+  #
+  def initialize(*args)
+    if args.count == 0
+      args = {}
+    elsif args.count == 1 and args[0].is_a?(Hash)
+      args = args[0]
+    elsif args.count == 1
+      args = {:remote_host => args[0]}
+    elsif args.count == 2
+      args = {:remote_host => args[0], :remote_port => args[1]}
+    else
+      raise ArgumentError, "Unsupported number of arguments"
+    end
+
+    # Merge arguments with default values for attributes
+    ATTR_DEFAULTS.merge(args).each_pair do |k,v|
+      instance_variable_set("@#{k}", v)
+    end
+
+    # Initialise private instance variables
     @message_id = 0
-    @ack_timeout = 5
     @last_pingreq = Time.now
     @last_pingresp = Time.now
     @socket = nil
     @read_queue = Queue.new
     @read_thread = nil
     @write_semaphore = Mutex.new
-    @username = nil
-    @password = nil
   end
 
   # Connect to the MQTT broker
