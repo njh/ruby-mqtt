@@ -56,7 +56,7 @@ Resources
 
 * MQTT Homepage: http://www.mqtt.org/
 * GitHub Project: http://github.com/njh/ruby-mqtt
-* Documentation: http://rdoc.info/github/njh/ruby-mqtt/master/frames
+* API Documentation: http://rubydoc.info/gems/mqtt/frames
 
 
 Contact
