@@ -1,7 +1,8 @@
 ruby-mqtt
 =========
 
-Pure Ruby gem that implements the MQTT (Message Queue Telemetry Transport) protocol, a lightweight protocol for publish/subscribe messaging.
+Pure Ruby gem that implements the MQTT (Message Queue Telemetry Transport) protocol,
+a lightweight protocol for publish/subscribe messaging.
 
 
 Installing
@@ -10,6 +11,7 @@ Installing
 You may get the latest stable version from Rubygems:
 
     $ gem install mqtt
+
 
 Synopsis
 --------
@@ -30,21 +32,10 @@ Synopsis
     end
 
 
-TODO
-----
+Limitations
+-----------
 
-* Implement Will and Testament
-* Process acknowledgement packets / Implement QOS 1 in client
-* More validations of data/parameters
-* More error checking and exception throwing
-  - Check that packet data is valid - don't blindly read values
-  - Subscribe and Unsubscribe packets should always have QOS of 1
-* More examples
-* Integration tests
-* Refactor to add callbacks that are called from seperate thread
-* Implement QOS Level 2 in client
-* Prevent proxy from connecting to itself
-* Add support for binding socket to specific local address
+ * Only QOS 0 currently supported
 
 
 Resources
