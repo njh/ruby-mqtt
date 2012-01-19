@@ -18,17 +18,15 @@ Synopsis
     require 'mqtt'
     
     # Publish example
-    mqtt = MQTT::Client.new('mqtt.example.com')
-    mqtt.connect do |c|
-      c.publish('topic','message')
+    MQTT::Client.connect('mqtt.example.com') do |c|
+      c.publish('topic', 'message')
     end
     
     # Subscribe example
-    mqtt = MQTT::Client.new('mqtt.example.com')
-    client.connect do
-      client.subscribe('test')
+    MQTT::Client.connect('mqtt.example.com') do |c|
+      c.subscribe('test')
       loop do
-        topic,message = client.get
+        topic,message = c.get
         puts "#{topic}: #{message}"
       end
     end
