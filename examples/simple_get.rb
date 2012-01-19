@@ -1,11 +1,14 @@
 #!/usr/bin/env ruby
+#
+# Connect to a local MQTT broker, subscribe to all topics
+# and then loop, displaying any messages received.
+#
 
 $:.unshift File.dirname(__FILE__)+'/../lib'
 
 require 'mqtt'
 
-client = MQTT::Client.new('localhost')
-client.connect do
+MQTT::Client.connect('localhost') do |client|
   client.subscribe('#')
   loop do
     topic,message = client.get

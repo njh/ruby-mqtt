@@ -28,13 +28,28 @@ class MQTT::Client
     :password => nil
   }
 
+  # Create and connect a new MQTT Client
+  # Accepts the same arguments as creating a new client.
+  # If a block is given, then it will be executed before disconnecting again.
+  #
+  # Example:
+  #  MQTT::Client.connect('myserver.example.com') do |client|
+  #    # do stuff here
+  #  end
+  #
+  def self.connect(*args, &block)
+    client = MQTT::Client.new(*args)
+    client.connect(&block)
+    return client
+  end
+
   # Create a new MQTT Client instance
   #
   # Examples:
-  #  mqtt = MQTT::Client.new('myserver.example.com')
-  #  mqtt = MQTT::Client.new('myserver.example.com', 18830)
-  #  mqtt = MQTT::Client.new(:remote_host => 'myserver.example.com')
-  #  mqtt = MQTT::Client.new(:remote_host => 'myserver.example.com', :keep_alive => 30)
+  #  client = MQTT::Client.new('myserver.example.com')
+  #  client = MQTT::Client.new('myserver.example.com', 18830)
+  #  client = MQTT::Client.new(:remote_host => 'myserver.example.com')
+  #  client = MQTT::Client.new(:remote_host => 'myserver.example.com', :keep_alive => 30)
   #
   def initialize(*args)
     if args.count == 0
