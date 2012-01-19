@@ -20,12 +20,12 @@ Synopsis
     require 'mqtt'
     
     # Publish example
-    MQTT::Client.connect('mqtt.example.com') do |c|
+    MQTT::Client.connect('test.mosquitto.org') do |c|
       c.publish('topic', 'message')
     end
     
     # Subscribe example
-    MQTT::Client.connect('mqtt.example.com') do |c|
+    MQTT::Client.connect('test.mosquitto.org') do |c|
       c.get('test') do |topic,message|
         puts "#{topic}: #{message}"
       end

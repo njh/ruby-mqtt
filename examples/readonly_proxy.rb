@@ -7,7 +7,7 @@ require 'mqtt'
 proxy = MQTT::Proxy.new(
     :local_host => '0.0.0.0',
     :local_port => 1883,
-    :broker_host => 'mqtt.example.com',
+    :broker_host => 'test.mosquitto.org',
     :broker_port => 1883
 )
 

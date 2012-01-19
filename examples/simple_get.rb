@@ -9,7 +9,7 @@ $:.unshift File.dirname(__FILE__)+'/../lib'
 require 'rubygems'
 require 'mqtt'
 
-MQTT::Client.connect('rotter.national.core.bbc.co.uk') do |client|
+MQTT::Client.connect('test.mosquitto.org') do |client|
   client.get('#') do |topic,message|
     puts "#{topic}: #{message}"
   end
