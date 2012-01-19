@@ -6,12 +6,11 @@
 
 $:.unshift File.dirname(__FILE__)+'/../lib'
 
+require 'rubygems'
 require 'mqtt'
 
-MQTT::Client.connect('localhost') do |client|
-  client.subscribe('#')
-  loop do
-    topic,message = client.get
+MQTT::Client.connect('rotter.national.core.bbc.co.uk') do |client|
+  client.get('#') do |topic,message|
     puts "#{topic}: #{message}"
   end
 end

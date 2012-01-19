@@ -184,17 +184,31 @@ class MQTT::Client
   end
 
   # Return the next message recieved from the MQTT broker.
-  # This method blocks until a message is available.
+  # An optional topic can be given to subscribe to.
   #
-  # The method returns the topic and message as an array:
+  # The method either returns the topic and message as an array:
   #   topic,message = client.get
   #
-  def get
-    # Wait for a packet to be available
-    packet = @read_queue.pop
-    topic = packet.topic
-    payload = packet.payload
-    return topic,payload
+  # Or can be used with a block to keep processing messages:
+  #   client.get('test') do |topic,payload|
+  #     # Do stuff here
+  #   end
+  #
+  def get(topic=nil)
+    # Subscribe to a topic, if an argument is given
+    subscribe(topic) unless topic.nil?
+
+    if block_given?
+      # Loop forever!
+      loop do
+        packet = @read_queue.pop
+        yield(packet.topic, packet.payload)
+      end
+    else
+      # Wait for one packet to be available
+      packet = @read_queue.pop
+      return packet.topic, packet.payload
+    end
   end
 
   # Send a unsubscribe message for one or more topics on the MQTT broker

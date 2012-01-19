@@ -24,9 +24,7 @@ Synopsis
     
     # Subscribe example
     MQTT::Client.connect('mqtt.example.com') do |c|
-      c.subscribe('test')
-      loop do
-        topic,message = c.get
+      c.get('test') do |topic,message|
         puts "#{topic}: #{message}"
       end
     end
