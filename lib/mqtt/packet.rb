@@ -304,7 +304,7 @@ module MQTT
           :protocol_version => 0x03,
           :client_id => nil,
           :clean_session => true,
-          :keep_alive => 10,
+          :keep_alive => 15,
           :will_topic => nil,
           :will_qos => 0,
           :will_retain => false,
