@@ -62,7 +62,6 @@ describe MQTT::Client do
     end
   end
 
-
   describe "when calling the 'connect' method" do
     before(:each) do
       TCPSocket.stubs(:new).returns(@socket)
@@ -125,6 +124,39 @@ describe MQTT::Client do
       @client.connect
       @client.clean_session.should be_true
     end
+
+    context "with a last will and testament set" do
+      before(:each) do
+        @client.set_will('topic', 'hello', retain=false, qos=1)
+      end
+
+      it "should have set the Will's topic" do
+        @client.will_topic.should == 'topic'
+      end
+
+      it "should have set the Will's payload" do
+        @client.will_payload.should == 'hello'
+      end
+
+      it "should have set the Will's retain flag to true" do
+        @client.will_retain.should be_false
+      end
+
+      it "should have set the Will's retain QOS value to 1" do
+        @client.will_qos.should == 1
+      end
+
+      it "should include the will in the CONNECT message" do
+        @client.connect('myclient')
+        @socket.string.should ==
+          "\x10\x24"+
+          "\x00\x06MQIsdp"+
+          "\x03\x0e\x00\x0f"+
+          "\x00\x08myclient"+
+          "\x00\x05topic\x00\x05hello"
+      end
+    end
+
   end
 
   describe "when calling the 'receive_connack' method" do

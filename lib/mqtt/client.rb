@@ -8,6 +8,10 @@ class MQTT::Client
   attr_accessor :ack_timeout   # Number of seconds to wait for acknowledgement packets
   attr_accessor :username      # Username to authenticate to the broker with
   attr_accessor :password      # Password to authenticate to the broker with
+  attr_accessor :will_topic    # The topic that the Will message is published to
+  attr_accessor :will_payload  # Contents of message that is sent by broker when client disconnect
+  attr_accessor :will_qos      # The QoS level of the will message sent by the broker
+  attr_accessor :will_retain   # If the Will message should be retain by the broker after it is sent
 
   # OLD deprecated clean_start
   alias :clean_start :clean_session
@@ -25,7 +29,11 @@ class MQTT::Client
     :client_id => nil,
     :ack_timeout => 5,
     :username => nil,
-    :password => nil
+    :password => nil,
+    :will_topic => nil,
+    :will_payload => nil,
+    :will_qos => 0,
+    :will_retain => false
   }
 
   # Create and connect a new MQTT Client
@@ -79,6 +87,13 @@ class MQTT::Client
     @write_semaphore = Mutex.new
   end
 
+  def set_will(topic, payload, retain=false, qos=0)
+    self.will_topic = topic
+    self.will_payload = payload
+    self.will_retain = retain
+    self.will_qos = qos
+  end
+
   # Connect to the MQTT broker
   # If a block is given, then yield to that block and then disconnect again.
   def connect(clientid=nil)
@@ -99,7 +114,11 @@ class MQTT::Client
         :keep_alive => @keep_alive,
         :client_id => @client_id,
         :username => @username,
-        :password => @password
+        :password => @password,
+        :will_topic => @will_topic,
+        :will_payload => @will_payload,
+        :will_qos => @will_qos,
+        :will_retain => @will_retain
       )
 
       # Send packet
