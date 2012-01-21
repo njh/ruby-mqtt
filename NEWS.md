@@ -1,6 +1,22 @@
 Ruby MQTT NEWS
 ==============
 
+Ruby MQTT Version 0.0.7 (2011-01-19)
+------------------------------------
+
+* You can now pass a topic and block to client.get
+* Added MQTT::Client.connect class method.
+
+
+Ruby MQTT Version 0.0.5 (2011-01-18)
+------------------------------------
+
+* Implemented setting username and password (MQTT 3.1)
+* Renamed clean_start to clean_session
+* Started using autoload to load classes
+* Modernised Gem building mechanisms
+
+
 Ruby MQTT Version 0.0.4 (2009-02-22)
 ------------------------------------
 
