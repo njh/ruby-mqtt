@@ -7,8 +7,8 @@ describe MQTT::Packet do
 
   describe "when creating a new packet" do
     it "should allow you to set the packet dup flag as a hash parameter" do
-      packet = MQTT::Packet.new( :dup => true )
-      packet.dup.should be_true
+      packet = MQTT::Packet.new( :duplicate => true )
+      packet.duplicate.should be_true
     end
 
     it "should allow you to set the packet QOS level as a hash parameter" do
@@ -25,7 +25,7 @@ describe MQTT::Packet do
   describe "when setting packet parameters" do
     before(:each) do
       @packet = MQTT::Packet.new(
-        :dup => false,
+        :duplicate => false,
         :qos => 0,
         :retain => false
       )
@@ -37,13 +37,13 @@ describe MQTT::Packet do
     end
 
     it "should let you change the dup flag of a packet" do
-      @packet.dup = true
-      @packet.dup.should be_true
+      @packet.duplicate = true
+      @packet.duplicate.should be_true
     end
 
     it "should let you change the dup flag of a packet using an integer" do
-      @packet.dup = 1
-      @packet.dup.should be_true
+      @packet.duplicate = 1
+      @packet.duplicate.should be_true
     end
 
     it "should let you change the retain flag of a packet" do
@@ -121,7 +121,7 @@ describe MQTT::Packet::Publish do
     end
 
     it "should output the correct bytes for a packet with QOS 2 and dup flag set" do
-      packet = MQTT::Packet::Publish.new( :qos => 2, :dup => true, :message_id => 5, :topic => 'c/d', :payload => 'hello world' )
+      packet = MQTT::Packet::Publish.new( :qos => 2, :duplicate => true, :message_id => 5, :topic => 'c/d', :payload => 'hello world' )
       packet.to_s.should == "\x3C\x12\x00\x03c/d\x00\x05hello world"
     end
 
@@ -152,7 +152,7 @@ describe MQTT::Packet::Publish do
     end
 
     it "should set the DUP flag correctly" do
-      @packet.dup.should be_false
+      @packet.duplicate.should be_false
     end
 
     it "should set the topic name correctly" do
@@ -182,7 +182,7 @@ describe MQTT::Packet::Publish do
     end
 
     it "should set the DUP flag correctly" do
-      @packet.dup.should be_true
+      @packet.duplicate.should be_true
     end
 
     it "should set the topic name correctly" do

@@ -3,13 +3,13 @@ module MQTT
   # Class representing a MQTT Packet
   # Performs binary encoding and decoding of headers
   class MQTT::Packet
-    attr_reader :dup         # Duplicate delivery flag
+    attr_reader :duplicate   # Duplicate delivery flag
     attr_reader :retain      # Retain flag
     attr_reader :qos         # Quality of Service level
     attr_reader :body_length # The length of the parsed packet body
 
     DEFAULTS = {
-      :dup => false,
+      :duplicate => false,
       :qos => 0,
       :retain => false,
       :body_length => nil
@@ -24,7 +24,7 @@ module MQTT
 
       # Create a new packet object
       packet = packet_class.new(
-        :dup => ((header & 0x08) >> 3),
+        :duplicate => ((header & 0x08) >> 3),
         :qos => ((header & 0x06) >> 1),
         :retain => ((header & 0x01) >> 0)
       )
@@ -67,7 +67,7 @@ module MQTT
 
       # Create a new packet object
       packet = packet_class.new(
-        :dup => ((buffer[0] & 0x08) >> 3) == 0x01,
+        :duplicate => ((buffer[0] & 0x08) >> 3) == 0x01,
         :qos => ((buffer[0] & 0x06) >> 1),
         :retain => ((buffer[0] & 0x01) >> 0) == 0x01
       )
@@ -117,11 +117,11 @@ module MQTT
     end
 
     # Set the dup flag (true/false)
-    def dup=(arg)
+    def duplicate=(arg)
       if arg.kind_of?(Integer)
-        @dup = (arg != 0)
+        @duplicate = (arg != 0)
       else
-        @dup = arg
+        @duplicate = arg
       end
     end
 
@@ -164,7 +164,7 @@ module MQTT
       # Encode the fixed header
       header = [
         ((type_id.to_i & 0x0F) << 4) |
-        ((dup ? 0x1 : 0x0) << 3) |
+        ((duplicate ? 0x1 : 0x0) << 3) |
         ((qos.to_i & 0x03) << 1) |
         (retain ? 0x1 : 0x0)
       ]
