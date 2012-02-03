@@ -382,7 +382,44 @@ describe MQTT::Client do
       MQTT::Packet.stubs(:read).raises(MQTT::Exception)
       @client.send(:receive_packet)
     end
+  end
 
+  describe "generating a client identifier" do
+    context "with default parameters" do
+      before :all do
+        @client_id = MQTT::Client.generate_client_id
+      end
+
+      it "should be less or equal to 23 characters long" do
+        @client_id.length.should <= 23
+      end
+
+      it "should have a prefix of ruby_" do
+        @client_id.should match(/^ruby_/)
+      end
+
+      it "should end in 16 characters of lowercase letters and numbers" do
+        @client_id.should match(/_[a-z0-9]{16}$/)
+      end
+    end
+
+    context "with an alternative prefix" do
+      before :all do
+        @client_id = MQTT::Client.generate_client_id('test_')
+      end
+
+      it "should be less or equal to 23 characters long" do
+        @client_id.length.should <= 23
+      end
+
+      it "should have a prefix of test_" do
+        @client_id.should match(/^test_/)
+      end
+
+      it "should end in 16 characters of lowercase letters and numbers" do
+        @client_id.should match(/_[a-z0-9]{16}$/)
+      end
+    end
   end
 
 end

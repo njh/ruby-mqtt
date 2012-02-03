@@ -51,6 +51,24 @@ class MQTT::Client
     return client
   end
 
+  # Generate a random client identifier
+  # (using the characters 0-9 and a-z)
+  def self.generate_client_id(prefix='ruby_', length=16)
+    str = prefix.dup
+    length.times do
+      num = rand(36)
+      if (num<10)
+        # Number
+        num += 48
+      else
+        # Letter
+        num += 87
+      end
+      str += num.chr
+    end
+    return str
+  end
+
   # Create a new MQTT Client instance
   #
   # Examples:
@@ -100,7 +118,7 @@ class MQTT::Client
     if !clientid.nil?
       @client_id = clientid
     elsif @clientid.nil?
-      @client_id = random_letters(16)
+      @client_id = MQTT::Client.generate_client_id
       @clean_session = true
     end
 
@@ -301,23 +319,6 @@ private
     @write_semaphore.synchronize do
       @socket.write(data)
     end
-  end
-
-  # Generate a string of random letters (0-9,a-z)
-  def random_letters(count)
-    str = ''
-    count.times do
-      num = rand(36)
-      if (num<10)
-        # Number
-        num += 48
-      else
-        # Letter
-        num += 87
-      end
-      str += num.chr
-    end
-    return str
   end
 
 end
