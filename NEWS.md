@@ -1,6 +1,14 @@
 Ruby MQTT NEWS
 ==============
 
+Ruby MQTT Version 0.0.8 (2011-02-04)
+------------------------------------
+
+* Implemented Last Will and Testament feature.
+* Renamed dup attribute to duplicate to avoid method name clash.
+* Made the random client_id generator a public class method.
+
+
 Ruby MQTT Version 0.0.7 (2011-01-19)
 ------------------------------------
 
