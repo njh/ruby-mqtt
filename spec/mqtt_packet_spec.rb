@@ -1201,6 +1201,19 @@ describe "Serialising an invalid packet" do
   end
 end
 
+describe "Reading in an invalid packet" do 
+  context "that has 0 length" do
+    it "should throw an exception" do
+      lambda {
+        data = StringIO.new
+        MQTT::Packet.read(data)
+      }.should raise_error(
+        MQTT::ProtocolException
+      )
+    end
+  end
+end
+
 describe "Parsing an invalid packet" do
   context "that has an invalid type identifier" do
     it "should throw an exception" do
