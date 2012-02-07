@@ -617,11 +617,16 @@ module MQTT
         @granted_qos ||= []
       end
 
+      # Set the granted QOS value for each of the topics that were subscribed to
+      # Can either be an integer or an array or integers.
       def granted_qos=(value)
-        unless value.is_a?(Array)
-          raise "granted QOS should be an array of arrays"
+        if value.is_a?(Array)
+          @granted_qos = value
+        elsif value.is_a?(Integer)
+          @granted_qos = [value]
+        else
+          raise "granted QOS should be an integer or an array of QOS levels"
         end
-        @granted_qos = value
       end
 
       # Get serialisation of packet's body
@@ -630,7 +635,7 @@ module MQTT
           raise "no granted QOS given when serialising packet"
         end
         body = encode_short(@message_id)
-        granted_qos.flatten.each { |qos| body += encode_bytes(qos) }
+        granted_qos.each { |qos| body += encode_bytes(qos) }
         return body
       end
 
@@ -639,7 +644,7 @@ module MQTT
         super(buffer)
         @message_id = shift_short(buffer)
         while(buffer.length>0)
-          @granted_qos << [shift_byte(buffer),shift_byte(buffer)]
+          @granted_qos << shift_byte(buffer)
         end
       end
     end

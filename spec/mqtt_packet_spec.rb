@@ -977,13 +977,13 @@ end
 describe MQTT::Packet::Suback do
   describe "when serialising a packet" do
     it "should output the correct bytes for an acknowledgement to a single topic" do
-      packet = MQTT::Packet::Suback.new( :granted_qos => [0,1], :message_id => 5 )
-      packet.to_s.should == "\x90\x04\x00\x05\x00\x01"
+      packet = MQTT::Packet::Suback.new( :granted_qos => 0, :message_id => 5 )
+      packet.to_s.should == "\x90\x03\x00\x05\x00"
     end
 
     it "should output the correct bytes for an acknowledgement to a two topics" do
-      packet = MQTT::Packet::Suback.new( :granted_qos => [[0,0],[1,0]], :message_id => 6 )
-      packet.to_s.should == "\x90\x06\x00\x06\x00\x00\x01\x00"
+      packet = MQTT::Packet::Suback.new( :granted_qos => [0,1], :message_id => 6 )
+      packet.to_s.should == "\x90\x04\x00\x06\x00\x01"
     end
 
     it "should throw an exception when no granted QOSs are given" do
@@ -994,16 +994,34 @@ describe MQTT::Packet::Suback do
       )
     end
 
-    it "should throw an exception if the granted QOSs are not an array" do
+    it "should throw an exception if the granted QOS is not an integer" do
       lambda {
-        MQTT::Packet::Suback.new(:message_id => 8, :granted_qos => :foo).to_s
+        MQTT::Packet::Suback.new(:granted_qos => :foo, :message_id => 8).to_s
       }.should raise_error(
-        'granted QOS should be an array of arrays'
+        'granted QOS should be an integer or an array of QOS levels'
       )
     end
   end
 
-  describe "when parsing a packet" do
+  describe "when parsing a packet with a single QOS value of 0" do
+    before(:each) do
+      @packet = MQTT::Packet.parse( "\x90\x03\x12\x34\x00" )
+    end
+
+    it "should correctly create the right type of packet object" do
+      @packet.class.should == MQTT::Packet::Suback
+    end
+
+    it "should set the message id of the packet correctly" do
+      @packet.message_id.should == 0x1234
+    end
+
+    it "should set the Granted QOS of the packet correctly" do
+      @packet.granted_qos.should == [0]
+    end
+  end
+
+  describe "when parsing a packet with two QOS values" do
     before(:each) do
       @packet = MQTT::Packet.parse( "\x90\x04\x12\x34\x01\x01" )
     end
@@ -1017,7 +1035,7 @@ describe MQTT::Packet::Suback do
     end
 
     it "should set the Granted QOS of the packet correctly" do
-      @packet.granted_qos.should == [[1,1]]
+      @packet.granted_qos.should == [1,1]
     end
   end
 end
