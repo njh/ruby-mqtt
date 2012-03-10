@@ -248,6 +248,16 @@ class MQTT::Client
     end
   end
 
+  # Returns true if the incoming message queue is empty.
+  def queue_empty?
+    @read_queue.empty?
+  end
+
+  # Returns the length of the incoming message queue.
+  def queue_length
+    @read_queue.length
+  end
+
   # Send a unsubscribe message for one or more topics on the MQTT broker
   def unsubscribe(*topics)
     packet = MQTT::Packet::Unsubscribe.new(

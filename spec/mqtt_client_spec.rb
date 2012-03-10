@@ -300,15 +300,39 @@ describe MQTT::Client do
       @socket.string.should == "\x82\x0e\x00\x01\x00\x03a/b\x00\x00\x03c/d\x01"
     end
   end
+  
+  describe "when calling the 'queue_length' method" do
+    it "should return 0 if there are no incoming messages waiting" do
+      @client.queue_length.should == 0
+    end
+
+    it "should return 1 if there is one incoming message waiting" do
+      inject_packet(:topic => 'topic0', :payload => 'payload0', :qos => 0)
+      @client.queue_length.should == 1
+    end
+
+    it "should return 2 if there are two incoming message waiting" do
+      inject_packet(:topic => 'topic0', :payload => 'payload0', :qos => 0)
+      inject_packet(:topic => 'topic0', :payload => 'payload1', :qos => 0)
+      @client.queue_length.should == 2
+    end
+  end
+
+  
+  describe "when calling the 'queue_emtpy?' method" do
+    it "should return return true if there no incoming messages waiting" do
+      @client.queue_empty?.should be_true
+    end
+
+    it "should return return false if there is an incoming messages waiting" do
+      inject_packet(:topic => 'topic0', :payload => 'payload0', :qos => 0)
+      @client.queue_empty?.should be_false
+    end
+  end
 
   describe "when calling the 'get' method" do
     before(:each) do
       @client.instance_variable_set(:@socket, @socket)
-    end
-
-    def inject_packet(opts={})
-      packet = MQTT::Packet::Publish.new(opts)
-      @client.instance_variable_get('@read_queue').push(packet)
     end
 
     it "should successfull receive a valid PUBLISH packet with a QoS 0" do
@@ -323,6 +347,7 @@ describe MQTT::Client do
       topic,payload = @client.get
       topic.should == 'topic1'
       payload.should == 'payload1'
+      @client.queue_empty?.should be_true
     end
   end
 
@@ -420,6 +445,13 @@ describe MQTT::Client do
         @client_id.should match(/_[a-z0-9]{16}$/)
       end
     end
+  end
+
+  private
+
+  def inject_packet(opts={})
+    packet = MQTT::Packet::Publish.new(opts)
+    @client.instance_variable_get('@read_queue').push(packet)
   end
 
 end
