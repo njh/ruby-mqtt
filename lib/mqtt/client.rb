@@ -167,11 +167,11 @@ class MQTT::Client
         packet = MQTT::Packet::Disconnect.new
         send_packet(packet)
       end
-      @read_thread.kill if @read_thread and @read_thread.alive?
-      @read_thread = nil
       @socket.close unless @socket.nil?
       @socket = nil
     end
+    @read_thread.kill if @read_thread and @read_thread.alive?
+    @read_thread = nil
   end
 
   # Checks whether the client is connected to the broker.
