@@ -251,11 +251,13 @@ module MQTT
       attr_accessor :topic
       attr_accessor :message_id
       attr_accessor :payload
+      attr_accessor :qos
 
       DEFAULTS = {
           :topic => nil,
           :message_id => 0,
-          :payload => ''
+          :payload => '',
+          :qos => 0
       }
 
       # Create a new Publish packet
@@ -278,6 +280,7 @@ module MQTT
       # Parse the body (variable header and payload) of a Publish packet
       def parse_body(buffer)
         super(buffer)
+        @qos = qos
         @topic = shift_string(buffer)
         @message_id = shift_short(buffer) unless qos == 0
         @payload = buffer.dup
