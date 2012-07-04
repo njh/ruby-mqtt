@@ -244,35 +244,12 @@ class MQTT::Client
     send_packet(packet)
   end
   
-  def on_connack(&block)
-    CALLBACKS[:connack] = block;
+  def on(action,&block)
+    if ( !CALLBACKS.has_key?( action.to_sym ) )
+      raise MQTT::UnknownEventException
+    end
+    CALLBACKS[action.to_sym] = block;
   end
-  
-  def on_suback(&block)
-    CALLBACKS[:suback] = block;
-  end
-  
-  def on_puback(&block)
-    CALLBACKS[:puback] = block;
-  end
-  
-  def on_pubrec(&block)
-    CALLBACKS[:pubrec] = block;
-  end
-  
-  def on_pubcomp(&block)
-    CALLBACKS[:pubcomp] = block;
-  end
-  
-  def on_unsuback(&block)
-    CALLBACKS[:unsuback] = block;
-  end
-  
-  def on_message(&block)
-    CALLBACKS[:message] = block;
-  end
-
-  
 
 private
 

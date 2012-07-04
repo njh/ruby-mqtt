@@ -26,32 +26,32 @@ Synopsis
     # or to get a random ID
     # globalClient = MQTT::Client.new("test.mosquitto.org", 1883)
     
-    globalClient.on_connack do
+    globalClient.on("connack") do
       globalClient.subscribe( "test/topic" => 2 )
     end
     
-    globalClient.on_suback do |qos|
+    globalClient.on("suback") do |qos|
       puts "suback"
     end
     
-    globalClient.on_unsuback do |packet|
+    globalClient.on("unsuback") do |packet|
       puts "unsuback"
     end
     
-    globalClient.on_message do |topic, payload, qos, message_id|
+    globalClient.on("message") do |topic, payload, qos, message_id|
       puts "Message arrived: #{topic} :: #{qos} :: #{message_id} :: #{payload}"
     end
     
-    globalClient.on_puback do |message_id|
+    globalClient.on("puback") do |message_id|
       puts "Puback received: #{message_id}"
     end
     
-    globalClient.on_pubrec do |message_id|
+    globalClient.on("pubrec") do |message_id|
       puts "Pubrec received: #{message_id}"
       globalClient.pubrel(message_id)
     end
     
-    globalClient.on_pubcomp do |message_id|
+    globalClient.on("pubcomp") do |message_id|
       puts "Pubcomp received: #{message_id}"
     end
     
