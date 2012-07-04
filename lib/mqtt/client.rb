@@ -188,16 +188,40 @@ class MQTT::Client
 
   # Publish a message on a particular topic to the MQTT broker.
   def publish(topic, payload, retain=false, qos=0)
-    packet = MQTT::Packet::Publish.new(
-      :qos => qos,
-      :retain => retain,
-      :topic => topic,
-      :payload => payload,
-      :message_id => @message_id.next
-    )
-
+  	msg_id = nil
+    if qos > 0
+    	msg_id = @message_id.next
+      packet = MQTT::Packet::Publish.new(
+        :qos => qos,
+        :retain => retain,
+        :topic => topic,
+        :payload => payload,
+        :message_id => msg_id
+      )
+    else
+      packet = MQTT::Packet::Publish.new(
+        :qos => qos,
+        :retain => retain,
+        :topic => topic,
+        :payload => payload,
+        :message_id => nil
+      )
+    end
     # Send the packet
     send_packet(packet)
+    
+    if qos == 1
+      receive_puback
+    end
+    
+    if qos == 2
+      receive_pubrec
+      send_packet(MQTT::Packet::Pubrel.new(
+        :message_id => msg_id
+      ))
+      receive_pubcomp
+    end
+    
   end
 
   # Send a subscribe message for one or more topics on the MQTT broker.
@@ -239,12 +263,12 @@ class MQTT::Client
       # Loop forever!
       loop do
         packet = @read_queue.pop
-        yield(packet.topic, packet.payload)
+        yield(packet.topic, packet.payload, packet.qos, packet.message_id)
       end
     else
       # Wait for one packet to be available
       packet = @read_queue.pop
-      return packet.topic, packet.payload
+      return packet.topic, packet.payload, packet.qos, packet.message_id
     end
   end
 
@@ -281,10 +305,23 @@ private
         if packet.class == MQTT::Packet::Publish
           # Add to queue
           @read_queue.push(packet)
+          puts "PUBLISH received"
+        elsif packet.class == MQTT::Packet::Puback
+          # Usually don't do much here...
+          puts "PUBACK received"
+        elsif packet.class == MQTT::Packet::Pubrec
+          # Usually don't do much here...
+          nil
+        elsif packet.class == MQTT::Packet::Pubrel
+          send_packet(MQTT::Packet::Pubcomp.new(
+            :message_id => packet.message_id
+          ))
+        elsif packet.class == MQTT::Packet::Pubcomp
+          # Usually don't do much here...
+          nil
         else
           # Ignore all other packets
           nil
-          # FIXME: implement responses for QOS 1 and 2
         end
       end
 
@@ -316,6 +353,36 @@ private
       # Check the return code
       if packet.return_code != 0x00
         raise MQTT::ProtocolException.new(packet.return_msg)
+      end
+    end
+  end
+  
+  def receive_puback
+    Timeout.timeout(@ack_timeout) do
+      packet = MQTT::Packet.read(@socket)
+      puts "RECEIVED #{packet.class}"
+      if packet.class != MQTT::Packet::Puback
+        raise MQTT::ProtocolException.new("Response want's a PUBACK, received: #{packet.class}")
+      end
+    end
+  end
+  
+  def receive_pubrec
+    Timeout.timeout(@ack_timeout) do
+      packet = MQTT::Packet.read(@socket)
+      puts "RECEIVED #{packet.class}"
+      if packet.class != MQTT::Packet::Pubrec
+        raise MQTT::ProtocolException.new("Response want's a PUBREC, received: #{packet.class}")
+      end
+    end
+  end
+  
+  def receive_pubcomp
+    Timeout.timeout(@ack_timeout) do
+      packet = MQTT::Packet.read(@socket)
+      puts "RECEIVED #{packet.class}"
+      if packet.class != MQTT::Packet::Pubcomp
+        raise MQTT::ProtocolException.new("Response want's a PUBCOMP, received: #{packet.class}")
       end
     end
   end
