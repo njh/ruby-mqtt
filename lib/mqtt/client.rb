@@ -305,20 +305,6 @@ private
         if packet.class == MQTT::Packet::Publish
           # Add to queue
           @read_queue.push(packet)
-          puts "PUBLISH received"
-        elsif packet.class == MQTT::Packet::Puback
-          # Usually don't do much here...
-          puts "PUBACK received"
-        elsif packet.class == MQTT::Packet::Pubrec
-          # Usually don't do much here...
-          nil
-        elsif packet.class == MQTT::Packet::Pubrel
-          send_packet(MQTT::Packet::Pubcomp.new(
-            :message_id => packet.message_id
-          ))
-        elsif packet.class == MQTT::Packet::Pubcomp
-          # Usually don't do much here...
-          nil
         else
           # Ignore all other packets
           nil
@@ -360,7 +346,6 @@ private
   def receive_puback
     Timeout.timeout(@ack_timeout) do
       packet = MQTT::Packet.read(@socket)
-      puts "RECEIVED #{packet.class}"
       if packet.class != MQTT::Packet::Puback
         raise MQTT::ProtocolException.new("Response want's a PUBACK, received: #{packet.class}")
       end
@@ -370,7 +355,6 @@ private
   def receive_pubrec
     Timeout.timeout(@ack_timeout) do
       packet = MQTT::Packet.read(@socket)
-      puts "RECEIVED #{packet.class}"
       if packet.class != MQTT::Packet::Pubrec
         raise MQTT::ProtocolException.new("Response want's a PUBREC, received: #{packet.class}")
       end
@@ -380,7 +364,6 @@ private
   def receive_pubcomp
     Timeout.timeout(@ack_timeout) do
       packet = MQTT::Packet.read(@socket)
-      puts "RECEIVED #{packet.class}"
       if packet.class != MQTT::Packet::Pubcomp
         raise MQTT::ProtocolException.new("Response want's a PUBCOMP, received: #{packet.class}")
       end

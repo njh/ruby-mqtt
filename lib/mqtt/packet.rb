@@ -21,8 +21,6 @@ module MQTT
       header = read_byte(socket)
       type_id = header >> 4
       
-      puts header.to_s
-      
       packet_class = MQTT::PACKET_TYPES[type_id]
       
       # Create a new packet object
