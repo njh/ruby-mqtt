@@ -264,8 +264,10 @@ private
       result = IO.select([@socket], nil, nil, SELECT_TIMEOUT)
       unless result.nil?
         # Yes - read in the packet
-        packet = MQTT::Packet.read(@socket)
-        @commands_queue.push(packet)
+        if !@socket.nil?
+          packet = MQTT::Packet.read(@socket)
+          @commands_queue.push(packet)
+        end
       end
 
       # Time to send a keep-alive ping request?
