@@ -137,7 +137,9 @@ class MQTT::Client
     @dispatcher = Thread.new(Thread.current) do |parent|
       Thread.current[:parent] = parent
       loop {
-        receive_packet
+        if connected?
+          receive_packet
+        end
         if !@commands_queue.empty?
           packet = @commands_queue.pop
           if ( packet.class == MQTT::Packet::Connack && !CALLBACKS[:connack].nil? )
@@ -155,7 +157,8 @@ class MQTT::Client
           elsif ( packet.class == MQTT::Packet::Publish && !CALLBACKS[:message].nil? )
             CALLBACKS[:message].call( packet.topic, packet.payload, packet.qos, packet.message_id )
           else
-            puts "Command: #{packet.class}"
+            # puts "Command: #{packet.class}"
+            nil
           end
         end
       }
