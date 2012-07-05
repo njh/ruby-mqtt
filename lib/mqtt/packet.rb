@@ -19,9 +19,10 @@ module MQTT
     def self.read(socket)
       # Read in the packet header and work out the class
       header = read_byte(socket)
-      type_id = ((header & 0xF0) >> 4)
+      type_id = header >> 4
+      
       packet_class = MQTT::PACKET_TYPES[type_id]
-
+      
       # Create a new packet object
       packet = packet_class.new(
         :duplicate => ((header & 0x08) >> 3),
@@ -59,7 +60,7 @@ module MQTT
     # The header is removed from the buffer passed into this function
     def self.parse_header(buffer)
       # Work out the class
-      type_id = ((buffer[0] & 0xF0) >> 4)
+      type_id = buffer[0] >> 4
       packet_class = MQTT::PACKET_TYPES[type_id]
       if packet_class.nil?
         raise ProtocolException.new("Invalid packet type identifier: #{type_id}")
@@ -163,10 +164,10 @@ module MQTT
     def to_s
       # Encode the fixed header
       header = [
-        ((type_id.to_i & 0x0F) << 4) |
-        ((duplicate ? 0x1 : 0x0) << 3) |
-        ((qos.to_i & 0x03) << 1) |
-        (retain ? 0x1 : 0x0)
+        type_id.to_i << 4 |
+        (duplicate ? 0x08 : 0x00) |
+        qos.to_i << 1 |
+        (retain ? 0x01 : 0x00)
       ]
 
       # Get the packet's variable header and payload
@@ -250,11 +251,13 @@ module MQTT
       attr_accessor :topic
       attr_accessor :message_id
       attr_accessor :payload
+      attr_accessor :qos
 
       DEFAULTS = {
           :topic => nil,
           :message_id => 0,
-          :payload => ''
+          :payload => '',
+          :qos => 0
       }
 
       # Create a new Publish packet
@@ -277,6 +280,7 @@ module MQTT
       # Parse the body (variable header and payload) of a Publish packet
       def parse_body(buffer)
         super(buffer)
+        @qos = qos
         @topic = shift_string(buffer)
         @message_id = shift_short(buffer) unless qos == 0
         @payload = buffer.dup

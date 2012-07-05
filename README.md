@@ -8,9 +8,10 @@ a lightweight protocol for publish/subscribe messaging.
 Installing
 ----------
 
-You may get the latest stable version from Rubygems:
+From local sources:
 
-    $ gem install mqtt
+    $ gem build mqtt.gemspec
+    $ gem install mqtt-0.9.0.gem
 
 
 Synopsis
@@ -19,37 +20,59 @@ Synopsis
     require 'rubygems'
     require 'mqtt'
     
-    # Publish example
-    MQTT::Client.connect('test.mosquitto.org') do |c|
-      c.publish('topic', 'message')
+    # Async client example
+    
+    globalClient = MQTT::Client.new("test.mosquitto.org", 1883, client_id)
+    # or to get a random ID
+    # globalClient = MQTT::Client.new("test.mosquitto.org", 1883)
+    
+    globalClient.on("connack") do
+      globalClient.subscribe( "test/topic" => 2 )
     end
     
-    # Subscribe example
-    MQTT::Client.connect('test.mosquitto.org') do |c|
-      # If you pass a block to the get method, then it will loop
-      c.get('test') do |topic,message|
-        puts "#{topic}: #{message}"
-      end
+    globalClient.on("suback") do |qos|
+      puts "suback"
     end
-
-
-Limitations
------------
-
- * Only QOS 0 currently supported
-
+    
+    globalClient.on("unsuback") do |packet|
+      puts "unsuback"
+    end
+    
+    globalClient.on("message") do |topic, payload, qos, message_id|
+      puts "Message arrived: #{topic} :: #{qos} :: #{message_id} :: #{payload}"
+    end
+    
+    globalClient.on("puback") do |message_id|
+      puts "Puback received: #{message_id}"
+    end
+    
+    globalClient.on("pubrec") do |message_id|
+      puts "Pubrec received: #{message_id}"
+      globalClient.pubrel(message_id)
+    end
+    
+    globalClient.on("pubcomp") do |message_id|
+      puts "Pubcomp received: #{message_id}"
+    end
+    
+    globalClient.connect
+    
+    loop {
+      sleep 1
+    }
 
 Resources
 ---------
 
 * MQTT Homepage: http://www.mqtt.org/
-* GitHub Project: http://github.com/njh/ruby-mqtt
-* API Documentation: http://rubydoc.info/gems/mqtt/frames
+* GitHub Project: http://github.com/radekg/ruby-mqtt
+* Original GitHub Project: http://github.com/njh/ruby-mqtt
 
 
 Contact
 -------
 
+* Async modifications:    Radek Gruchalski
 * Author:    Nicholas J Humfrey
 * Email:     njh@aelius.com
 * Home Page: http://www.aelius.com/njh/
