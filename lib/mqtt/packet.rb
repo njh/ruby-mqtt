@@ -59,7 +59,6 @@ module MQTT
     # The header is removed from the buffer passed into this function
     def self.parse_header(buffer)
       # Work out the class
-      #type_id = ((buffer[0] & 0xF0) >> 4)
       type_id = ((buffer.unpack("C*")[0] & 0xF0) >> 4)
       packet_class = MQTT::PACKET_TYPES[type_id]
       if packet_class.nil?
