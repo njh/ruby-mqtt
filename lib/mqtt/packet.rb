@@ -59,7 +59,8 @@ module MQTT
     # The header is removed from the buffer passed into this function
     def self.parse_header(buffer)
       # Work out the class
-      type_id = ((buffer[0] & 0xF0) >> 4)
+      #type_id = ((buffer[0] & 0xF0) >> 4)
+      type_id = ((buffer.unpack("C*")[0] & 0xF0) >> 4)
       packet_class = MQTT::PACKET_TYPES[type_id]
       if packet_class.nil?
         raise ProtocolException.new("Invalid packet type identifier: #{type_id}")
@@ -67,9 +68,9 @@ module MQTT
 
       # Create a new packet object
       packet = packet_class.new(
-        :duplicate => ((buffer[0] & 0x08) >> 3) == 0x01,
-        :qos => ((buffer[0] & 0x06) >> 1),
-        :retain => ((buffer[0] & 0x01) >> 0) == 0x01
+        :duplicate => ((buffer.unpack("C*")[0] & 0x08) >> 3) == 0x01,
+        :qos => ((buffer.unpack("C*")[0] & 0x06) >> 1),
+        :retain => ((buffer.unpack("C*")[0] & 0x01) >> 0) == 0x01
       )
 
       # Parse the packet length
@@ -80,7 +81,7 @@ module MQTT
         if buffer.length <= pos
           raise ProtocolException.new("The packet length header is incomplete")
         end
-        digit = buffer[pos]
+        digit = buffer.unpack("C*")[pos]
         body_length += ((digit & 0x7F) * multiplier)
         multiplier *= 0x80
         pos += 1
