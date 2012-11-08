@@ -8,6 +8,7 @@ describe MQTT::Client do
   before(:each) do
     @client = MQTT::Client.new
     @socket = StringIO.new
+    @socket.set_encoding("binary") if @socket.respond_to?(:set_encoding)
   end
 
   describe "initializing a client" do

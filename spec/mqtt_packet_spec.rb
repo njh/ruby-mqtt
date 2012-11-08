@@ -69,7 +69,7 @@ describe MQTT::Packet do
     end
 
     it "should provide a encode_bytes method to get some bytes as Integers" do
-      data = @packet.send(:encode_bytes, 0x48, 0x65, 0x6c, 0x6c, ?o)
+      data = @packet.send(:encode_bytes, 0x48, 0x65, 0x6c, 0x6c, 'o'.unpack('C1')[0])
       data.should == 'Hello'
     end
 
