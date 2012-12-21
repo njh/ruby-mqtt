@@ -1,26 +1,37 @@
 Ruby MQTT NEWS
 ==============
 
+
+Ruby MQTT Version 0.0.9 (2012-12-21)
+------------------------------------
+
+* Fixes for Ruby 1.9.3 by Mike English
+* Fix for ```client_id``` typo by Anubisss
+* Added methods to inspect the incoming message queue: ```queue_empty?``` and ```queue_length```
+* Fixed incorrect implementation of the parsing and serialising of Subscription Acknowledgement packets
+* Changed test mocking from Mocha to rspec-mocks
+
+
 Ruby MQTT Version 0.0.8 (2011-02-04)
 ------------------------------------
 
-* Implemented Last Will and Testament feature.
-* Renamed dup attribute to duplicate to avoid method name clash.
-* Made the random client_id generator a public class method.
+* Implemented Last Will and Testament feature
+* Renamed dup attribute to duplicate to avoid method name clash
+* Made the random ```client_id``` generator a public class method
 
 
 Ruby MQTT Version 0.0.7 (2011-01-19)
 ------------------------------------
 
 * You can now pass a topic and block to client.get
-* Added MQTT::Client.connect class method.
+* Added MQTT::Client.connect class method
 
 
 Ruby MQTT Version 0.0.5 (2011-01-18)
 ------------------------------------
 
 * Implemented setting username and password (MQTT 3.1)
-* Renamed clean_start to clean_session
+* Renamed ```clean_start``` to ``clean_session```
 * Started using autoload to load classes
 * Modernised Gem building mechanisms
 
@@ -28,24 +39,24 @@ Ruby MQTT Version 0.0.5 (2011-01-18)
 Ruby MQTT Version 0.0.4 (2009-02-22)
 ------------------------------------
 
-* Re-factored packet encoding/decoding into one class per packet type.
-* Added MQTT::Proxy class for implementing an MQTT proxy.
+* Re-factored packet encoding/decoding into one class per packet type
+* Added MQTT::Proxy class for implementing an MQTT proxy
 
 
 Ruby MQTT Version 0.0.3 (2009-02-08)
 ------------------------------------
 
-* Added checking of Connection Acknowledgement.
-* Automatic client identifier generation.
+* Added checking of Connection Acknowledgement
+* Automatic client identifier generation
 
 
 Ruby MQTT Version 0.0.2 (2009-02-03)
 ------------------------------------
 
-* Added support for packets longer than 127 bytes.
+* Added support for packets longer than 127 bytes
 
 
 Ruby MQTT Version 0.0.1 (2009-02-01)
 ------------------------------------
 
-* Initial Release.
+* Initial Release
