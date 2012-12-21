@@ -7,7 +7,3 @@ Bundler.require(:default, :development)
 
 # This is needed by rcov
 require 'rspec/autorun'
-
-RSpec.configure do |config|
-  config.mock_framework = :mocha
-end

@@ -65,24 +65,24 @@ describe MQTT::Client do
 
   describe "when calling the 'connect' method" do
     before(:each) do
-      TCPSocket.stubs(:new).returns(@socket)
-      Thread.stubs(:new)
-      @client.stubs(:receive_connack)
+      TCPSocket.stub(:new).and_return(@socket)
+      Thread.stub(:new)
+      @client.stub(:receive_connack)
     end
 
     it "should create a TCP Socket if not connected" do
-      TCPSocket.expects(:new).once.returns(@socket)
+      TCPSocket.should_receive(:new).once.and_return(@socket)
       @client.connect('myclient')
     end
 
     it "should not create a new TCP Socket if connected" do
-      @client.stubs(:connected?).returns(true)
-      TCPSocket.expects(:new).never
+      @client.stub(:connected?).and_return(true)
+      TCPSocket.should_receive(:new).never
       @client.connect('myclient')
     end
 
     it "should start the reader thread if not connected" do
-      Thread.expects(:new).once
+      Thread.should_receive(:new).once
       @client.connect('myclient')
     end
 
@@ -92,17 +92,17 @@ describe MQTT::Client do
     end
 
     it "should try and read an acknowledgement packet to the socket if not connected" do
-      @client.expects(:receive_connack).once
+      @client.should_receive(:receive_connack).once
       @client.connect('myclient')
     end
 
     it "should disconnect after connecting, if a block is given" do
-      @client.expects(:disconnect).once
+      @client.should_receive(:disconnect).once
       @client.connect('myclient') { nil }
     end
 
     it "should not disconnect after connecting, if no block is given" do
-      @client.expects(:disconnect).never
+      @client.should_receive(:disconnect).never
       @client.connect('myclient')
     end
 
@@ -163,7 +163,7 @@ describe MQTT::Client do
   describe "when calling the 'receive_connack' method" do
     before(:each) do
       @client.instance_variable_set(:@socket, @socket)
-      IO.stubs(:select).returns([[@socket], [], []])
+      IO.stub(:select).and_return([[@socket], [], []])
     end
 
     it "should not throw an exception for a successful CONNACK packet" do
@@ -205,30 +205,31 @@ describe MQTT::Client do
 
   describe "when calling the 'disconnect' method" do
     before(:each) do
+      thread = double('Read Thread', :alive? => true, :kill => true)
       @client.instance_variable_set(:@socket, @socket)
-      @client.instance_variable_set(:@read_thread, stub_everything('Read Thread'))
+      @client.instance_variable_set(:@read_thread, thread)
     end
 
     it "should not do anything if the socket is already disconnected" do
-      @client.stubs(:connected?).returns(false)
+      @client.stub(:connected?).and_return(false)
       @client.disconnect(true)
       @socket.string.should == ""
     end
 
     it "should write a valid DISCONNECT packet to the socket if connected and the send_msg=true an" do
-      @client.stubs(:connected?).returns(true)
+      @client.stub(:connected?).and_return(true)
       @client.disconnect(true)
       @socket.string.should == "\xE0\x00"
     end
 
     it "should not write anything to the socket if the send_msg=false" do
-      @client.stubs(:connected?).returns(true)
+      @client.stub(:connected?).and_return(true)
       @client.disconnect(false)
       @socket.string.should be_empty
     end
 
     it "should call the close method on the socket" do
-      @socket.expects(:close)
+      @socket.should_receive(:close)
       @client.disconnect
     end
   end
@@ -371,9 +372,10 @@ describe MQTT::Client do
   describe "when calling the 'receive_packet' method" do
     before(:each) do
       @client.instance_variable_set(:@socket, @socket)
-      IO.stubs(:select).returns([[@socket], [], []])
+      IO.stub(:select).and_return([[@socket], [], []])
       @read_queue = @client.instance_variable_get(:@read_queue)
-      @parent_thread = Thread.current[:parent] = stub_everything('Parent Thread')
+      @parent_thread = Thread.current[:parent] = double('Parent Thread')
+      @parent_thread.stub(:raise)
     end
 
     it "should put PUBLISH messages on to the read queue" do
@@ -391,21 +393,21 @@ describe MQTT::Client do
     end
 
     it "should send a ping packet if one is due" do
-      IO.expects(:select).returns(nil)
+      IO.should_receive(:select).and_return(nil)
       @client.instance_variable_set(:@last_pingreq, Time.at(0))
-      @client.expects(:ping).once
+      @client.should_receive(:ping).once
       @client.send(:receive_packet)
     end
 
     it "should close the socket if there is an exception" do
-      @socket.expects(:close).once
-      MQTT::Packet.stubs(:read).raises(MQTT::Exception)
+      @socket.should_receive(:close).once
+      MQTT::Packet.stub(:read).and_raise(MQTT::Exception)
       @client.send(:receive_packet)
     end
 
     it "should pass exceptions up to parent thread" do
-      @parent_thread.expects(:raise).once
-      MQTT::Packet.stubs(:read).raises(MQTT::Exception)
+      @parent_thread.should_receive(:raise).once
+      MQTT::Packet.stub(:read).and_raise(MQTT::Exception)
       @client.send(:receive_packet)
     end
   end
