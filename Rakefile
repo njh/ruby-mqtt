@@ -5,20 +5,7 @@ $:.push File.expand_path("../lib", __FILE__)
 require 'rubygems'
 require 'yard'
 require 'rspec/core/rake_task'
-
-require "mqtt/version"
-
-namespace :gem do
-  desc "Build the mqtt-#{MQTT::VERSION}.gem file"
-  task :build do
-    sh "gem build mqtt.gemspec"
-  end
-
-  desc "Release the mqtt-#{MQTT::VERSION}.gem file"
-  task :release do
-    sh "gem push mqtt-#{MQTT::VERSION}.gem"
-  end
-end
+require "bundler/gem_tasks"
 
 RSpec::Core::RakeTask.new(:spec)
 
