@@ -100,7 +100,9 @@ class MQTT::Client
     @last_pingreq = Time.now
     @last_pingresp = Time.now
     @socket = nil
-    @read_queue = Queue.new
+    # UPDATE: Make this a EM::Queue
+    # @read_queue = Queue.new
+    @read_queue = EM::Queue.new 
     @read_thread = nil
     @write_semaphore = Mutex.new
   end
@@ -124,6 +126,7 @@ class MQTT::Client
 
     if not connected?
       # Create network socket
+      # UPDATE: Make this an EM::Synchrony socket??
       @socket = TCPSocket.new(@remote_host,@remote_port)
 
       # Protocol name and version
@@ -146,8 +149,13 @@ class MQTT::Client
       receive_connack
 
       # Start packet reading thread
-      @read_thread = Thread.new(Thread.current) do |parent|
-        Thread.current[:parent] = parent
+      # UPDATE: This can happen on the same thread? Or should we use EM::Synchrony::Defer?
+      # @read_thread = Thread.new(Thread.current) do |parent|
+      #   Thread.current[:parent] = parent
+      #   loop { receive_packet }
+      # end
+      
+      EM.defer do
         loop { receive_packet }
       end
     end
@@ -155,6 +163,9 @@ class MQTT::Client
     # If a block is given, then yield and disconnect
     if block_given?
       yield(self)
+      
+      # UPDATE: This may need to be done manually with trapping signals OR just comment out the disconnect..
+      puts "ITs all async so disconecctinfg"
       disconnect
     end
   end
@@ -162,16 +173,27 @@ class MQTT::Client
   # Disconnect from the MQTT broker.
   # If you don't want to say goodbye to the broker, set send_msg to false.
   def disconnect(send_msg=true)
-    if connected?
-      if send_msg
-        packet = MQTT::Packet::Disconnect.new
-        send_packet(packet)
+    # UPDATE: Defering encoding to other thread my passing it as op to EM.defer
+
+    op = Proc.new do
+      if connected?
+        if send_msg
+          packet = MQTT::Packet::Disconnect.new
+          send_packet(packet)
+        end
+        @socket.close unless @socket.nil?
+        @socket = nil
       end
-      @socket.close unless @socket.nil?
-      @socket = nil
     end
-    @read_thread.kill if @read_thread and @read_thread.alive?
-    @read_thread = nil
+    
+    # UPDATE: Stop the event machine here (in the defer callback)..
+    
+    # @read_thread.kill if @read_thread and @read_thread.alive?
+    # @read_thread = nil
+    
+    cb = Proc.new { |*args| EM.stop }
+    
+    EM.defer(op, cb)
   end
 
   # Checks whether the client is connected to the broker.
@@ -181,23 +203,30 @@ class MQTT::Client
 
   # Send a MQTT ping message to indicate that the MQTT client is alive.
   def ping
-    packet = MQTT::Packet::Pingreq.new
-    send_packet(packet)
-    @last_pingreq = Time.now
+    # UPDATE: Defering encoding to other thread by wrapping it in EM.defer
+    EM.defer do
+      packet = MQTT::Packet::Pingreq.new
+      send_packet(packet)
+      @last_pingreq = Time.now
+    end
   end
 
   # Publish a message on a particular topic to the MQTT broker.
   def publish(topic, payload, retain=false, qos=0)
-    packet = MQTT::Packet::Publish.new(
-      :qos => qos,
-      :retain => retain,
-      :topic => topic,
-      :payload => payload,
-      :message_id => @message_id.next
-    )
+    # UPDATE: Defering encoding to other thread by wrapping it in EM.defer
+    
+    EM.defer do
+      packet = MQTT::Packet::Publish.new(
+        :qos => qos,
+        :retain => retain,
+        :topic => topic,
+        :payload => payload,
+        :message_id => @message_id.next
+      )
 
-    # Send the packet
-    send_packet(packet)
+      # Send the packet
+      send_packet(packet)
+    end
   end
 
   # Send a subscribe message for one or more topics on the MQTT broker.
@@ -213,11 +242,15 @@ class MQTT::Client
   #   client.subscribe( 'a/b' => 0, 'c/d' => 1 )
   #
   def subscribe(*topics)
-    packet = MQTT::Packet::Subscribe.new(
-      :topics => topics,
-      :message_id => @message_id.next
-    )
-    send_packet(packet)
+    # UPDATE: Defering encoding to other thread by wrapping it in EM.defer
+    
+    EM.defer do
+      packet = MQTT::Packet::Subscribe.new(
+        :topics => topics,
+        :message_id => @message_id.next
+      )
+      send_packet(packet)
+    end
   end
 
   # Return the next message recieved from the MQTT broker.
@@ -234,18 +267,40 @@ class MQTT::Client
   def get(topic=nil)
     # Subscribe to a topic, if an argument is given
     subscribe(topic) unless topic.nil?
-
+    
+    # UPDATE: Change this to Mutual Popping
+    # if block_given?
+    #   # Loop forever!
+    #   
+    #   loop do
+    #     packet = @read_queue.pop 
+    #     yield(packet.topic, packet.payload)
+    #   end
+    # else
+    #   # Wait for one packet to be available
+    #   packet = @read_queue.pop
+    #   return packet.topic, packet.payload
+    # end
+    
     if block_given?
       # Loop forever!
-      loop do
-        packet = @read_queue.pop
-        yield(packet.topic, packet.payload)
+      
+      packet = @read_queue.pop { |p| p }
+      yield(packet.topic, packet.payload)
+      
+      EM.next_tick do
+        # This schedules an operation to be performed the next time through
+        # the event-loop. Usually this is almost immediate.
+        self.get
       end
     else
       # Wait for one packet to be available
-      packet = @read_queue.pop
+      packet = @read_queue.pop { |p| p }
       return packet.topic, packet.payload
     end
+    
+
+    
   end
 
   # Returns true if the incoming message queue is empty.
@@ -260,11 +315,15 @@ class MQTT::Client
 
   # Send a unsubscribe message for one or more topics on the MQTT broker
   def unsubscribe(*topics)
-    packet = MQTT::Packet::Unsubscribe.new(
-      :topics => topics,
-      :message_id => @message_id.next
-    )
-    send_packet(packet)
+    # UPDATE: Defering encoding to other thread by wrapping it in EM.defer
+    
+    EM.defer do
+      packet = MQTT::Packet::Unsubscribe.new(
+        :topics => topics,
+        :message_id => @message_id.next
+      )
+      send_packet(packet)
+    end
   end
 
 private
@@ -301,7 +360,10 @@ private
         @socket.close
         @socket = nil
       end
-      Thread.current[:parent].raise(exp)
+      
+      # UPDATE: No need to do this.. Let it fly
+      # Thread.current[:parent].raise(exp)
+      raise(exp)
     end
   end
 
@@ -326,9 +388,10 @@ private
     raise MQTT::NotConnectedException if not connected?
 
     # Only allow one thread to write to socket at a time
+    
+    # UPDATE: Defer the writes as well
     @write_semaphore.synchronize do
       @socket.write(data)
     end
   end
-
 end

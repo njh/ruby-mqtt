@@ -4,8 +4,9 @@ require 'logger'
 require 'socket'
 require 'thread'
 require 'timeout'
+require 'eventmachine'
+# require ''
 
-require "mqtt/version"
 
 module MQTT
 
@@ -21,8 +22,12 @@ module MQTT
   class NotConnectedException < MQTT::Exception
   end
 
-  autoload :Client,   'mqtt/client'
-  autoload :Packet,   'mqtt/packet'
-  autoload :Proxy,    'mqtt/proxy'
+  # autoload :Client,   'mqtt/client'
+  # autoload :Packet,   'mqtt/packet'
+  # autoload :Proxy,    'mqtt/proxy'
 
 end
+
+require 'mqtt/packet'
+require 'mqtt/client'
+require 'mqtt/version'
