@@ -248,6 +248,18 @@ class MQTT::Client
     end
   end
 
+  def get_packet(topic=nil)
+    # Subscribe to a topic, if an argument is given
+    subscribe(topic) unless topic.nil?
+
+    if block_given?
+      # Loop forever!
+      loop { yield(@read_queue.pop) }
+    else
+      return @read_queue.pop
+    end
+  end
+
   # Returns true if the incoming message queue is empty.
   def queue_empty?
     @read_queue.empty?
