@@ -105,5 +105,4 @@ class MQTT::Proxy
       end
     end
   end
-
 end
