@@ -4,8 +4,7 @@ require 'logger'
 require 'socket'
 require 'thread'
 require 'timeout'
-require 'eventmachine'
-# require ''
+require "mqtt/version"
 
 
 module MQTT
@@ -28,6 +27,7 @@ module MQTT
 
   case NETWORK_MODE
   when 'eventmachine'
+    require 'eventmachine'
     autoload :Proxy,    'mqtt/em-proxy'
     autoload :Client,   'mqtt/em-client'
   else
