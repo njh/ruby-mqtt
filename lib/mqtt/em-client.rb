@@ -257,6 +257,8 @@ class MQTT::Client
     raise "Don't use this.. It has been disabled. Recursively pop @read_queue for packets directly"
   end
 
+  alias_method :get_packet, :get
+
   # Returns true if the incoming message queue is empty.
   def queue_empty?
     @read_queue.empty?
