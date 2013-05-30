@@ -10,6 +10,8 @@ require 'eventmachine'
 
 module MQTT
 
+  NETWORK_MODE = (ENV['RUBY_MQTT_NETWORK_MODE'] ? ENV['RUBY_MQTT_NETWORK_MODE'] : 'vanilla')
+
   DEFAULT_HOST = 'localhost'
   DEFAULT_PORT = 1883
 
@@ -22,12 +24,15 @@ module MQTT
   class NotConnectedException < MQTT::Exception
   end
 
-  # autoload :Client,   'mqtt/client'
-  # autoload :Packet,   'mqtt/packet'
-  # autoload :Proxy,    'mqtt/proxy'
+  autoload :Packet,   'mqtt/packet'
 
+  case NETWORK_MODE
+  when 'eventmachine'
+    autoload :Proxy,    'mqtt/em-proxy'
+    autoload :Client,   'mqtt/em-client'
+  else
+    autoload :Proxy,    'mqtt/proxy'
+    autoload :Client,   'mqtt/client'
+  end
 end
 
-require 'mqtt/packet'
-require 'mqtt/client'
-require 'mqtt/version'
