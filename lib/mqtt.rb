@@ -4,8 +4,8 @@ require 'logger'
 require 'socket'
 require 'thread'
 require 'timeout'
-require "mqtt/version"
 
+require "mqtt/version"
 
 module MQTT
 
@@ -35,4 +35,3 @@ module MQTT
     autoload :Client,   'mqtt/client'
   end
 end
-
