@@ -416,7 +416,7 @@ module MQTT
       # Parse the body (variable header and payload) of a Connect Acknowledgment packet
       def parse_body(buffer)
         super(buffer)
-        unused = shift_byte(buffer)
+        _unused = shift_byte(buffer)
         @return_code = shift_byte(buffer)
         unless buffer.empty?
           raise ProtocolException.new("Extra bytes at end of Connect Acknowledgment packet")
