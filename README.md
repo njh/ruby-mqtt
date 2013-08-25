@@ -46,6 +46,11 @@ Resources
 * GitHub Project: http://github.com/njh/ruby-mqtt
 * API Documentation: http://rubydoc.info/gems/mqtt/frames
 
+License
+-------
+
+The ruby-mqtt gem is licensed under the terms of the MIT license.
+See the file LICENSE for details.
 
 Contact
 -------
@@ -53,4 +58,3 @@ Contact
 * Author:    Nicholas J Humfrey
 * Email:     njh@aelius.com
 * Home Page: http://www.aelius.com/njh/
-* License:   Distributes under the same terms as Ruby
