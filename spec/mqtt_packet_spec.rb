@@ -20,6 +20,22 @@ describe MQTT::Packet do
       packet = MQTT::Packet.new( :retain => true )
       packet.retain.should be_true
     end
+
+    it "should throw an exception the QoS is greater than 2" do
+      lambda {
+        packet = MQTT::Packet.new( :qos => 3 )
+      }.should raise_error(
+        'Invalid QoS value: 3'
+      )
+    end
+
+    it "should throw an exception the QoS is less than 0" do
+      lambda {
+        packet = MQTT::Packet.new( :qos => -1 )
+      }.should raise_error(
+        'Invalid QoS value: -1'
+      )
+    end
   end
 
   describe "when setting packet parameters" do
@@ -191,6 +207,16 @@ describe MQTT::Packet::Publish do
 
     it "should set the payload correctly" do
       @packet.payload.should == 'hello world'
+    end
+  end
+
+  describe "when parsing a packet with a invalid QoS value" do
+    it "should throw an exception" do
+      lambda {
+        packet = MQTT::Packet.parse( "\x36\x12\x00\x03a/b\x00\x05hello world" )
+      }.should raise_error(
+        'Invalid QoS value: 3'
+      )
     end
   end
 

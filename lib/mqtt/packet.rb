@@ -137,6 +137,9 @@ module MQTT
     # Set the Quality of Service level (0/1/2)
     def qos=(arg)
       @qos = arg.to_i
+      if @qos < 0 or @qos > 2
+        raise "Invalid QoS value: #{@qos}"
+      end
     end
 
     # Set the length of the packet body
