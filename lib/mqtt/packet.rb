@@ -357,7 +357,20 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         @protocol_name = shift_string(buffer)
-        @protocol_version = shift_byte(buffer)
+        @protocol_version = shift_byte(buffer).to_i
+
+        if @protocol_name != 'MQIsdp'
+          raise ProtocolException.new(
+            "Unsupported protocol name: #{@protocol_name}"
+          )
+        end
+
+        if @protocol_version != 3
+          raise ProtocolException.new(
+            "Unsupported protocol version: #{@protocol_version}"
+          )
+        end
+
         @connect_flags = shift_byte(buffer)
         @clean_session = ((@connect_flags & 0x02) >> 1) == 0x01
         @keep_alive = shift_short(buffer)

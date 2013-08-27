@@ -607,6 +607,32 @@ describe MQTT::Packet::Connect do
     end
   end
 
+  describe "when parsing packet with an unknown protocol name" do
+    it "should throw a protocol exception" do
+      lambda {
+        packet = MQTT::Packet.parse(
+          "\x10\x16\x00\x06FooBar\x03\x00\x00\x0a\x00\x08myclient"
+        )
+      }.should raise_error(
+        MQTT::ProtocolException,
+        "Unsupported protocol name: FooBar"
+      )
+    end
+  end
+
+  describe "when parsing packet with an unknown protocol version" do
+    it "should throw a protocol exception" do
+      lambda {
+        packet = MQTT::Packet.parse(
+          "\x10\x16\x00\x06MQIsdp\x02\x00\x00\x0a\x00\x08myclient"
+        )
+      }.should raise_error(
+        MQTT::ProtocolException,
+        "Unsupported protocol version: 2"
+      )
+    end
+  end
+
 end
 
 describe MQTT::Packet::Connack do
@@ -1227,7 +1253,7 @@ describe "Serialising an invalid packet" do
   end
 end
 
-describe "Reading in an invalid packet" do 
+describe "Reading in an invalid packet" do
   context "that has 0 length" do
     it "should throw an exception" do
       lambda {
