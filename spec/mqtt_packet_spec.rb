@@ -150,6 +150,17 @@ describe MQTT::Packet::Publish do
     end
   end
 
+  describe "when serialising an oversized packet" do
+    it "should throw an exception when body is bigger than 256MB" do
+      lambda {
+        packet = MQTT::Packet::Publish.new( :topic => 'test', :payload => 'x'*268435455 )
+        packet.to_s
+      }.should raise_error(
+        'Error serialising packet: body is more than 256MB'
+      )
+    end
+  end
+
   describe "when parsing a packet with QOS 0" do
     before(:each) do
       @packet = MQTT::Packet.parse( "\x30\x11\x00\x04testhello world" )

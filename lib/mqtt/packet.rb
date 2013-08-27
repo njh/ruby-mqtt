@@ -175,8 +175,13 @@ module MQTT
       # Get the packet's variable header and payload
       body = self.encode_body
 
+      # Check that that packet isn't too big
+      body_length = body.bytesize
+      if body_length > 268435455
+        raise "Error serialising packet: body is more than 256MB"
+      end
+
       # Build up the body length field bytes
-      body_length = body.length
       begin
         digit = (body_length % 128)
         body_length = (body_length / 128)
