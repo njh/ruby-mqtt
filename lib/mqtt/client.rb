@@ -220,7 +220,7 @@ class MQTT::Client
     send_packet(packet)
   end
 
-  # Return the next message recieved from the MQTT broker.
+  # Return the next message received from the MQTT broker.
   # An optional topic can be given to subscribe to.
   #
   # The method either returns the topic and message as an array:
