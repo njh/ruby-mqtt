@@ -242,15 +242,33 @@ module MQTT
 
     private
 
-    # Read and unpack a single byte from a socket
+    # Read and unpack a single byte from a socket.
     def self.read_byte(socket)
-      byte = socket.read(1)
-      if byte.nil?
-        raise ProtocolException
-      end
+      byte = try_read_from(socket)
       byte.unpack('C').first
     end
 
+    # Keep trying for a while.
+    def self.try_read_from(socket)
+      byte = socket.read(1)
+
+      if byte.nil?
+        if @attempted_reads.nil?
+          @attempted_reads = 1
+        else
+          @attempted_reads +=1
+        end
+
+        if @attempted_reads > 100
+          raise ProtocolException
+        else
+          try_read_from(socket)
+        end
+      end
+
+      @attempted_reads = nil
+      byte
+    end
 
 
     ## PACKET SUBCLASSES ##

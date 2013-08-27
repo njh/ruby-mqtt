@@ -13,6 +13,8 @@ class MQTT::Client
   attr_accessor :will_qos      # The QoS level of the will message sent by the broker
   attr_accessor :will_retain   # If the Will message should be retain by the broker after it is sent
 
+  attr_reader :read_queue
+
   # OLD deprecated clean_start
   alias :clean_start :clean_session
   alias :clean_start= :clean_session=
@@ -100,7 +102,7 @@ class MQTT::Client
     @last_pingreq = Time.now
     @last_pingresp = Time.now
     @socket = nil
-    @read_queue = Queue.new
+    @read_queue = EM::Queue.new
     @read_thread = nil
     @write_semaphore = Mutex.new
   end
@@ -146,8 +148,7 @@ class MQTT::Client
       receive_connack
 
       # Start packet reading thread
-      @read_thread = Thread.new(Thread.current) do |parent|
-        Thread.current[:parent] = parent
+      EM.defer do
         loop { receive_packet }
       end
     end
@@ -162,16 +163,21 @@ class MQTT::Client
   # Disconnect from the MQTT broker.
   # If you don't want to say goodbye to the broker, set send_msg to false.
   def disconnect(send_msg=true)
-    if connected?
-      if send_msg
-        packet = MQTT::Packet::Disconnect.new
-        send_packet(packet)
+
+    op = Proc.new do
+      if connected?
+        if send_msg
+          packet = MQTT::Packet::Disconnect.new
+          send_packet(packet)
+        end
+        @socket.close unless @socket.nil?
+        @socket = nil
       end
-      @socket.close unless @socket.nil?
-      @socket = nil
     end
-    @read_thread.kill if @read_thread and @read_thread.alive?
-    @read_thread = nil
+
+    cb = Proc.new { |*args| EM.stop }
+
+    EM.defer(op, cb)
   end
 
   # Checks whether the client is connected to the broker.
@@ -181,23 +187,31 @@ class MQTT::Client
 
   # Send a MQTT ping message to indicate that the MQTT client is alive.
   def ping
-    packet = MQTT::Packet::Pingreq.new
-    send_packet(packet)
-    @last_pingreq = Time.now
+    EM.defer do
+      packet = MQTT::Packet::Pingreq.new
+      send_packet(packet)
+      @last_pingreq = Time.now
+    end
   end
 
   # Publish a message on a particular topic to the MQTT broker.
-  def publish(topic, payload, retain=false, qos=0)
-    packet = MQTT::Packet::Publish.new(
-      :qos => qos,
-      :retain => retain,
-      :topic => topic,
-      :payload => payload,
-      :message_id => @message_id.next
-    )
+  def publish(topic, payload, retain=false, qos=0, original_packet=nil)
+    op = Proc.new do
+      packet = MQTT::Packet::Publish.new(
+        :qos => qos,
+        :retain => retain,
+        :topic => topic,
+        :payload => MultiJson.dump(payload),
+        :message_id => @message_id.next
+      )
 
-    # Send the packet
-    send_packet(packet)
+      # Send the packet
+      send_packet(packet)
+    end
+
+    cb = Proc.new { |*args| acknowledge_publish_receipt_of(original_packet) if original_packet }
+
+    EM.defer(op, cb)
   end
 
   # Send a subscribe message for one or more topics on the MQTT broker.
@@ -213,11 +227,15 @@ class MQTT::Client
   #   client.subscribe( 'a/b' => 0, 'c/d' => 1 )
   #
   def subscribe(*topics)
-    packet = MQTT::Packet::Subscribe.new(
-      :topics => topics,
-      :message_id => @message_id.next
-    )
-    send_packet(packet)
+    # UPDATE: Defering encoding to other thread by wrapping it in EM.defer
+
+    EM.defer do
+      packet = MQTT::Packet::Subscribe.new(
+        :topics => topics,
+        :message_id => @message_id.next
+      )
+      send_packet(packet)
+    end
   end
 
   # Return the next message recieved from the MQTT broker.
@@ -235,30 +253,11 @@ class MQTT::Client
     # Subscribe to a topic, if an argument is given
     subscribe(topic) unless topic.nil?
 
-    if block_given?
-      # Loop forever!
-      loop do
-        packet = @read_queue.pop
-        yield(packet.topic, packet.payload)
-      end
-    else
-      # Wait for one packet to be available
-      packet = @read_queue.pop
-      return packet.topic, packet.payload
-    end
+    # UPDATE: Change this to Mutual Popping
+    raise "Don't use this.. It has been disabled. Recursively pop @read_queue for packets directly"
   end
 
-  def get_packet(topic=nil)
-    # Subscribe to a topic, if an argument is given
-    subscribe(topic) unless topic.nil?
-
-    if block_given?
-      # Loop forever!
-      loop { yield(@read_queue.pop) }
-    else
-      return @read_queue.pop
-    end
-  end
+  alias_method :get_packet, :get
 
   # Returns true if the incoming message queue is empty.
   def queue_empty?
@@ -272,11 +271,21 @@ class MQTT::Client
 
   # Send a unsubscribe message for one or more topics on the MQTT broker
   def unsubscribe(*topics)
-    packet = MQTT::Packet::Unsubscribe.new(
-      :topics => topics,
-      :message_id => @message_id.next
-    )
-    send_packet(packet)
+    # UPDATE: Defering encoding to other thread by wrapping it in EM.defer
+
+    EM.defer do
+      packet = MQTT::Packet::Unsubscribe.new(
+        :topics => topics,
+        :message_id => @message_id.next
+      )
+      send_packet(packet)
+    end
+  end
+
+  def acknowledge_publish_receipt_of(packet)
+    EM.defer do
+      send_packet(MQTT::Packet::Puback.new(message_id: packet.message_id))
+    end
   end
 
 private
@@ -289,6 +298,7 @@ private
       result = IO.select([@socket], nil, nil, SELECT_TIMEOUT)
       unless result.nil?
         # Yes - read in the packet
+
         packet = MQTT::Packet.read(@socket)
         if packet.class == MQTT::Packet::Publish
           # Add to queue
@@ -313,7 +323,9 @@ private
         @socket.close
         @socket = nil
       end
-      Thread.current[:parent].raise(exp)
+
+      # UPDATE: No need to do this on main thread, EM takes care of that.. Let it fly
+      raise(exp)
     end
   end
 
@@ -338,9 +350,10 @@ private
     raise MQTT::NotConnectedException if not connected?
 
     # Only allow one thread to write to socket at a time
+
+    # UPDATE: Defer the writes as well
     @write_semaphore.synchronize do
       @socket.write(data)
     end
   end
-
 end
