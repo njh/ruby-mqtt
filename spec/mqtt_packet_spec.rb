@@ -21,6 +21,11 @@ describe MQTT::Packet do
       packet.retain.should be_true
     end
 
+    it "should have a custom inspect method" do
+      packet = MQTT::Packet.new
+      packet.inspect.should == '#<MQTT::Packet>'
+    end
+
     it "should throw an exception the QoS is greater than 2" do
       lambda {
         packet = MQTT::Packet.new( :qos => 3 )
@@ -644,6 +649,22 @@ describe MQTT::Packet::Connect do
     end
   end
 
+  describe "when calling the inspect method" do
+    it "should output correct string for the default options" do
+      packet = MQTT::Packet::Connect.new
+      packet.inspect.should == "#<MQTT::Packet::Connect: keep_alive=15, clean, client_id=''>"
+    end
+
+    it "should output correct string when parameters are given" do
+      packet = MQTT::Packet::Connect.new(
+        :keep_alive => 10,
+        :client_id => 'c123',
+        :clean_session => false,
+        :username => 'foo'
+      )
+      packet.inspect.should == "#<MQTT::Packet::Connect: keep_alive=10, client_id='c123', username='foo'>"
+    end
+  end
 end
 
 describe MQTT::Packet::Connack do
@@ -794,6 +815,17 @@ describe MQTT::Packet::Connack do
       )
     end
   end
+
+  describe "when calling the inspect method" do
+    it "should output the right string when the return code is 0" do
+      packet = MQTT::Packet::Connack.new( :return_code => 0x00 )
+      packet.inspect.should == "#<MQTT::Packet::Connack: 0x00>"
+    end
+    it "should output the right string when the return code is 0x0F" do
+      packet = MQTT::Packet::Connack.new( :return_code => 0x0F )
+      packet.inspect.should == "#<MQTT::Packet::Connack: 0x0F>"
+    end
+  end
 end
 
 describe MQTT::Packet::Puback do
@@ -827,6 +859,11 @@ describe MQTT::Packet::Puback do
         "Extra bytes at end of Publish Acknowledgment packet"
       )
     end
+  end
+
+  it "should output the right string when calling inspect" do
+    packet = MQTT::Packet::Puback.new( :message_id => 0x1234 )
+    packet.inspect.should == "#<MQTT::Packet::Puback: 0x1234>"
   end
 end
 
@@ -862,6 +899,11 @@ describe MQTT::Packet::Pubrec do
       )
     end
   end
+
+  it "should output the right string when calling inspect" do
+    packet = MQTT::Packet::Pubrec.new( :message_id => 0x1234 )
+    packet.inspect.should == "#<MQTT::Packet::Pubrec: 0x1234>"
+  end
 end
 
 describe MQTT::Packet::Pubrel do
@@ -896,6 +938,11 @@ describe MQTT::Packet::Pubrel do
       )
     end
   end
+
+  it "should output the right string when calling inspect" do
+    packet = MQTT::Packet::Pubrel.new( :message_id => 0x1234 )
+    packet.inspect.should == "#<MQTT::Packet::Pubrel: 0x1234>"
+  end
 end
 
 describe MQTT::Packet::Pubcomp do
@@ -929,6 +976,11 @@ describe MQTT::Packet::Pubcomp do
         "Extra bytes at end of Publish Complete packet"
       )
     end
+  end
+
+  it "should output the right string when calling inspect" do
+    packet = MQTT::Packet::Pubcomp.new( :message_id => 0x1234 )
+    packet.inspect.should == "#<MQTT::Packet::Pubcomp: 0x1234>"
   end
 end
 
@@ -1035,6 +1087,18 @@ describe MQTT::Packet::Subscribe do
       @packet.topics.should == [['a/b',0],['c/d',1]]
     end
   end
+
+  describe "when calling the inspect method" do
+    it "should output correct string for a single topic" do
+      packet = MQTT::Packet::Subscribe.new(:topics => 'test')
+      packet.inspect.should == "#<MQTT::Packet::Subscribe: 0x00, 'test':0>"
+    end
+
+    it "should output correct string for multiple topics" do
+      packet = MQTT::Packet::Subscribe.new(:topics => {'a' => 1, 'b' => 0, 'c' => 2})
+      packet.inspect.should == "#<MQTT::Packet::Subscribe: 0x00, 'a':1, 'b':0, 'c':2>"
+    end
+  end
 end
 
 describe MQTT::Packet::Suback do
@@ -1101,6 +1165,18 @@ describe MQTT::Packet::Suback do
       @packet.granted_qos.should == [1,1]
     end
   end
+
+  describe "when calling the inspect method" do
+    it "should output correct string for a single granted qos" do
+      packet = MQTT::Packet::Suback.new(:message_id => 0x1234, :granted_qos => 0)
+      packet.inspect.should == "#<MQTT::Packet::Suback: 0x1234, qos=0>"
+    end
+
+    it "should output correct string for multiple topics" do
+      packet = MQTT::Packet::Suback.new(:message_id => 0x1235, :granted_qos => [0,1,2])
+      packet.inspect.should == "#<MQTT::Packet::Suback: 0x1235, qos=0,1,2>"
+    end
+  end
 end
 
 describe MQTT::Packet::Unsubscribe do
@@ -1141,6 +1217,18 @@ describe MQTT::Packet::Unsubscribe do
       @packet.topics.should == ['a/b','c/d']
     end
   end
+
+  describe "when calling the inspect method" do
+    it "should output correct string for a single topic" do
+      packet = MQTT::Packet::Unsubscribe.new(:topics => 'test')
+      packet.inspect.should == "#<MQTT::Packet::Unsubscribe: 0x00, 'test'>"
+    end
+
+    it "should output correct string for multiple topics" do
+      packet = MQTT::Packet::Unsubscribe.new(:message_id => 42, :topics => ['a', 'b', 'c'])
+      packet.inspect.should == "#<MQTT::Packet::Unsubscribe: 0x2A, 'a', 'b', 'c'>"
+    end
+  end
 end
 
 describe MQTT::Packet::Unsuback do
@@ -1175,6 +1263,11 @@ describe MQTT::Packet::Unsuback do
       )
     end
   end
+
+  it "should output the right string when calling inspect" do
+    packet = MQTT::Packet::Unsuback.new( :message_id => 0x1234 )
+    packet.inspect.should == "#<MQTT::Packet::Unsuback: 0x1234>"
+  end
 end
 
 describe MQTT::Packet::Pingreq do
@@ -1198,6 +1291,11 @@ describe MQTT::Packet::Pingreq do
         'Extra bytes at end of Ping Request packet'
       )
     end
+  end
+
+  it "should output the right string when calling inspect" do
+    packet = MQTT::Packet::Pingreq.new
+    packet.inspect.should == "#<MQTT::Packet::Pingreq>"
   end
 end
 
@@ -1223,6 +1321,11 @@ describe MQTT::Packet::Pingresp do
       )
     end
   end
+
+  it "should output the right string when calling inspect" do
+    packet = MQTT::Packet::Pingresp.new
+    packet.inspect.should == "#<MQTT::Packet::Pingresp>"
+  end
 end
 
 
@@ -1247,6 +1350,11 @@ describe MQTT::Packet::Disconnect do
         'Extra bytes at end of Disconnect packet'
       )
     end
+  end
+
+  it "should output the right string when calling inspect" do
+    packet = MQTT::Packet::Disconnect.new
+    packet.inspect.should == "#<MQTT::Packet::Disconnect>"
   end
 end
 

@@ -194,6 +194,9 @@ module MQTT
       header.pack('C*') + body
     end
 
+    def inspect
+      "\#<#{self.class}>"
+    end
 
     protected
 
@@ -288,6 +291,26 @@ module MQTT
         @topic = shift_string(buffer)
         @message_id = shift_short(buffer) unless qos == 0
         @payload = buffer.dup
+      end
+
+      def inspect
+        "\#<#{self.class}: " +
+        "d#{duplicate ? '1' : '0'}, " +
+        "q#{qos}, " +
+        "r#{retain ? '1' : '0'}, " +
+        "m#{message_id}, " +
+        "'#{topic}', " +
+        "#{inspect_payload}>"
+      end
+
+      protected
+      def inspect_payload
+        str = payload.to_s
+        if str.bytesize < 16
+          "'#{str}'"
+        else
+          "... (#{str.bytesize} bytes)"
+        end
       end
     end
 
@@ -394,6 +417,16 @@ module MQTT
           @password = shift_string(buffer)
         end
       end
+
+      def inspect
+        str = "\#<#{self.class}: "
+        str += "keep_alive=#{keep_alive}"
+        str += ", clean" if clean_session
+        str += ", client_id='#{client_id}'"
+        str += ", username='#{username}'" unless username.nil?
+        str += ", password=..." unless password.nil?
+        str += ">"
+      end
     end
 
     # Class representing an MQTT Connect Acknowledgment Packet
@@ -443,6 +476,10 @@ module MQTT
           raise ProtocolException.new("Extra bytes at end of Connect Acknowledgment packet")
         end
       end
+
+      def inspect
+        "\#<#{self.class}: 0x%2.2X>" % return_code
+      end
     end
 
     # Class representing an MQTT Publish Acknowledgment packet
@@ -467,6 +504,10 @@ module MQTT
         unless buffer.empty?
           raise ProtocolException.new("Extra bytes at end of Publish Acknowledgment packet")
         end
+      end
+
+      def inspect
+        "\#<#{self.class}: 0x%2.2X>" % message_id
       end
     end
 
@@ -493,6 +534,10 @@ module MQTT
           raise ProtocolException.new("Extra bytes at end of Publish Received packet")
         end
       end
+
+      def inspect
+        "\#<#{self.class}: 0x%2.2X>" % message_id
+      end
     end
 
     # Class representing an MQTT Publish Release packet
@@ -518,6 +563,10 @@ module MQTT
           raise ProtocolException.new("Extra bytes at end of Publish Release packet")
         end
       end
+
+      def inspect
+        "\#<#{self.class}: 0x%2.2X>" % message_id
+      end
     end
 
     # Class representing an MQTT Publish Complete packet
@@ -542,6 +591,10 @@ module MQTT
         unless buffer.empty?
           raise ProtocolException.new("Extra bytes at end of Publish Complete packet")
         end
+      end
+
+      def inspect
+        "\#<#{self.class}: 0x%2.2X>" % message_id
       end
     end
 
@@ -624,6 +677,13 @@ module MQTT
           @topics << [topic_name,topic_qos]
         end
       end
+
+      def inspect
+        str = "\#<#{self.class}: 0x%2.2X, %s>" % [
+          message_id,
+          topics.map {|t| "'#{t[0]}':#{t[1]}"}.join(', ')
+        ]
+      end
     end
 
     # Class representing an MQTT Subscribe Acknowledgment packet
@@ -668,6 +728,10 @@ module MQTT
           @granted_qos << shift_byte(buffer)
         end
       end
+
+      def inspect
+        "\#<#{self.class}: 0x%2.2X, qos=%s>" % [message_id, granted_qos.join(',')]
+      end
     end
 
     # Class representing an MQTT Client Unsubscribe packet
@@ -709,6 +773,13 @@ module MQTT
           @topics << shift_string(buffer)
         end
       end
+
+      def inspect
+        str = "\#<#{self.class}: 0x%2.2X, %s>" % [
+          message_id,
+          topics.map {|t| "'#{t}'"}.join(', ')
+        ]
+      end
     end
 
     # Class representing an MQTT Unsubscribe Acknowledgment packet
@@ -733,6 +804,10 @@ module MQTT
         unless buffer.empty?
           raise ProtocolException.new("Extra bytes at end of Unsubscribe Acknowledgment packet")
         end
+      end
+
+      def inspect
+        "\#<#{self.class}: 0x%2.2X>" % message_id
       end
     end
 
@@ -783,7 +858,6 @@ module MQTT
         end
       end
     end
-
   end
 
 
