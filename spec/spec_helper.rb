@@ -5,5 +5,4 @@ require 'bundler'
 
 Bundler.require(:default, :development)
 
-# This is needed by rcov
-require 'rspec/autorun'
+SimpleCov.start

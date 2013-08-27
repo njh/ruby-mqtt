@@ -24,4 +24,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'yard',        '>= 0.7.2'
   gem.add_development_dependency 'rake',        '>= 0.8.7'
   gem.add_development_dependency 'rspec',       '>= 2.6.0'
+  gem.add_development_dependency 'simplecov'
 end
