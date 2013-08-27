@@ -248,14 +248,30 @@ class MQTT::Client
     end
   end
 
+  # Return the next packet object received from the MQTT broker.
+  # An optional topic can be given to subscribe to.
+  #
+  # The method either returns a single packet:
+  #   packet = client.get_packet
+  #   puts packet.topic
+  #
+  # Or can be used with a block to keep processing messages:
+  #   client.get_packet('test') do |packet|
+  #     # Do stuff here
+  #     puts packet.topic
+  #   end
+  #
   def get_packet(topic=nil)
     # Subscribe to a topic, if an argument is given
     subscribe(topic) unless topic.nil?
 
     if block_given?
       # Loop forever!
-      loop { yield(@read_queue.pop) }
+      loop do
+        yield(@read_queue.pop)
+      end
     else
+      # Wait for one packet to be available
       return @read_queue.pop
     end
   end

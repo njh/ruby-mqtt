@@ -353,6 +353,31 @@ describe MQTT::Client do
     end
   end
 
+  describe "when calling the 'get_packet' method" do
+    before(:each) do
+      @client.instance_variable_set(:@socket, @socket)
+    end
+
+    it "should successfull receive a valid PUBLISH packet with a QoS 0" do
+      inject_packet(:topic => 'topic0', :payload => 'payload0', :qos => 0)
+      packet = @client.get_packet
+      packet.class.should == MQTT::Packet::Publish
+      packet.qos.should == 0
+      packet.topic.should == 'topic0'
+      packet.payload.should == 'payload0'
+    end
+
+    it "should successfull receive a valid PUBLISH packet with a QoS 1" do
+      inject_packet(:topic => 'topic1', :payload => 'payload1', :qos => 1)
+      packet = @client.get_packet
+      packet.class.should == MQTT::Packet::Publish
+      packet.qos.should == 1
+      packet.topic.should == 'topic1'
+      packet.payload.should == 'payload1'
+      @client.queue_empty?.should be_true
+    end
+  end
+
   describe "when calling the 'unsubscribe' method" do
     before(:each) do
       @client.instance_variable_set(:@socket, @socket)
