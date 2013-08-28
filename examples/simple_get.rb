@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 #
-# Connect to a local MQTT broker, subscribe to all topics
+# Connect to a MQTT broker, subscribe to all topics
 # and then loop, displaying any messages received.
 #
 

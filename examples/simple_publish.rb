@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 #
-# Connect to local MQTT Broker, send message and disconnect again.
+# Connect to a MQTT Broker, send message and disconnect again.
 #
 
 $:.unshift File.dirname(__FILE__)+'/../lib'
