@@ -290,7 +290,7 @@ module MQTT
         super(buffer)
         @topic = shift_string(buffer)
         @message_id = shift_short(buffer) unless qos == 0
-        @payload = buffer.dup
+        @payload = buffer
       end
 
       def inspect
