@@ -1,3 +1,5 @@
+# encoding: BINARY
+
 module MQTT
 
   # Class representing a MQTT Packet
@@ -77,7 +79,7 @@ module MQTT
       multiplier = 1
       pos = 1
       begin
-        if buffer.length <= pos
+        if buffer.bytesize <= pos
           raise ProtocolException.new("The packet length header is incomplete")
         end
         digit = buffer.unpack("C*")[pos]
@@ -149,9 +151,9 @@ module MQTT
 
     # Parse the body (variable header and payload) of a packet
     def parse_body(buffer)
-      if buffer.length != body_length
+      if buffer.bytesize != body_length
         raise ProtocolException.new(
-          "Failed to parse packet - input buffer (#{buffer.length}) is not the same as the body length buffer (#{body_length})"
+          "Failed to parse packet - input buffer (#{buffer.bytesize}) is not the same as the body length buffer (#{body_length})"
         )
       end
     end
@@ -210,11 +212,18 @@ module MQTT
       [val.to_i].pack('n')
     end
 
-    # Encode a string and return it
+    # Encode a UTF-8 string and return it
     # (preceded by the length of the string)
     def encode_string(str)
-      str = str.to_s unless str.is_a?(String)
-      encode_short(str.length) + str
+      if str.is_a?(String)
+        str = str.encode('UTF-8')
+      else
+        str = str.to_s.encode('UTF-8')
+      end
+      
+      # Force to binary, when assembling the packet
+      str.force_encoding('ASCII-8BIT')
+      encode_short(str.bytesize) + str
     end
 
     # Remove a 16-bit unsigned integer from the front of buffer
@@ -236,7 +245,9 @@ module MQTT
     # Remove string from the front of buffer
     def shift_string(buffer)
       len = shift_short(buffer)
-      shift_data(buffer,len)
+      str = shift_data(buffer,len)
+      # Strings in MQTT v3.1 are all UTF-8
+      str.force_encoding('UTF-8')
     end
 
 
@@ -281,7 +292,7 @@ module MQTT
         end
         body += encode_string(@topic)
         body += encode_short(@message_id) unless qos == 0
-        body += payload.to_s
+        body += payload.to_s.force_encoding('ASCII-8BIT')
         return body
       end
 
@@ -354,7 +365,7 @@ module MQTT
       # Get serialisation of packet's body
       def encode_body
         body = ''
-        if @client_id.nil? or @client_id.length < 1 or @client_id.length > 23
+        if @client_id.nil? or @client_id.bytesize < 1 or @client_id.bytesize > 23
           raise "Invalid client identifier when serialising packet"
         end
         body += encode_string(@protocol_name)
@@ -374,6 +385,7 @@ module MQTT
         body += encode_string(@client_id)
         unless will_topic.nil?
           body += encode_string(@will_topic)
+          # The MQTT v3.1 specification says that the payload is a UTF-8 string
           body += encode_string(@will_payload)
         end
         body += encode_string(@username) unless @username.nil?
@@ -408,12 +420,13 @@ module MQTT
           @will_qos = ((@connect_flags & 0x18) >> 3)
           @will_retain = ((@connect_flags & 0x20) >> 5) == 0x01
           @will_topic = shift_string(buffer)
+          # The MQTT v3.1 specification says that the payload is a UTF-8 string
           @will_payload = shift_string(buffer)
         end
-        if ((@connect_flags & 0x80) >> 7) == 0x01 and buffer.length > 0
+        if ((@connect_flags & 0x80) >> 7) == 0x01 and buffer.bytesize > 0
           @username = shift_string(buffer)
         end
-        if ((@connect_flags & 0x40) >> 6) == 0x01 and buffer.length > 0
+        if ((@connect_flags & 0x40) >> 6) == 0x01 and buffer.bytesize > 0
           @password = shift_string(buffer)
         end
       end
@@ -671,7 +684,7 @@ module MQTT
         super(buffer)
         @message_id = shift_short(buffer)
         @topics = []
-        while(buffer.length>0)
+        while(buffer.bytesize>0)
           topic_name = shift_string(buffer)
           topic_qos = shift_byte(buffer)
           @topics << [topic_name,topic_qos]
@@ -724,7 +737,7 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         @message_id = shift_short(buffer)
-        while(buffer.length>0)
+        while(buffer.bytesize>0)
           @granted_qos << shift_byte(buffer)
         end
       end
@@ -769,7 +782,7 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         @message_id = shift_short(buffer)
-        while(buffer.length>0)
+        while(buffer.bytesize>0)
           @topics << shift_string(buffer)
         end
       end

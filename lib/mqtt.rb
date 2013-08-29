@@ -5,7 +5,12 @@ require 'socket'
 require 'thread'
 require 'timeout'
 
-require "mqtt/version"
+require 'mqtt/version'
+
+# String encoding monkey patch for Ruby 1.8
+unless String.method_defined?(:force_encoding)
+  require 'mqtt/patches/string_encoding.rb'
+end
 
 module MQTT
 

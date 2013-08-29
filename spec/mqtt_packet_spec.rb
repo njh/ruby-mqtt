@@ -1,3 +1,6 @@
+# encoding: BINARY
+# Encoding is set to binary, so that the binary packets aren't validated as UTF-8
+
 $:.unshift(File.dirname(__FILE__))
 
 require 'spec_helper'
@@ -97,11 +100,13 @@ describe MQTT::Packet do
     it "should provide a add_short method to get a big-endian unsigned 16-bit integer" do
       data = @packet.send(:encode_short, 1024)
       data.should == "\x04\x00"
+      data.encoding.to_s.should == "ASCII-8BIT"
     end
 
     it "should provide a add_string method to get a string preceeded by its length" do
       data = @packet.send(:encode_string, 'quack')
       data.should == "\x00\x05quack"
+      data.encoding.to_s.should == "ASCII-8BIT"
     end
 
     it "should provide a shift_short method to get a 16-bit unsigned integer" do
@@ -144,6 +149,11 @@ describe MQTT::Packet::Publish do
     it "should output the correct bytes for a packet with QOS 2 and dup flag set" do
       packet = MQTT::Packet::Publish.new( :qos => 2, :duplicate => true, :message_id => 5, :topic => 'c/d', :payload => 'hello world' )
       packet.to_s.should == "\x3C\x12\x00\x03c/d\x00\x05hello world"
+    end
+  
+    it "should output a string as binary / 8-bit ASCII" do
+      packet = MQTT::Packet::Publish.new( :topic => 'test', :payload => 'hello world' )
+      packet.to_s.encoding.to_s.should == "ASCII-8BIT"
     end
 
     it "should throw an exception when there is no topic name" do
@@ -189,10 +199,12 @@ describe MQTT::Packet::Publish do
 
     it "should set the topic name correctly" do
       @packet.topic.should == 'test'
+      @packet.topic.encoding.to_s.should == 'UTF-8'
     end
 
     it "should set the payload correctly" do
       @packet.payload.should == 'hello world'
+      @packet.payload.encoding.to_s.should == 'ASCII-8BIT'
     end
   end
 
@@ -219,10 +231,12 @@ describe MQTT::Packet::Publish do
 
     it "should set the topic name correctly" do
       @packet.topic.should == 'c/d'
+      @packet.topic.encoding.to_s.should == 'UTF-8'
     end
 
     it "should set the payload correctly" do
       @packet.payload.should == 'hello world'
+      @packet.payload.encoding.to_s.should == 'ASCII-8BIT'
     end
   end
 
@@ -279,6 +293,54 @@ describe MQTT::Packet::Publish do
     end
   end
 
+  describe "processing a packet containing UTF-8 character" do
+    before(:each) do
+      @packet = MQTT::Packet::Publish.new(
+        :topic => "Test ①".force_encoding("UTF-8"),
+        :payload => "Snowman: ☃".force_encoding("UTF-8")
+      )
+    end
+
+    it "should have the correct topic byte length" do
+      @packet.topic.bytesize.should == 8
+    end
+
+    it "should have the correct topic string length", :unless => RUBY_VERSION =~ /^1\.8/ do
+      # Ruby 1.8 doesn't support UTF-8 properly
+      @packet.topic.length.should == 6
+    end
+
+    it "should have the correct payload byte length" do
+      @packet.payload.bytesize.should == 12
+    end
+
+    it "should have the correct payload string length", :unless => RUBY_VERSION =~ /^1\.8/ do
+      # Ruby 1.8 doesn't support UTF-8 properly
+      @packet.payload.length.should == 10
+    end
+
+    it "should encode to MQTT packet correctly" do
+      @packet.to_s.should == "\x30\x16\x00\x08Test \xE2\x91\xA0Snowman: \xE2\x98\x83".force_encoding('BINARY')
+    end
+
+    it "should parse the serialised packet" do
+      packet2 = MQTT::Packet.parse( @packet.to_s )
+      packet2.topic.should == "Test ①".force_encoding('UTF-8')
+      packet2.payload.should == "Snowman: ☃".force_encoding('BINARY')
+    end
+  end
+
+  describe "when calling the inspect method" do
+    it "should output the payload, if it is less than 16 bytes" do
+      packet = MQTT::Packet::Publish.new( :topic => "topic", :payload => "payload" )
+      packet.inspect.should == "#<MQTT::Packet::Publish: d0, q0, r0, m0, 'topic', 'payload'>"
+    end
+
+    it "should output the length of the payload, if it is more than 16 bytes" do
+      packet = MQTT::Packet::Publish.new( :topic => "topic", :payload => 'x'*32 )
+      packet.inspect.should == "#<MQTT::Packet::Publish: d0, q0, r0, m0, 'topic', ... (32 bytes)>"
+    end
+  end
 end
 
 describe MQTT::Packet::Connect do
@@ -379,6 +441,7 @@ describe MQTT::Packet::Connect do
 
     it "should set the Protocol Name of the packet correctly" do
       @packet.protocol_name.should == 'MQIsdp'
+      @packet.protocol_name.encoding.to_s.should == 'UTF-8'
     end
 
     it "should set the Protocol Version of the packet correctly" do
@@ -387,6 +450,7 @@ describe MQTT::Packet::Connect do
 
     it "should set the Client Identifier of the packet correctly" do
       @packet.client_id.should == 'myclient'
+      @packet.client_id.encoding.to_s.should == 'UTF-8'
     end
 
     it "should set the Keep Alive timer of the packet correctly" do
@@ -435,6 +499,7 @@ describe MQTT::Packet::Connect do
 
     it "should set the Protocol Name of the packet correctly" do
       @packet.protocol_name.should == 'MQIsdp'
+      @packet.protocol_name.encoding.to_s.should == 'UTF-8'
     end
 
     it "should set the Protocol Version of the packet correctly" do
@@ -443,6 +508,7 @@ describe MQTT::Packet::Connect do
 
     it "should set the Client Identifier of the packet correctly" do
       @packet.client_id.should == 'myclient'
+      @packet.client_id.encoding.to_s.should == 'UTF-8'
     end
 
     it "should set the clean session flag should be set" do
@@ -459,10 +525,12 @@ describe MQTT::Packet::Connect do
 
     it "should set the Will topic of the packet correctly" do
       @packet.will_topic.should == 'topic'
+      @packet.will_topic.encoding.to_s.should == 'UTF-8'
     end
 
     it "should set the Will payload of the packet correctly" do
       @packet.will_payload.should == 'hello'
+      @packet.will_payload.encoding.to_s.should == 'UTF-8'
     end
   end
 
@@ -488,6 +556,7 @@ describe MQTT::Packet::Connect do
 
     it "should set the Protocol Name of the packet correctly" do
       @packet.protocol_name.should == 'MQIsdp'
+      @packet.protocol_name.encoding.to_s.should == 'UTF-8'
     end
 
     it "should set the Protocol Version of the packet correctly" do
@@ -496,7 +565,8 @@ describe MQTT::Packet::Connect do
 
     it "should set the Client Identifier of the packet correctly" do
       @packet.client_id.should == 'myclient'
-    end
+      @packet.client_id.encoding.to_s.should == 'UTF-8'
+   end
 
     it "should set the Keep Alive Timer of the packet correctly" do
       @packet.keep_alive.should == 10
@@ -504,10 +574,12 @@ describe MQTT::Packet::Connect do
 
     it "should set the Username of the packet correctly" do
       @packet.username.should == 'username'
+      @packet.username.encoding.to_s.should == 'UTF-8'
     end
 
     it "should set the Username of the packet correctly" do
       @packet.password.should == 'password'
+      @packet.password.encoding.to_s.should == 'UTF-8'
     end
   end
 
@@ -520,6 +592,7 @@ describe MQTT::Packet::Connect do
 
     it "should set the Username of the packet correctly" do
       @packet.username.should == 'username'
+      @packet.username.encoding.to_s.should == 'UTF-8'
     end
 
     it "should set the Username of the packet correctly" do
@@ -540,6 +613,7 @@ describe MQTT::Packet::Connect do
 
     it "should set the Username of the packet correctly" do
       @packet.password.should == 'password'
+      @packet.password.encoding.to_s.should == 'UTF-8'
     end
   end
 
@@ -584,6 +658,7 @@ describe MQTT::Packet::Connect do
 
     it "should set the Protocol Name of the packet correctly" do
       @packet.protocol_name.should == 'MQIsdp'
+      @packet.protocol_name.encoding.to_s.should == 'UTF-8'
     end
 
     it "should set the Protocol Version of the packet correctly" do
@@ -596,6 +671,7 @@ describe MQTT::Packet::Connect do
 
     it "should set the Client Identifier of the packet correctly" do
       @packet.client_id.should == '12345678901234567890123'
+      @packet.client_id.encoding.to_s.should == 'UTF-8'
     end
 
     it "should set the Will QoS of the packet correctly" do
@@ -608,18 +684,22 @@ describe MQTT::Packet::Connect do
 
     it "should set the Will topic of the packet correctly" do
       @packet.will_topic.should == 'will_topic'
+      @packet.will_topic.encoding.to_s.should == 'UTF-8'
     end
 
     it "should set the Will payload of the packet correctly" do
       @packet.will_payload.should == 'will_message'
+      @packet.will_payload.encoding.to_s.should == 'UTF-8'
     end
 
     it "should set the Username of the packet correctly" do
       @packet.username.should == 'user0123456789'
+      @packet.username.encoding.to_s.should == 'UTF-8'
     end
 
     it "should set the Username of the packet correctly" do
       @packet.password.should == 'pass0123456789'
+      @packet.password.encoding.to_s.should == 'UTF-8'
     end
   end
 
