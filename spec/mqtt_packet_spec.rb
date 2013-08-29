@@ -163,6 +163,14 @@ describe MQTT::Packet::Publish do
         'Invalid topic name when serialising packet'
       )
     end
+
+    it "should throw an exception when there is an empty topic name" do
+      lambda {
+        MQTT::Packet::Publish.new( :topic => '' ).to_s
+      }.should raise_error(
+        'Invalid topic name when serialising packet'
+      )
+    end
   end
 
   describe "when serialising an oversized packet" do

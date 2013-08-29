@@ -287,7 +287,7 @@ module MQTT
       # Get serialisation of packet's body
       def encode_body
         body = ''
-        if @topic.nil?
+        if @topic.nil? or @topic.empty?
           raise "Invalid topic name when serialising packet"
         end
         body += encode_string(@topic)
