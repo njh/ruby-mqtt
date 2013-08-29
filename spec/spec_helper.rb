@@ -5,4 +5,6 @@ require 'bundler'
 
 Bundler.require(:default, :development)
 
-SimpleCov.start
+unless RUBY_VERSION =~ /^1\.8/
+  SimpleCov.start
+end
