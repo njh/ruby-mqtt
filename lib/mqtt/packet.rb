@@ -19,27 +19,21 @@ module MQTT
 
     # Read in a packet from a socket
     def self.read(socket)
-      # Read in the packet header and work out the class
-      header = read_byte(socket)
-      type_id = ((header & 0xF0) >> 4)
-      packet_class = MQTT::PACKET_TYPES[type_id]
-
-      # Create a new packet object
-      packet = packet_class.new(
-        :duplicate => ((header & 0x08) >> 3),
-        :qos => ((header & 0x06) >> 1),
-        :retain => ((header & 0x01) >> 0)
+      # Read in the packet header and create a new packet object
+      packet = create_from_header(
+        read_byte(socket)
       )
 
       # Read in the packet length
       multiplier = 1
       body_length = 0
+      pos = 1
       begin
         digit = read_byte(socket)
         body_length += ((digit & 0x7F) * multiplier)
         multiplier *= 0x80
-      end while ((digit & 0x80) != 0x00)
-      # FIXME: only allow 4 bytes?
+        pos += 1
+      end while ((digit & 0x80) != 0x00) and pos <= 4
 
       # Store the expected body length in the packet
       packet.instance_variable_set('@body_length', body_length)
@@ -65,19 +59,9 @@ module MQTT
         raise ProtocolException.new("Invalid packet: less than 2 byes long")
       end
 
-      # Work out the class
-      type_id = ((buffer.unpack("C*")[0] & 0xF0) >> 4)
-      packet_class = MQTT::PACKET_TYPES[type_id]
-      if packet_class.nil?
-        raise ProtocolException.new("Invalid packet type identifier: #{type_id}")
-      end
-
       # Create a new packet object
-      packet = packet_class.new(
-        :duplicate => ((buffer.unpack("C*")[0] & 0x08) >> 3) == 0x01,
-        :qos => ((buffer.unpack("C*")[0] & 0x06) >> 1),
-        :retain => ((buffer.unpack("C*")[0] & 0x01) >> 0) == 0x01
-      )
+      bytes = buffer.unpack("C5")
+      packet = create_from_header(bytes.first)
 
       # Parse the packet length
       body_length = 0
@@ -87,7 +71,7 @@ module MQTT
         if buffer.bytesize <= pos
           raise ProtocolException.new("The packet length header is incomplete")
         end
-        digit = buffer.unpack("C*")[pos]
+        digit = bytes[pos]
         body_length += ((digit & 0x7F) * multiplier)
         multiplier *= 0x80
         pos += 1
@@ -96,12 +80,28 @@ module MQTT
       # Store the expected body length in the packet
       packet.instance_variable_set('@body_length', body_length)
 
-      # Delete the variable length header from the raw packet passed in
+      # Delete the fixed header from the raw packet passed in
       buffer.slice!(0...pos)
 
       return packet
     end
 
+    # Create a new packet object from the first byte of a MQTT packet
+    def self.create_from_header(byte)
+      # Work out the class
+      type_id = ((byte & 0xF0) >> 4)
+      packet_class = MQTT::PACKET_TYPES[type_id]
+      if packet_class.nil?
+        raise ProtocolException.new("Invalid packet type identifier: #{type_id}")
+      end
+
+      # Create a new packet object
+      packet_class.new(
+        :duplicate => ((byte & 0x08) >> 3) == 0x01,
+        :qos => ((byte & 0x06) >> 1),
+        :retain => ((byte & 0x01) >> 0) == 0x01
+      )
+    end
 
     # Create a new empty packet
     def initialize(args={})
