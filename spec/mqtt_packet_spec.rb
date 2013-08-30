@@ -1474,10 +1474,21 @@ describe "Reading in an invalid packet" do
 end
 
 describe "Parsing an invalid packet" do
+  context "that has no length" do
+    it "should throw an exception" do
+      lambda {
+        MQTT::Packet.parse( "" )
+      }.should raise_error(
+        MQTT::ProtocolException,
+        "Invalid packet: less than 2 byes long"
+      )
+    end
+  end
+
   context "that has an invalid type identifier" do
     it "should throw an exception" do
       lambda {
-        MQTT::Packet.parse( "\x00" )
+        MQTT::Packet.parse( "\x00\x00" )
       }.should raise_error(
         MQTT::ProtocolException,
         "Invalid packet type identifier: 0"

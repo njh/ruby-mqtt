@@ -60,6 +60,11 @@ module MQTT
     # Parse the header and create a new packet object of the correct type
     # The header is removed from the buffer passed into this function
     def self.parse_header(buffer)
+      # Check that the packet is a long as the minimum packet size
+      if buffer.bytesize < 2
+        raise ProtocolException.new("Invalid packet: less than 2 byes long")
+      end
+
       # Work out the class
       type_id = ((buffer.unpack("C*")[0] & 0xF0) >> 4)
       packet_class = MQTT::PACKET_TYPES[type_id]
