@@ -1562,6 +1562,17 @@ describe "Parsing an invalid packet" do
     end
   end
 
+  context "that has too many bytes in the length field" do
+    it "should throw an exception" do
+      lambda {
+        MQTT::Packet.parse( "\x30\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF" )
+      }.should raise_error(
+        MQTT::ProtocolException,
+        'Failed to parse packet - input buffer (4) is not the same as the body length header (268435455)'
+      )
+    end
+  end
+
   context "that has a bigger buffer than expected" do
     it "should throw an exception" do
       lambda {
