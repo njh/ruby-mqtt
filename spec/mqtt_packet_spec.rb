@@ -150,10 +150,15 @@ describe MQTT::Packet::Publish do
       packet = MQTT::Packet::Publish.new( :qos => 2, :duplicate => true, :message_id => 5, :topic => 'c/d', :payload => 'hello world' )
       packet.to_s.should == "\x3C\x12\x00\x03c/d\x00\x05hello world"
     end
-  
+
     it "should output a string as binary / 8-bit ASCII" do
       packet = MQTT::Packet::Publish.new( :topic => 'test', :payload => 'hello world' )
       packet.to_s.encoding.to_s.should == "ASCII-8BIT"
+    end
+
+    it "should support passing in non-strings to the topic and payload" do
+      packet = MQTT::Packet::Publish.new( :topic => :symbol, :payload => 1234 )
+      packet.to_s.should == "\x30\x0c\x00\x06symbol1234"
     end
 
     it "should throw an exception when there is no topic name" do

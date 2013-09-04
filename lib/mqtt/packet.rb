@@ -220,12 +220,8 @@ module MQTT
     # Encode a UTF-8 string and return it
     # (preceded by the length of the string)
     def encode_string(str)
-      if str.is_a?(String)
-        str = str.encode('UTF-8')
-      else
-        str = str.to_s.encode('UTF-8')
-      end
-      
+      str = str.to_s.encode('UTF-8')
+
       # Force to binary, when assembling the packet
       str.force_encoding('ASCII-8BIT')
       encode_short(str.bytesize) + str
@@ -292,7 +288,7 @@ module MQTT
       # Get serialisation of packet's body
       def encode_body
         body = ''
-        if @topic.nil? or @topic.empty?
+        if @topic.nil? or @topic.to_s.empty?
           raise "Invalid topic name when serialising packet"
         end
         body += encode_string(@topic)
