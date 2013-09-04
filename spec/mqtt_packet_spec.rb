@@ -338,6 +338,43 @@ describe MQTT::Packet::Publish do
     end
   end
 
+  describe "reading a packet from a socket" do
+    before(:each) do
+      @socket = StringIO.new("\x30\x11\x00\x04testhello world")
+      @packet = MQTT::Packet.read(@socket)
+    end
+
+    it "should correctly create the right type of packet object" do
+      @packet.class.should == MQTT::Packet::Publish
+    end
+
+    it "should set the body length is read correctly" do
+      @packet.body_length.should == 17
+    end
+
+    it "should set the QOS level correctly" do
+      @packet.qos.should == 0
+    end
+
+    it "should set the RETAIN flag correctly" do
+      @packet.retain.should be_false
+    end
+
+    it "should set the DUP flag correctly" do
+      @packet.duplicate.should be_false
+    end
+
+    it "should set the topic name correctly" do
+      @packet.topic.should == 'test'
+      @packet.topic.encoding.to_s.should == 'UTF-8'
+    end
+
+    it "should set the payload correctly" do
+      @packet.payload.should == 'hello world'
+      @packet.payload.encoding.to_s.should == 'ASCII-8BIT'
+    end
+  end
+
   describe "when calling the inspect method" do
     it "should output the payload, if it is less than 16 bytes" do
       packet = MQTT::Packet::Publish.new( :topic => "topic", :payload => "payload" )
@@ -1460,14 +1497,27 @@ describe "Serialising an invalid packet" do
   end
 end
 
-describe "Reading in an invalid packet" do
+describe "Reading in an invalid packet from a socket" do
   context "that has 0 length" do
     it "should throw an exception" do
       lambda {
-        data = StringIO.new
-        MQTT::Packet.read(data)
+        socket = StringIO.new
+        MQTT::Packet.read(socket)
       }.should raise_error(
-        MQTT::ProtocolException
+        MQTT::ProtocolException,
+        "Failed to read byte from socket"
+      )
+    end
+  end
+
+  context "that has the maximum number of bytes in the length header" do
+    it "should throw an exception" do
+      lambda {
+        socket = StringIO.new("\x30\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF")
+        MQTT::Packet.read(socket)
+      }.should raise_error(
+        MQTT::ProtocolException,
+        "Failed to parse packet - input buffer (4) is not the same as the body length header (268435455)"
       )
     end
   end

@@ -262,7 +262,7 @@ module MQTT
     def self.read_byte(socket)
       byte = socket.read(1)
       if byte.nil?
-        raise ProtocolException
+        raise ProtocolException.new("Failed to read byte from socket")
       end
       byte.unpack('C').first
     end
