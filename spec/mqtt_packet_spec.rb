@@ -280,7 +280,7 @@ describe MQTT::Packet::Publish do
     end
 
     it "should get the body length correctly" do
-      @packet.payload.size.should == 314
+      @packet.payload.bytesize.should == 314
     end
   end
 
@@ -302,7 +302,7 @@ describe MQTT::Packet::Publish do
     end
 
     it "should get the body length correctly" do
-      @packet.payload.size.should == 16384
+      @packet.payload.bytesize.should == 16384
     end
   end
 
