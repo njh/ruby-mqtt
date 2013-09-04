@@ -158,7 +158,7 @@ module MQTT
     def parse_body(buffer)
       if buffer.bytesize != body_length
         raise ProtocolException.new(
-          "Failed to parse packet - input buffer (#{buffer.bytesize}) is not the same as the body length buffer (#{body_length})"
+          "Failed to parse packet - input buffer (#{buffer.bytesize}) is not the same as the body length header (#{body_length})"
         )
       end
     end
