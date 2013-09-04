@@ -1515,6 +1515,18 @@ describe "Reading in an invalid packet from a socket" do
     end
   end
 
+  context "that has an incomplete packet length header" do
+    it "should throw an exception" do
+      lambda {
+        socket = StringIO.new("\x30\xFF")
+        MQTT::Packet.read(socket)
+      }.should raise_error(
+        MQTT::ProtocolException,
+        "Failed to read byte from socket"
+      )
+    end
+  end
+
   context "that has the maximum number of bytes in the length header" do
     it "should throw an exception" do
       lambda {
