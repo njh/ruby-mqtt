@@ -56,7 +56,7 @@ module MQTT
     def self.parse_header(buffer)
       # Check that the packet is a long as the minimum packet size
       if buffer.bytesize < 2
-        raise ProtocolException.new("Invalid packet: less than 2 byes long")
+        raise ProtocolException.new("Invalid packet: less than 2 bytes long")
       end
 
       # Create a new packet object

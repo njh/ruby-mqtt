@@ -1480,7 +1480,7 @@ describe "Parsing an invalid packet" do
         MQTT::Packet.parse( "" )
       }.should raise_error(
         MQTT::ProtocolException,
-        "Invalid packet: less than 2 byes long"
+        "Invalid packet: less than 2 bytes long"
       )
     end
   end
