@@ -63,7 +63,7 @@ describe MQTT::Client do
     end
   end
 
-  describe "when calling the 'connect' method" do
+  describe "when calling the 'connect' method on a client" do
     before(:each) do
       TCPSocket.stub(:new).and_return(@socket)
       Thread.stub(:new)
@@ -158,6 +158,30 @@ describe MQTT::Client do
       end
     end
 
+  end
+
+  describe "calling 'connect' on the class" do
+    before(:each) do
+      TCPSocket.stub(:new).and_return(@socket)
+      MQTT::Client.stub(:new).and_return(@client)
+      Thread.stub(:new)
+      @client.stub(:receive_connack)
+    end
+
+    it "should create a new client object" do
+      MQTT::Client.should_receive(:new).once
+      MQTT::Client.connect
+    end
+
+    it "should call connect new client object" do
+      @client.should_receive(:connect).once
+      MQTT::Client.connect
+    end
+
+    it "should return the new client object" do
+      client = MQTT::Client.connect
+      client.class.should == MQTT::Client
+    end
   end
 
   describe "when calling the 'receive_connack' method" do
@@ -302,7 +326,7 @@ describe MQTT::Client do
       @socket.string.should == "\x82\x0e\x00\x01\x00\x03a/b\x00\x00\x03c/d\x01"
     end
   end
-  
+
   describe "when calling the 'queue_length' method" do
     it "should return 0 if there are no incoming messages waiting" do
       @client.queue_length.should == 0
@@ -320,7 +344,6 @@ describe MQTT::Client do
     end
   end
 
-  
   describe "when calling the 'queue_emtpy?' method" do
     it "should return return true if there no incoming messages waiting" do
       @client.queue_empty?.should be_true
