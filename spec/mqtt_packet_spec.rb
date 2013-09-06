@@ -416,6 +416,14 @@ describe MQTT::Packet::Connect do
       )
     end
 
+    it "should throw an exception if the keep alive value is less than 0" do
+      lambda {
+        MQTT::Packet::Connect.new(:client_id => 'test', :keep_alive => -2).to_s
+      }.should raise_error(
+        'Invalid keep-alive value: cannot be less than 0'
+      )
+    end
+
     it "should output the correct bytes for a packet with a Will" do
       packet = MQTT::Packet::Connect.new(
         :client_id => 'myclient',

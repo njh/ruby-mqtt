@@ -372,6 +372,10 @@ module MQTT
         body += encode_string(@protocol_name)
         body += encode_bytes(@protocol_version.to_i)
 
+        if @keep_alive < 0
+          raise "Invalid keep-alive value: cannot be less than 0"
+        end
+
         # Set the Connect flags
         @connect_flags = 0
         @connect_flags |= 0x02 if @clean_session
