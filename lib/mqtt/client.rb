@@ -317,7 +317,7 @@ private
       end
 
       # Time to send a keep-alive ping request?
-      if Time.now > @last_pingreq + @keep_alive
+      if @keep_alive > 0 and Time.now > @last_pingreq + @keep_alive
         ping
       end
 

@@ -25,6 +25,7 @@ class MQTT::FakeServer
   attr_reader :address, :port
   attr_reader :last_publish
   attr_reader :thread
+  attr_reader :pings_received
   attr_accessor :just_one
   attr_accessor :logger
 
@@ -52,6 +53,7 @@ class MQTT::FakeServer
       loop do
         # Wait for a client to connect
         client = @socket.accept
+        @pings_received = 0
         handle_client(client)
         break if just_one
       end
@@ -106,6 +108,7 @@ class MQTT::FakeServer
           )
         when MQTT::Packet::Pingreq
           client.write MQTT::Packet::Pingresp.new
+          @pings_received += 1
         when MQTT::Packet::Disconnect
           client.close
         break

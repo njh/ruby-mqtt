@@ -22,20 +22,6 @@ describe "a client talking to a server" do
     @server.stop
   end
 
-  context "connecting, sending a ping, then exiting" do
-    def connect_and_ping
-      @client.connect
-      @client.ping
-      @client.disconnect
-      @server.thread.join(1)
-    end
-
-    it "the server should not report any errors" do
-      connect_and_ping
-      @error_log.string.should be_empty
-    end
-  end
-
   context "connecting and publishing a packet" do
     def connect_and_publish
       @client.connect
@@ -120,6 +106,39 @@ describe "a client talking to a server" do
     it "the server should not report any errors" do
       connect_and_subscribe
       @error_log.string.should be_empty
+    end
+  end
+
+  context "sends pings when idle" do
+    def connect_and_ping(keep_alive)
+      @client.keep_alive = keep_alive
+      @client.connect
+      @server.thread.join(2)
+      @client.disconnect
+    end
+
+    context "when keep-alive=1" do
+      it "the server should have received at least one ping" do
+        connect_and_ping(1)
+        @server.pings_received.should >= 1
+      end
+
+      it "the server should not report any errors" do
+        connect_and_ping(1)
+        @error_log.string.should be_empty
+      end
+    end
+
+    context "when keep-alive=0" do
+      it "the server should not receive any pings" do
+        connect_and_ping(0)
+        @server.pings_received.should == 0
+      end
+
+      it "the server should not report any errors" do
+        connect_and_ping(0)
+        @error_log.string.should be_empty
+      end
     end
   end
 
