@@ -5,7 +5,7 @@
 # It behaves in the following ways:
 #   * Responses to CONNECT with a successful CONACK
 #   * Responses to PUBLISH by echoing the packet back
-#   * Responses to SUBSCRIBE with SUBACK
+#   * Responses to SUBSCRIBE with SUBACK and a PUBLISH to the topic
 #   * Responses to PINGREQ with PINGRESP
 #   * Responses to DISCONNECT by closing the socket
 #
@@ -94,7 +94,16 @@ class MQTT::FakeServer
           client.write packet
           @last_publish = packet
         when MQTT::Packet::Subscribe
-          client.write MQTT::Packet::Suback.new(:granted_qos => 0)
+          client.write MQTT::Packet::Suback.new(
+            :message_id => packet.message_id,
+            :granted_qos => 0
+          )
+          topic = packet.topics[0][0]
+          client.write MQTT::Packet::Publish.new(
+            :topic => topic,
+            :payload => "hello #{topic}",
+            :retain => true
+          )
         when MQTT::Packet::Pingreq
           client.write MQTT::Packet::Pingresp.new
         when MQTT::Packet::Disconnect
