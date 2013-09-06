@@ -374,6 +374,20 @@ describe MQTT::Client do
       payload.should == 'payload1'
       @client.queue_empty?.should be_true
     end
+
+    context "with a block" do
+      it "should successfull receive a more than 1 message" do
+        inject_packet(:topic => 'topic0', :payload => 'payload0')
+        inject_packet(:topic => 'topic1', :payload => 'payload1')
+        payloads = []
+        @client.get do |topic,payload|
+          payloads << payload
+          break if payloads.size > 1
+        end
+        payloads.size.should == 2
+        payloads.should == ['payload0', 'payload1']
+      end
+    end
   end
 
   describe "when calling the 'get_packet' method" do
@@ -398,6 +412,20 @@ describe MQTT::Client do
       packet.topic.should == 'topic1'
       packet.payload.should == 'payload1'
       @client.queue_empty?.should be_true
+    end
+
+    context "with a block" do
+      it "should successfull receive a more than 1 packet" do
+        inject_packet(:topic => 'topic0', :payload => 'payload0')
+        inject_packet(:topic => 'topic1', :payload => 'payload1')
+        packets = []
+        @client.get_packet do |packet|
+          packets << packet
+          break if packets.size > 1
+        end
+        packets.size.should == 2
+        packets.map{|p| p.payload}.should == ['payload0', 'payload1']
+      end
     end
   end
 
