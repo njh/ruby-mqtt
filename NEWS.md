@@ -1,6 +1,25 @@
 Ruby MQTT NEWS
 ==============
 
+Ruby MQTT Version 0.1.0 (2013-09-07)
+------------------------------------
+
+* Changed license to MIT, to simplify licensing concerns
+* Improvements for UTF-8 handling under Ruby 1.9
+* Added ```get_packet``` method
+* Added support for a keep-alive value of 0
+* Added a #inspect method to the Packet classes
+* Added checks for the protocol name and version
+* Added check to ensure that packet body isn't too big
+* Added validation of QoS value
+* Added example of using authentication
+* Fixed 'unused variable' warnings
+* Reduced duplicated code in packet parsing
+* Improved testing
+  - Created fake server and integration tests
+  - Better test coverage
+  - Added more tests for error states
+
 
 Ruby MQTT Version 0.0.9 (2012-12-21)
 ------------------------------------
