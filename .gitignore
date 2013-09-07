@@ -1,5 +1,5 @@
 .bundle
-.rbenv-version
+.ruby-version
 .yardoc
 *.gem
 coverage
