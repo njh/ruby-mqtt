@@ -78,13 +78,13 @@ class MQTT::Client
   #  client = MQTT::Client.new(:remote_host => 'myserver.example.com', :keep_alive => 30)
   #
   def initialize(*args)
-    if args.count == 0
+    if args.length == 0
       args = {}
-    elsif args.count == 1 and args[0].is_a?(Hash)
+    elsif args.length == 1 and args[0].is_a?(Hash)
       args = args[0]
-    elsif args.count == 1
+    elsif args.length == 1
       args = {:remote_host => args[0]}
-    elsif args.count == 2
+    elsif args.length == 2
       args = {:remote_host => args[0], :remote_port => args[1]}
     else
       raise ArgumentError, "Unsupported number of arguments"
