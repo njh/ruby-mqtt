@@ -12,6 +12,9 @@ class MQTT::Client
   attr_accessor :will_payload  # Contents of message that is sent by broker when client disconnect
   attr_accessor :will_qos      # The QoS level of the will message sent by the broker
   attr_accessor :will_retain   # If the Will message should be retain by the broker after it is sent
+  attr_accessor :tls_cafile    # The path to a file containing a CA certificate
+  attr_accessor :tls_certfile  # The path to a file containing the client's certificate
+  attr_accessor :tls_keyfile   # The path to a file containing the client's private key
 
   # OLD deprecated clean_start
   alias :clean_start :clean_session
@@ -33,7 +36,10 @@ class MQTT::Client
     :will_topic => nil,
     :will_payload => nil,
     :will_qos => 0,
-    :will_retain => false
+    :will_retain => false,
+    :tls_cafile => nil,
+    :tls_certfile => nil,
+    :tls_keyfile => nil
   }
 
   # Create and connect a new MQTT Client
@@ -124,7 +130,25 @@ class MQTT::Client
 
     if not connected?
       # Create network socket
-      @socket = TCPSocket.new(@remote_host,@remote_port)
+      tcp_socket = TCPSocket.new(@remote_host,@remote_port)
+
+      if @tls_certfile.nil? || @tls_keyfile.nil?
+        @socket = tcp_socket
+      else
+        ssl_context = OpenSSL::SSL::SSLContext.new
+
+        unless @tls_cafile.nil?
+          ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
+          ssl_context.ca_file = @tls_cafile
+        end
+
+        ssl_context.cert = OpenSSL::X509::Certificate.new(File.open(@tls_certfile))
+        ssl_context.key  = OpenSSL::PKey::RSA.new(File.open(@tls_keyfile))
+
+        @socket = OpenSSL::SSL::SSLSocket.new(tcp_socket, ssl_context)
+        @socket.sync_close = true
+        @socket.connect
+      end
 
       # Protocol name and version
       packet = MQTT::Packet::Connect.new(
@@ -355,7 +379,7 @@ private
 
     # Only allow one thread to write to socket at a time
     @write_semaphore.synchronize do
-      @socket.write(data)
+      @socket.write(data.to_s)
     end
   end
 
