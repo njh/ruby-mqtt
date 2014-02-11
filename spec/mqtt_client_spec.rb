@@ -126,6 +126,23 @@ describe MQTT::Client do
       @client.clean_session.should be_true
     end
 
+    it "should use TLS if certificate and key are given" do
+      context = double "SSLContext", :cert= => nil, :key= => nil
+      socket = double "SSLSocket", :sync_close= => true, :write => true, :connect => true
+      File.stub(:open).and_return("-----BEGIN CERTIFICATE-----")
+
+      OpenSSL::SSL::SSLContext.stub(:new).and_return(context)
+      OpenSSL::SSL::SSLSocket.stub(:new).and_return(socket)
+
+      OpenSSL::X509::Certificate.stub(:new)
+      OpenSSL::PKey::RSA.stub(:new)
+      socket.should_receive(:connect)
+
+      @client.tls_certfile = "client.crt"
+      @client.tls_keyfile = "client.key"
+      @client.connect
+    end
+
     context "with a last will and testament set" do
       before(:each) do
         @client.set_will('topic', 'hello', retain=false, qos=1)
