@@ -1,3 +1,8 @@
+begin
+  require "openssl"
+rescue LoadError
+end
+
 # Client class for talking to an MQTT broker
 class MQTT::Client
   attr_reader :remote_host     # Hostname of the remote broker
@@ -135,6 +140,7 @@ class MQTT::Client
       if @tls_certfile.nil? || @tls_keyfile.nil?
         @socket = tcp_socket
       else
+        raise 'openssl library not installed' unless defined?(OpenSSL)
         ssl_context = OpenSSL::SSL::SSLContext.new
 
         unless @tls_cafile.nil?
