@@ -793,7 +793,7 @@ module MQTT
       end
 
       def inspect
-        str = "\#<#{self.class}: 0x%2.2X, %s>" % [
+        "\#<#{self.class}: 0x%2.2X, %s>" % [
           message_id,
           topics.map {|t| "'#{t}'"}.join(', ')
         ]
