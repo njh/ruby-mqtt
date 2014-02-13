@@ -91,8 +91,19 @@ class MQTT::Client
   def initialize(*args)
     if args.length == 0
       args = {}
-    elsif args.length == 1 and args[0].is_a?(Hash)
-      args = args[0]
+    elsif args.length == 1
+      case args[0]
+        when Hash
+          args = args[0]
+        when URI
+          args = parse_uri(args[0])
+        when %r|^mqtts?://|
+          args = parse_uri(
+            URI.parse(args[0])
+          )
+        else
+          args = {:remote_host => args[0]}
+      end
     elsif args.length == 1
       args = {:remote_host => args[0]}
     elsif args.length == 2
@@ -387,6 +398,18 @@ private
     @write_semaphore.synchronize do
       @socket.write(data.to_s)
     end
+  end
+  
+  private
+  def parse_uri(uri)
+    raise "Only the mqtt:// scheme is supported" unless uri.scheme == 'mqtt'
+  
+    {
+      :remote_host => uri.host,
+      :remote_port => uri.port || 1883,
+      :username => uri.user,
+      :password => uri.password
+    }
   end
 
 end

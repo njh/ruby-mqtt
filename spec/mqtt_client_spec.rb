@@ -54,6 +54,40 @@ describe MQTT::Client do
       @client.keep_alive.should == 60
     end
 
+    it "with a URI containing just a hostname" do
+      @client = MQTT::Client.new(URI.parse('mqtt://mqtt.example.com'))
+      @client.remote_host.should == 'mqtt.example.com'
+      @client.remote_port.should == 1883
+    end
+
+    it "with a URI containing a custom port number" do
+      @client = MQTT::Client.new(URI.parse('mqtt://mqtt.example.com:1234/'))
+      @client.remote_host.should == 'mqtt.example.com'
+      @client.remote_port.should == 1234
+    end
+
+    it "with a URI containing a username and password" do
+      @client = MQTT::Client.new(URI.parse('mqtt://auser:bpass@mqtt.example.com'))
+      @client.remote_host.should == 'mqtt.example.com'
+      @client.remote_port.should == 1883
+      @client.username.should == 'auser'
+      @client.password.should == 'bpass'
+    end
+
+    it "with a URI as a string" do
+      @client = MQTT::Client.new('mqtt://mqtt.example.com')
+      @client.remote_host.should == 'mqtt.example.com'
+      @client.remote_port.should == 1883
+    end
+
+    it "with an unsupported URI scheme" do
+      lambda {
+        @client = MQTT::Client.new(URI.parse('http://mqtt.example.com/'))
+      }.should raise_error(
+        'Only the mqtt:// scheme is supported'
+      )
+    end
+
     it "with three arguments" do
       lambda {
         @client = MQTT::Client.new(1, 2, 3)
