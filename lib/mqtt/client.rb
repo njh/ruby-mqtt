@@ -98,9 +98,7 @@ class MQTT::Client
         when URI
           args = parse_uri(args[0])
         when %r|^mqtts?://|
-          args = parse_uri(
-            URI.parse(args[0])
-          )
+          args = parse_uri(args[0])
         else
           args = {:remote_host => args[0]}
       end
@@ -402,6 +400,7 @@ private
   
   private
   def parse_uri(uri)
+    uri = URI.parse(uri) unless uri.is_a?(URI)
     raise "Only the mqtt:// scheme is supported" unless uri.scheme == 'mqtt'
   
     {
