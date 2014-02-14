@@ -6,7 +6,7 @@ require 'mqtt'
 describe MQTT::Client do
 
   before(:each) do
-    @client = MQTT::Client.new
+    @client = MQTT::Client.new(:remote_host => 'localhost')
     @socket = StringIO.new
     @socket.set_encoding("binary") if @socket.respond_to?(:set_encoding)
   end
@@ -14,7 +14,7 @@ describe MQTT::Client do
   describe "initializing a client" do
     it "with no arguments, it should use the defaults" do
       @client = MQTT::Client.new
-      @client.remote_host.should == 'localhost'
+      @client.remote_host.should == nil
       @client.remote_port.should == 1883
       @client.keep_alive.should == 15
     end
@@ -48,7 +48,7 @@ describe MQTT::Client do
     end
 
     it "with a hash containing just a keep alive setting" do
-      @client = MQTT::Client.new(:keep_alive => 60)
+      @client = MQTT::Client.new(:remote_host => 'localhost', :keep_alive => 60)
       @client.remote_host.should == 'localhost'
       @client.remote_port.should == 1883
       @client.keep_alive.should == 60
@@ -128,6 +128,15 @@ describe MQTT::Client do
     it "should try and read an acknowledgement packet to the socket if not connected" do
       @client.should_receive(:receive_connack).once
       @client.connect('myclient')
+    end
+
+    it "should throw an exception if no host is configured" do
+      lambda {
+        client = MQTT::Client.new
+        client.connect
+      }.should raise_error(
+        'No MQTT broker host set when attempting to connect'
+      )
     end
 
     it "should disconnect after connecting, if a block is given" do

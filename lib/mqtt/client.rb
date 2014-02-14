@@ -30,7 +30,7 @@ class MQTT::Client
 
   # Default attribute values
   ATTR_DEFAULTS = {
-    :remote_host => MQTT::DEFAULT_HOST,
+    :remote_host => nil,
     :remote_port => MQTT::DEFAULT_PORT,
     :keep_alive => 15,
     :clean_session => true,
@@ -140,6 +140,10 @@ class MQTT::Client
     elsif @client_id.nil?
       @client_id = MQTT::Client.generate_client_id
       @clean_session = true
+    end
+
+    if @remote_host.nil?
+      raise 'No MQTT broker host set when attempting to connect'
     end
 
     if not connected?
