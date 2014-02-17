@@ -81,12 +81,19 @@ class MQTT::Client
   end
 
   # Create a new MQTT Client instance
+  #
+  # Accepts one of the following:
+  # - a URI that uses the MQTT scheme
+  # - a hostname and port
+  # - a Hash containing attributes to be set on the new instance
   # 
   # If no arguments are given then the method will look for a URI
   # in the MQTT_BROKER environment variable.
   #
   # Examples:
   #  client = MQTT::Client.new
+  #  client = MQTT::Client.new('mqtt://myserver.example.com')
+  #  client = MQTT::Client.new('mqtt://user:pass@myserver.example.com')
   #  client = MQTT::Client.new('myserver.example.com')
   #  client = MQTT::Client.new('myserver.example.com', 18830)
   #  client = MQTT::Client.new(:remote_host => 'myserver.example.com')
