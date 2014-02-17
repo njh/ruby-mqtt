@@ -6,6 +6,9 @@ require 'mqtt'
 describe MQTT::Client do
 
   before(:each) do
+    # Rest environment variable
+    ENV.delete('MQTT_BROKER')
+
     @client = MQTT::Client.new(:remote_host => 'localhost')
     @socket = StringIO.new
     @socket.set_encoding("binary") if @socket.respond_to?(:set_encoding)
@@ -78,6 +81,13 @@ describe MQTT::Client do
       @client = MQTT::Client.new('mqtt://mqtt.example.com')
       @client.remote_host.should == 'mqtt.example.com'
       @client.remote_port.should == 1883
+    end
+
+    it "with no arguments uses the MQTT_BROKER environment variable as connect URI" do
+      ENV['MQTT_BROKER'] = 'mqtt://mqtt.example.com:1234'
+      @client = MQTT::Client.new
+      @client.remote_host.should == 'mqtt.example.com'
+      @client.remote_port.should == 1234
     end
 
     it "with an unsupported URI scheme" do

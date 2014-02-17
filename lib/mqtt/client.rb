@@ -81,8 +81,12 @@ class MQTT::Client
   end
 
   # Create a new MQTT Client instance
+  # 
+  # If no arguments are given then the method will look for a URI
+  # in the MQTT_BROKER environment variable.
   #
   # Examples:
+  #  client = MQTT::Client.new
   #  client = MQTT::Client.new('myserver.example.com')
   #  client = MQTT::Client.new('myserver.example.com', 18830)
   #  client = MQTT::Client.new(:remote_host => 'myserver.example.com')
@@ -90,7 +94,11 @@ class MQTT::Client
   #
   def initialize(*args)
     if args.length == 0
-      args = {}
+      if ENV['MQTT_BROKER']
+        args = parse_uri(ENV['MQTT_BROKER'])
+      else
+        args = {}
+      end
     elsif args.length == 1
       case args[0]
         when Hash
