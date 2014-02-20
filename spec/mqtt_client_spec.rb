@@ -256,7 +256,7 @@ describe MQTT::Client do
 
   describe "when calling the 'receive_connack' method" do
     before(:each) do
-      @client.instance_variable_set(:@socket, @socket)
+      @client.instance_variable_set('@socket', @socket)
       IO.stub(:select).and_return([[@socket], [], []])
     end
 
@@ -300,8 +300,8 @@ describe MQTT::Client do
   describe "when calling the 'disconnect' method" do
     before(:each) do
       thread = double('Read Thread', :alive? => true, :kill => true)
-      @client.instance_variable_set(:@socket, @socket)
-      @client.instance_variable_set(:@read_thread, thread)
+      @client.instance_variable_set('@socket', @socket)
+      @client.instance_variable_set('@read_thread', thread)
     end
 
     it "should not do anything if the socket is already disconnected" do
@@ -330,7 +330,7 @@ describe MQTT::Client do
 
   describe "when calling the 'ping' method" do
     before(:each) do
-      @client.instance_variable_set(:@socket, @socket)
+      @client.instance_variable_set('@socket', @socket)
     end
 
     it "should write a valid PINGREQ packet to the socket" do
@@ -339,15 +339,15 @@ describe MQTT::Client do
     end
 
     it "should update the time a ping was last sent" do
-      @client.instance_variable_set(:@last_pingreq, 0)
+      @client.instance_variable_set('@last_pingreq', 0)
       @client.ping
-      @client.instance_variable_get(:@last_pingreq).should_not == 0
+      @client.instance_variable_get('@last_pingreq').should_not == 0
     end
   end
 
   describe "when calling the 'publish' method" do
     before(:each) do
-      @client.instance_variable_set(:@socket, @socket)
+      @client.instance_variable_set('@socket', @socket)
     end
 
     it "should write a valid PUBLISH packet to the socket without the retain flag" do
@@ -373,7 +373,7 @@ describe MQTT::Client do
 
   describe "when calling the 'subscribe' method" do
     before(:each) do
-      @client.instance_variable_set(:@socket, @socket)
+      @client.instance_variable_set('@socket', @socket)
     end
 
     it "should write a valid SUBSCRIBE packet to the socket if given a single topic String" do
@@ -427,7 +427,7 @@ describe MQTT::Client do
 
   describe "when calling the 'get' method" do
     before(:each) do
-      @client.instance_variable_set(:@socket, @socket)
+      @client.instance_variable_set('@socket', @socket)
     end
 
     it "should successfull receive a valid PUBLISH packet with a QoS 0" do
@@ -462,7 +462,7 @@ describe MQTT::Client do
 
   describe "when calling the 'get_packet' method" do
     before(:each) do
-      @client.instance_variable_set(:@socket, @socket)
+      @client.instance_variable_set('@socket', @socket)
     end
 
     it "should successfull receive a valid PUBLISH packet with a QoS 0" do
@@ -501,7 +501,7 @@ describe MQTT::Client do
 
   describe "when calling the 'unsubscribe' method" do
     before(:each) do
-      @client.instance_variable_set(:@socket, @socket)
+      @client.instance_variable_set('@socket', @socket)
     end
 
     it "should write a valid UNSUBSCRIBE packet to the socket if given a single topic String" do
@@ -517,9 +517,9 @@ describe MQTT::Client do
 
   describe "when calling the 'receive_packet' method" do
     before(:each) do
-      @client.instance_variable_set(:@socket, @socket)
+      @client.instance_variable_set('@socket', @socket)
       IO.stub(:select).and_return([[@socket], [], []])
-      @read_queue = @client.instance_variable_get(:@read_queue)
+      @read_queue = @client.instance_variable_get('@read_queue')
       @parent_thread = Thread.current[:parent] = double('Parent Thread')
       @parent_thread.stub(:raise)
     end
@@ -540,7 +540,7 @@ describe MQTT::Client do
 
     it "should send a ping packet if one is due" do
       IO.should_receive(:select).and_return(nil)
-      @client.instance_variable_set(:@last_pingreq, Time.at(0))
+      @client.instance_variable_set('@last_pingreq', Time.at(0))
       @client.should_receive(:ping).once
       @client.send(:receive_packet)
     end
