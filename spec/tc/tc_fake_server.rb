@@ -21,7 +21,7 @@ require 'socket'
 require 'mqtt'
 
 
-class MQTT::FakeServer
+class MQTT::TCFakeServer
   attr_reader :address, :port
   attr_reader :last_publish
   attr_reader :thread
@@ -49,13 +49,13 @@ class MQTT::FakeServer
     @address = @socket.addr[3]
     @port = @socket.addr[1]
     @thread ||= Thread.new do
-      logger.info "Started a fake MQTT server on #{@address}:#{@port}"
+      logger.info "Started a fake TC MQTT server on #{@address}:#{@port}"
       loop do
         # Wait for a client to connect
         client = @socket.accept
         @pings_received = 0
-        handle_client(client)
-        break if just_one
+
+        ap client
       end
     end
   end
@@ -80,50 +80,10 @@ class MQTT::FakeServer
     end
   end
 
-
-  protected
-
-  # Given a client socket, process MQTT packets from the client
-  def handle_client(client)
-    loop do
-      packet = MQTT::Packet.read(client)
-      logger.debug packet.inspect
-
-      case packet
-        when MQTT::Packet::Connect
-          client.write MQTT::Packet::Connack.new(:return_code => 0)
-        when MQTT::Packet::Publish
-          client.write packet
-          @last_publish = packet
-        when MQTT::Packet::Subscribe
-          client.write MQTT::Packet::Suback.new(
-            :message_id => packet.message_id,
-            :granted_qos => 0
-          )
-          topic = packet.topics[0][0]
-          client.write MQTT::Packet::Publish.new(
-            :topic => topic,
-            :payload => "hello #{topic}",
-            :retain => true
-          )
-        when MQTT::Packet::Pingreq
-          client.write MQTT::Packet::Pingresp.new
-          @pings_received += 1
-        when MQTT::Packet::Disconnect
-          client.close
-        break
-      end
-    end
-
-    rescue MQTT::ProtocolException => e
-      logger.warn "Protocol error, closing connection: #{e}"
-      client.close
-  end
-
 end
 
 if __FILE__ == $0
-  server = MQTT::FakeServer.new(MQTT::DEFAULT_PORT)
+  server = MQTT::TCFakeServer.new(MQTT::DEFAULT_PORT)
   server.logger.level = Logger::DEBUG
   server.run
 end

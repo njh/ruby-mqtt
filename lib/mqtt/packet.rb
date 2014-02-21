@@ -24,6 +24,8 @@ module MQTT
         read_byte(socket)
       )
 
+
+
       # Read in the packet length
       multiplier = 1
       body_length = 0
@@ -34,6 +36,8 @@ module MQTT
         multiplier *= 0x80
         pos += 1
       end while ((digit & 0x80) != 0x00) and pos <= 4
+
+      #printf("%s <#> %d\n",packet.class.to_s,body_length)
 
       # Store the expected body length in the packet
       packet.instance_variable_set('@body_length', body_length)
@@ -168,7 +172,16 @@ module MQTT
       '' # No body by default
     end
 
+    def to_hex
+      data = self.to_s()
+      data = data.to_s.unpack('C'*data.to_s.length)
 
+      hex_data = '%04b %04b | ' % [data.first >> 4 , data.first & 0xF]
+      data.shift
+      hex_data += data.collect{ |x| '%02x' % x }.join()
+
+      return hex_data
+    end
     # Serialise the packet
     def to_s
       # Encode the fixed header
@@ -260,7 +273,8 @@ module MQTT
       if byte.nil?
         raise ProtocolException.new("Failed to read byte from socket")
       end
-      byte.unpack('C').first
+      val = byte.unpack('C').first
+      return val
     end
 
 
@@ -350,6 +364,7 @@ module MQTT
         :client_id => nil,
         :clean_session => true,
         :keep_alive => 15,
+        :qos => 0,
         :will_topic => nil,
         :will_qos => 0,
         :will_retain => false,
@@ -519,6 +534,7 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         @message_id = shift_short(buffer)
+
         unless buffer.empty?
           raise ProtocolException.new("Extra bytes at end of Publish Acknowledgment packet")
         end

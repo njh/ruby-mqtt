@@ -4,7 +4,7 @@ $:.push File.expand_path("../lib", __FILE__)
 require "mqtt/version"
 
 Gem::Specification.new do |gem|
-  gem.name        = 'mqtt'
+  gem.name        = 'mqtt-tc'
   gem.version     = MQTT::VERSION
   gem.author      = 'Nicholas J Humfrey'
   gem.email       = 'njh@aelius.com'
@@ -13,7 +13,7 @@ Gem::Specification.new do |gem|
   gem.description = 'Pure Ruby gem that implements the MQTT (Message Queue Telemetry Transport) protocol, a lightweight protocol for publish/subscribe messaging.'
   gem.license     = 'MIT' if gem.respond_to?(:license=)
 
-  gem.rubyforge_project = 'mqtt'
+  #gem.rubyforge_project = 'mqtt'
 
   gem.files         = %w(README LICENSE NEWS) + Dir.glob('lib/**/*.rb')
   gem.test_files    = Dir.glob('spec/*_spec.rb')
@@ -25,4 +25,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'rake',        '>= 0.8.7'
   gem.add_development_dependency 'rspec',       '>= 2.6.0'
   gem.add_development_dependency 'simplecov'
+  gem.add_development_dependency 'awesome_print'
 end
