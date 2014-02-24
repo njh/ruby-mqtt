@@ -100,33 +100,39 @@ class MQTT::Client
   #  client = MQTT::Client.new(:remote_host => 'myserver.example.com', :keep_alive => 30)
   #
   def initialize(*args)
+    if args.last.is_a?(Hash)
+      attr = args.pop
+    else
+      attr = {}
+    end
+
     if args.length == 0
       if ENV['MQTT_BROKER']
-        args = parse_uri(ENV['MQTT_BROKER'])
-      else
-        args = {}
+        attr.merge!(parse_uri(ENV['MQTT_BROKER']))
       end
-    elsif args.length == 1
+    end
+
+    if args.length >= 1
       case args[0]
-        when Hash
-          args = args[0]
         when URI
-          args = parse_uri(args[0])
+          attr.merge!(parse_uri(args[0]))
         when %r|^mqtts?://|
-          args = parse_uri(args[0])
+          attr.merge!(parse_uri(args[0]))
         else
-          args = {:remote_host => args[0]}
+          attr.merge!(:remote_host => args[0])
       end
-    elsif args.length == 1
-      args = {:remote_host => args[0]}
-    elsif args.length == 2
-      args = {:remote_host => args[0], :remote_port => args[1]}
-    else
+    end
+
+    if args.length >= 2
+      attr.merge!(:remote_port => args[1])
+    end
+
+    if args.length >= 3
       raise ArgumentError, "Unsupported number of arguments"
     end
 
     # Merge arguments with default values for attributes
-    ATTR_DEFAULTS.merge(args).each_pair do |k,v|
+    ATTR_DEFAULTS.merge(attr).each_pair do |k,v|
       instance_variable_set("@#{k}", v)
     end
 

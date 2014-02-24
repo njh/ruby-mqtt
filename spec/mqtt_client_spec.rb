@@ -64,6 +64,20 @@ describe MQTT::Client do
     end
 
     it "with a URI containing just a hostname" do
+    it "with a combination of a host name and a hash of settings" do
+      client = MQTT::Client.new('localhost', :keep_alive => 65)
+      client.remote_host.should == 'localhost'
+      client.remote_port.should == 1883
+      client.keep_alive.should == 65
+    end
+
+    it "with a combination of a host name, port and a hash of settings" do
+      client = MQTT::Client.new('localhost', 1888, :keep_alive => 65)
+      client.remote_host.should == 'localhost'
+      client.remote_port.should == 1888
+      client.keep_alive.should == 65
+    end
+
       client = MQTT::Client.new(URI.parse('mqtt://mqtt.example.com'))
       client.remote_host.should == 'mqtt.example.com'
       client.remote_port.should == 1883
