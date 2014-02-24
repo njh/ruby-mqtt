@@ -518,6 +518,11 @@ describe MQTT::Client do
       client.unsubscribe('a/b','c/d')
       socket.string.should == "\xa2\x0c\x00\x01\x00\x03a/b\x00\x03c/d"
     end
+
+    it "should write a valid UNSUBSCRIBE packet to the socket if given an array of Strings" do
+      client.unsubscribe(['a/b','c/d'])
+      socket.string.should == "\xa2\x0c\x00\x01\x00\x03a/b\x00\x03c/d"
+    end
   end
 
   describe "when calling the 'receive_packet' method" do

@@ -346,6 +346,10 @@ class MQTT::Client
 
   # Send a unsubscribe message for one or more topics on the MQTT broker
   def unsubscribe(*topics)
+    if topics.is_a?(Enumerable) and topics.count == 1
+      topics = topics.first
+    end
+
     packet = MQTT::Packet::Unsubscribe.new(
       :topics => topics,
       :message_id => @message_id.next
