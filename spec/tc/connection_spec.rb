@@ -17,8 +17,8 @@ describe 'support ACK' do
   # end
 
   it 'Support publishing' do
-    MQTT::Client.connect({remote_host: host,remote_port: 1883, qos: 2,:clean_session => false,:client_id => 'cuack_user' }) do |c|
-      c.get(['cuack',2]) do |topic,message|
+    MQTT::Client.connect({remote_host: host,remote_port: 1883, qos: 1,:clean_session => false,:client_id => 'cuack_user2' }) do |c|
+      c.get(['cuack',1]) do |topic,message|
         ap [topic,message]
       end
     end

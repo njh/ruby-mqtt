@@ -30,7 +30,7 @@ class MQTT::Client
 
   # Default attribute values
   ATTR_DEFAULTS = {
-    :remote_host => MQTT::DEFAULT_HOST,
+    :remote_host => nil,
     :remote_port => MQTT::DEFAULT_PORT,
     :keep_alive => 15,
     :clean_session => true,
@@ -38,7 +38,6 @@ class MQTT::Client
     :ack_timeout => 5,
     :username => nil,
     :password => nil,
-    :qos => 0,
     :will_topic => nil,
     :will_payload => nil,
     :will_qos => 0,
@@ -83,7 +82,18 @@ class MQTT::Client
 
   # Create a new MQTT Client instance
   #
+  # Accepts one of the following:
+  # - a URI that uses the MQTT scheme
+  # - a hostname and port
+  # - a Hash containing attributes to be set on the new instance
+  # 
+  # If no arguments are given then the method will look for a URI
+  # in the MQTT_BROKER environment variable.
+  #
   # Examples:
+  #  client = MQTT::Client.new
+  #  client = MQTT::Client.new('mqtt://myserver.example.com')
+  #  client = MQTT::Client.new('mqtt://user:pass@myserver.example.com')
   #  client = MQTT::Client.new('myserver.example.com')
   #  client = MQTT::Client.new('myserver.example.com', 18830)
   #  client = MQTT::Client.new(:remote_host => 'myserver.example.com')
@@ -91,7 +101,11 @@ class MQTT::Client
   #
   def initialize(*args)
     if args.length == 0
-      args = {}
+      if ENV['MQTT_BROKER']
+        args = parse_uri(ENV['MQTT_BROKER'])
+      else
+        args = {}
+      end
     elsif args.length == 1
       case args[0]
         when Hash
@@ -99,9 +113,7 @@ class MQTT::Client
         when URI
           args = parse_uri(args[0])
         when %r|^mqtts?://|
-          args = parse_uri(
-            URI.parse(args[0])
-          )
+          args = parse_uri(args[0])
         else
           args = {:remote_host => args[0]}
       end
@@ -137,13 +149,16 @@ class MQTT::Client
 
   # Connect to the MQTT broker
   # If a block is given, then yield to that block and then disconnect again.
-  def connect(clientid=nil,clean_session=false)
+  def connect(clientid=nil)
     if !clientid.nil?
       @client_id = clientid
-      @clean_session = clean_session
     elsif @client_id.nil?
       @client_id = MQTT::Client.generate_client_id
       @clean_session = true
+    end
+
+    if @remote_host.nil?
+      raise 'No MQTT broker host set when attempting to connect'
     end
 
     if not connected?
@@ -169,8 +184,6 @@ class MQTT::Client
         @socket.connect
       end
 
-      ap @clean_session
-      ap @client_id
       # Protocol name and version
       packet = MQTT::Packet::Connect.new(
         :clean_session => @clean_session,
@@ -178,7 +191,6 @@ class MQTT::Client
         :client_id => @client_id,
         :username => @username,
         :password => @password,
-        :qos      => @qos,
         :will_topic => @will_topic,
         :will_payload => @will_payload,
         :will_qos => @will_qos,
@@ -208,7 +220,6 @@ class MQTT::Client
   # Disconnect from the MQTT broker.
   # If you don't want to say goodbye to the broker, set send_msg to false.
   def disconnect(send_msg=true)
-    ap 'Good bye'
     if connected?
       if send_msg
         packet = MQTT::Packet::Disconnect.new
@@ -335,6 +346,10 @@ class MQTT::Client
 
   # Send a unsubscribe message for one or more topics on the MQTT broker
   def unsubscribe(*topics)
+    if topics.is_a?(Enumerable) and topics.count == 1
+      topics = topics.first
+    end
+
     packet = MQTT::Packet::Unsubscribe.new(
       :topics => topics,
       :message_id => @message_id.next
@@ -349,69 +364,16 @@ private
   def receive_packet
     begin
       # Poll socket - is there data waiting?
-      return if @socket == nil
       result = IO.select([@socket], nil, nil, SELECT_TIMEOUT)
       unless result.nil?
         # Yes - read in the packet
-
-        begin
-          packet = MQTT::Packet.read(@socket)
-        rescue Exception
-          10.times do
-            ap 'Disconnected ... Reconnecting'
-            unless @socket.nil?
-              @socket.close
-              @socket = nil
-            end
-            begin
-              self.connect(self.client_id,false)
-              self.subscribe('aslakjdlaskjdlaksjdlaksjdlakjsdlkjlk')
-              break
-            rescue Exception
-            end
-          end
-        end
-
+        packet = MQTT::Packet.read(@socket)
         if packet.class == MQTT::Packet::Publish
-          ap 'Publish ' + packet.qos.to_s
-
-          qos_level = packet.qos
-
-          if qos_level == 0
-            # Add to queue
-            @read_queue.push(packet)
-          end
-
-          if qos_level == 1
-            data = MQTT::Packet::Puback.new(:message_id => packet.message_id)
-            @write_semaphore.synchronize do
-              @socket.write(data.to_s)
-            end
-
-            # Add to queue
-            @read_queue.push(packet)
-          end
-
-          if qos_level == 2
-            @last_packet = packet
-            data = MQTT::Packet::Pubrec.new(:message_id => packet.message_id)
-            @write_semaphore.synchronize do
-              @socket.write(data.to_s)
-            end
-          end
+          # Add to queue
+          @read_queue.push(packet)
         else
-          if packet.class == MQTT::Packet::Puback or packet.class == MQTT::Packet::Pubrec or packet.class == MQTT::Packet::Pubcomp
-            @last_ack = packet
-            puts('Received ACK %d' % [@last_ack.type_id])
-          end
-
-          if packet.class == MQTT::Packet::Pubrel
-            data = MQTT::Packet::Pubcomp.new(:message_id => packet.message_id)
-            @write_semaphore.synchronize do
-              @socket.write(data.to_s)
-            end
-            @read_queue.push(@last_packet)
-          end
+          # Ignore all other packets
+          nil
           # FIXME: implement responses for QOS 1 and 2
         end
       end
@@ -453,61 +415,17 @@ private
     # Throw exception if we aren't connected
     raise MQTT::NotConnectedException if not connected?
 
-    qos_level = data.qos
-    if data.type_id != 3 or qos_level == 0
-      # Only allow one thread to write to socket at a time
-      ap [qos_level,data,data.to_hex] unless data.class == MQTT::Packet::Pingreq
-
-      @write_semaphore.synchronize do
-        @socket.write(data.to_s)
-      end
-    else
-      ap 'Sending Publish with QOS = %d' % [qos_level]
-      start_time = Time.now
-
-      if qos_level == 1
-        @last_ack = nil
-        @write_semaphore.synchronize do
-          @socket.write(data.to_s)
-        end
-        Timeout.timeout(@ack_timeout) do
-          sleep(0.001) while @last_ack.nil?
-        end
-        raise 'Bad Protocol' if @last_ack.class != MQTT::Packet::Puback
-        #ap 'RECEIVED ACK!!!'
-      elsif qos_level == 2
-        @last_ack = nil
-        @write_semaphore.synchronize do
-          @socket.write(data.to_s)
-        end
-        Timeout.timeout(@ack_timeout) do
-          sleep(0.001) while @last_ack.nil?
-        end
-        raise 'Bad Protocol' if @last_ack.class != MQTT::Packet::Pubrec
-
-        data = MQTT::Packet::Pubrel.new()
-        @write_semaphore.synchronize do
-          @socket.write(data.to_s)
-        end
-        @last_ack = nil
-        Timeout.timeout(@ack_timeout) do
-          sleep(0.001) while @last_ack.nil?
-        end
-        raise 'Bad Protocol' if @last_ack.class != MQTT::Packet::Pubcomp
-
-      else
-        raise 'Unexpected QOS Level'
-      end
-
-      end_time = Time.now
-      printf("Message Received in: %.2f ms\n",(end_time - start_time) * 1000)
+    # Only allow one thread to write to socket at a time
+    @write_semaphore.synchronize do
+      @socket.write(data.to_s)
     end
   end
-
+  
   private
   def parse_uri(uri)
+    uri = URI.parse(uri) unless uri.is_a?(URI)
     raise "Only the mqtt:// scheme is supported" unless uri.scheme == 'mqtt'
-
+  
     {
       :remote_host => uri.host,
       :remote_port => uri.port || 1883,
