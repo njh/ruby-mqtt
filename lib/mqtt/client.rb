@@ -353,7 +353,12 @@ private
       result = IO.select([@socket], nil, nil, SELECT_TIMEOUT)
       unless result.nil?
         # Yes - read in the packet
-        packet = MQTT::Packet.read(@socket)        
+        begin
+          packet = MQTT::Packet.read(@socket)        
+        rescue Exception
+          ap 'Cannot read!!! Grv'
+          return
+        end
 
         if packet.class == MQTT::Packet::Publish
           ap 'Publish ' + packet.qos.to_s
