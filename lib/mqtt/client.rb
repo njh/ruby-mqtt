@@ -352,13 +352,8 @@ private
       return if @socket == nil
       result = IO.select([@socket], nil, nil, SELECT_TIMEOUT)
       unless result.nil?
-        # Yes - read in the packet
-        begin
-          packet = MQTT::Packet.read(@socket)        
-        rescue Exception
-          ap 'Cannot read!!! Grv'
-          return
-        end
+        # Yes - read in the packet        
+        packet = MQTT::Packet.read(@socket)        
 
         if packet.class == MQTT::Packet::Publish
           ap 'Publish ' + packet.qos.to_s
@@ -413,6 +408,8 @@ private
 
     # Pass exceptions up to parent thread
     rescue Exception => exp
+      ap 'Disconnecting'
+      disconnect()
       unless @socket.nil?
         @socket.close
         @socket = nil
