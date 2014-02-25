@@ -14,6 +14,7 @@ end
 
 module MQTT
 
+  DEFAULT_HOST = 'localhost'
   DEFAULT_PORT = 1883
 
   class Exception < Exception

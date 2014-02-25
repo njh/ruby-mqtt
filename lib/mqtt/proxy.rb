@@ -23,7 +23,7 @@ class MQTT::Proxy
   def initialize(args={})
     @local_host = args[:local_host] || '0.0.0.0'
     @local_port = args[:local_port] || MQTT::DEFAULT_PORT
-    @broker_host = args[:broker_host]
+    @broker_host = args[:broker_host] || MQTT::DEFAULT_HOST
     @broker_port = args[:broker_port] || 18830
     @select_timeout = args[:select_timeout] || 60
 
