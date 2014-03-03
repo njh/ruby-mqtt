@@ -21,9 +21,6 @@ class MQTT::Client
   attr_accessor :tls_certfile  # The path to a file containing the client's certificate
   attr_accessor :tls_keyfile   # The path to a file containing the client's private key
 
-  # OLD deprecated clean_start
-  alias :clean_start :clean_session
-  alias :clean_start= :clean_session=
 
   # Timeout between select polls (in seconds)
   SELECT_TIMEOUT = 0.5

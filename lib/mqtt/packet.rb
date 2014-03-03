@@ -340,10 +340,6 @@ module MQTT
       attr_accessor :username
       attr_accessor :password
 
-      # OLD deprecated clean_start
-      alias :clean_start :clean_session
-      alias :clean_start= :clean_session=
-
       DEFAULTS = {
         :protocol_name => 'MQIsdp',
         :protocol_version => 0x03,
