@@ -6,7 +6,7 @@ require 'mqtt'
 describe MQTT::Client do
 
   before(:each) do
-    # Rest environment variable
+    # Reset environment variable
     ENV.delete('MQTT_BROKER')
   end
 
