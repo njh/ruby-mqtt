@@ -359,12 +359,13 @@ class MQTT::Client
     sleep(sleep_time)
     messages = []
 
-    loop
+    loop do
       size = @read_queue.size
       break if size == 0
 
       size.times do
-        messages << @read_queue.pop
+        packet = @read_queue.pop(false)
+        messages << [packet.topic,packet.payload]
       end
     end
     return messages
@@ -405,6 +406,7 @@ private
           elsif packet.qos == 2
             ack_packet = MQTT::Packet::Pubrec.new(:message_id => message_id)
             send_packet(ack_packet)
+
             @expected_messages_in[message_id] = MQTT::Packet::Pubrel.new(:message_id => message_id)
           end
 
@@ -416,6 +418,7 @@ private
           message_id = packet.message_id
           packet = MQTT::Packet::Pubrel.new(:message_id => message_id)
           send_packet(packet)
+          ap '@'
           @expected_messages_out[message_id] = MQTT::Packet::Pubcomp.new(:message_id => message_id)
         end
 
@@ -430,6 +433,8 @@ private
           message_id = packet.message_id
           packet = MQTT::Packet::Pubcomp.new(:message_id => message_id)
           send_packet(packet)
+
+          ap packet
           @expected_messages_in.delete(message_id)
         end
       end
@@ -471,24 +476,26 @@ private
     # Throw exception if we aren't connected
     raise MQTT::NotConnectedException if not connected?
 
-    expected_packet = nil
+    expected_packet_in = nil
+    expected_packet_out = nil
     if packet.class == MQTT::Packet::Publish
       if packet.qos == 1
-        expected_packet = MQTT::Packet::Puback.new(:message_id => packet.message_id)
+        expected_packet_out = MQTT::Packet::Puback.new(:message_id => packet.message_id)
       elsif packet.qos == 2
-        expected_packet = MQTT::Packet::Pubrec.new(:message_id => packet.message_id)
+        expected_packet_out = MQTT::Packet::Pubrec.new(:message_id => packet.message_id)
       end
     end
 
     if packet.class == MQTT::Packet::Pubrec
-      expected_packet = MQTT::Packet::Pubrel.new(:message_id => packet.message_id)
+      expected_packet_in = MQTT::Packet::Pubrel.new(:message_id => packet.message_id)
     end
 
     if packet.class == MQTT::Packet::Pubrel
-      expected_packet = MQTT::Packet::Pubcomp.new(:message_id => packet.message_id)
+      expected_packet_out = MQTT::Packet::Pubcomp.new(:message_id => packet.message_id)
     end
 
-    @expected_messages_out[expected_packet.message_id] = expected_packet unless expected_packet.nil?
+    @expected_messages_in[expected_packet_in.message_id] = expected_packet_in unless expected_packet_in.nil?
+    @expected_messages_out[expected_packet_out.message_id] = expected_packet_out unless expected_packet_out.nil?
 
     # Only allow one thread to write to socket at a time
     @write_semaphore.synchronize do

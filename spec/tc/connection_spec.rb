@@ -17,10 +17,13 @@ describe 'support ACK' do
   # end
 
   it 'Support publishing' do
-    MQTT::Client.connect({remote_host: host,remote_port: 1883, :clean_session => false,:client_id => 'cuack_user2' }) do |c|
-      c.get(['cuack',2]) do |topic,message|
-        ap [topic,message]
-      end
-    end
+    client = MQTT::Client.connect({remote_host: host,remote_port: 1883, :clean_session => false,:client_id => 'cuack_user2' })
+    # c.get(['cuack',2]) do |topic,message|
+    #   ap [topic,message]
+    # end
+    client.subscribe(['cuack',2])
+    ap client.get_batch_messages
+    client.disconnect()
+
   end
 end
