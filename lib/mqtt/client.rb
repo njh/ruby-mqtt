@@ -141,6 +141,8 @@ class MQTT::Client
     @read_thread = nil
     @write_semaphore = Mutex.new
 
+    @last_subscription = nil#for reconnection
+
     @expected_messages_out = {}
     @expected_messages_in = {}
   end
@@ -292,6 +294,7 @@ class MQTT::Client
   #   client.subscribe( 'a/b' => 0, 'c/d' => 1 )
   #
   def subscribe(*topics)
+    @last_subscription = topics
     packet = MQTT::Packet::Subscribe.new(
       :topics => topics,
       :message_id => @message_id.next
@@ -420,7 +423,7 @@ private
         end
 
         result = IO.select([@socket], nil, nil, SELECT_TIMEOUT)
-      rescue Exception => err
+      rescue => err
         if @reconnect
           @socket = nil
           sleep 1
@@ -522,9 +525,11 @@ private
     # Throw exception if we aren't connected
     if not connected?
       if @reconnect
-        open_socket_connection()
-        send_connect_packet()
-        subscribe('asd')
+        begin
+          open_socket_connection()
+          send_connect_packet()
+        rescue
+        end
 
         send_packet(packet)
         return
