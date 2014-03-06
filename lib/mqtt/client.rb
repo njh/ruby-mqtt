@@ -538,7 +538,7 @@ private
       end
     end
 
-    expected_packet_in = nil
+    expected_packet_in  = nil
     expected_packet_out = nil
     if packet.class == MQTT::Packet::Publish
       if packet.qos == 1

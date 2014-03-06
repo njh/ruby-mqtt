@@ -16,14 +16,14 @@ describe 'support ACK' do
   #   client.disconnect()
   # end
 
-  it 'support disconnection' do
-    client = MQTT::Client.connect({remote_host: host,remote_port: 1883, :reconnect => true,:clean_session => false})
-    loop do
-      client.publish('topico','cuack1',false,0)
-      sleep 0.25
-    end
-    client.disconnect()
-  end
+  # it 'support disconnection' do
+  #   client = MQTT::Client.connect({remote_host: host,remote_port: 1883, :reconnect => true,:clean_session => false})
+  #   loop do
+  #     client.publish('topico','cuack1',false,0)
+  #     sleep 0.25
+  #   end
+  #   client.disconnect()
+  # end
 
   # it 'Support publishing' do
   #   client = MQTT::Client.connect({remote_host: host,remote_port: 1883, :reconnect => true,:clean_session => false,:client_id => 'cuack_user2' })
@@ -39,4 +39,12 @@ describe 'support ACK' do
   #   ap client.get_batch_messages(['cuack',2],0.5,20)
   #   client.disconnect()
   # end
+
+  it 'Support publishing' do
+    loop do
+      client = MQTT::Client.connect({remote_host: host,remote_port: 1883, :reconnect => true,:clean_session => false,:client_id => 'cuack_user2' })
+      ap client.get_batch_messages(['cuack',2],0.5,5)
+      client.disconnect()
+    end
+  end
 end
