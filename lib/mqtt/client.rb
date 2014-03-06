@@ -365,18 +365,27 @@ class MQTT::Client
     @read_queue.length
   end
 
-  def get_batch_messages sleep_time = 0.5
+  def get_batch_messages topic=nil,sleep_time = 0.5,max_wait_time=10
+    # Subscribe to a topic, if an argument is given
+    subscribe(topic) unless topic.nil?
+
+
+    start_time = Time.now.to_i
     sleep(sleep_time)
     messages = []
 
     loop do
       size = @read_queue.size
-      break if size == 0
+
+      break if messages.size > 0 and size == 0
 
       size.times do
         packet = @read_queue.pop(false)
         messages << [packet.topic,packet.payload]
       end
+
+      break if Time.now.to_i - start_time > max_wait_time
+      sleep(0.1)
     end
     return messages
   end

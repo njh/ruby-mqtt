@@ -25,13 +25,18 @@ describe 'support ACK' do
   #   client.disconnect()
   # end
 
-  it 'Support publishing' do
+  # it 'Support publishing' do
+  #   client = MQTT::Client.connect({remote_host: host,remote_port: 1883, :reconnect => true,:clean_session => false,:client_id => 'cuack_user2' })
+  #   client.get(['cuack',2]) do |topic,message|
+  #     ap [topic,message]
+  #   end
+
+  #   client.disconnect()
+  # end
+
+  it 'support batch processing' do
     client = MQTT::Client.connect({remote_host: host,remote_port: 1883, :reconnect => true,:clean_session => false,:client_id => 'cuack_user2' })
-    client.get(['cuack',2]) do |topic,message|
-      ap [topic,message]
-    end
-    # client.subscribe(['cuack',2])
-    # ap client.get_batch_messages
-    # client.disconnect()
+    ap client.get_batch_messages(['cuack',2],0.5,20)
+    client.disconnect()
   end
 end
