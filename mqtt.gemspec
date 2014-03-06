@@ -4,7 +4,7 @@ $:.push File.expand_path("../lib", __FILE__)
 require "mqtt/version"
 
 Gem::Specification.new do |gem|
-  gem.name        = 'mqtt-tc'
+  gem.name        = 'mqtt'
   gem.version     = MQTT::VERSION
   gem.author      = 'Nicholas J Humfrey'
   gem.email       = 'njh@aelius.com'

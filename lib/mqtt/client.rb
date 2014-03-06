@@ -11,6 +11,7 @@ class MQTT::Client
   attr_accessor :clean_session # Set the 'Clean Session' flag when connecting?
   attr_accessor :client_id     # Client Identifier
   attr_accessor :ack_timeout   # Number of seconds to wait for acknowledgement packets
+  attr_accessor :reconnect     # Reconnect after a dropped connection
   attr_accessor :username      # Username to authenticate to the broker with
   attr_accessor :password      # Password to authenticate to the broker with
   attr_accessor :will_topic    # The topic that the Will message is published to
@@ -36,6 +37,7 @@ class MQTT::Client
     :clean_session => true,
     :client_id => nil,
     :ack_timeout => 5,
+    :reconnect => false,
     :username => nil,
     :password => nil,
     :will_topic => nil,
@@ -150,6 +152,51 @@ class MQTT::Client
     self.will_qos = qos
   end
 
+  def open_socket_connection
+    # Create network socket
+    tcp_socket = TCPSocket.new(@remote_host,@remote_port)
+
+    if @tls_certfile.nil? || @tls_keyfile.nil?
+      @socket = tcp_socket
+    else
+      raise 'openssl library not installed' unless defined?(OpenSSL)
+      ssl_context = OpenSSL::SSL::SSLContext.new
+
+      unless @tls_cafile.nil?
+        ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
+        ssl_context.ca_file = @tls_cafile
+      end
+
+      ssl_context.cert = OpenSSL::X509::Certificate.new(File.open(@tls_certfile))
+      ssl_context.key  = OpenSSL::PKey::RSA.new(File.open(@tls_keyfile))
+
+      @socket = OpenSSL::SSL::SSLSocket.new(tcp_socket, ssl_context)
+      @socket.sync_close = true
+      @socket.connect
+    end
+  end
+
+  def send_connect_packet()
+    # Protocol name and version
+    packet = MQTT::Packet::Connect.new(
+      :clean_session => @clean_session,
+      :keep_alive => @keep_alive,
+      :client_id => @client_id,
+      :username => @username,
+      :password => @password,
+      :will_topic => @will_topic,
+      :will_payload => @will_payload,
+      :will_qos => @will_qos,
+      :will_retain => @will_retain
+    )
+
+    # Send packet
+    send_packet(packet)
+
+    # Receive response
+    receive_connack
+  end
+
   # Connect to the MQTT broker
   # If a block is given, then yield to that block and then disconnect again.
   def connect(clientid=nil)
@@ -165,46 +212,9 @@ class MQTT::Client
     end
 
     if not connected?
-      # Create network socket
-      tcp_socket = TCPSocket.new(@remote_host,@remote_port)
-
-      if @tls_certfile.nil? || @tls_keyfile.nil?
-        @socket = tcp_socket
-      else
-        raise 'openssl library not installed' unless defined?(OpenSSL)
-        ssl_context = OpenSSL::SSL::SSLContext.new
-
-        unless @tls_cafile.nil?
-          ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
-          ssl_context.ca_file = @tls_cafile
-        end
-
-        ssl_context.cert = OpenSSL::X509::Certificate.new(File.open(@tls_certfile))
-        ssl_context.key  = OpenSSL::PKey::RSA.new(File.open(@tls_keyfile))
-
-        @socket = OpenSSL::SSL::SSLSocket.new(tcp_socket, ssl_context)
-        @socket.sync_close = true
-        @socket.connect
-      end
-
-      # Protocol name and version
-      packet = MQTT::Packet::Connect.new(
-        :clean_session => @clean_session,
-        :keep_alive => @keep_alive,
-        :client_id => @client_id,
-        :username => @username,
-        :password => @password,
-        :will_topic => @will_topic,
-        :will_payload => @will_payload,
-        :will_qos => @will_qos,
-        :will_retain => @will_retain
-      )
-
-      # Send packet
-      send_packet(packet)
-
-      # Receive response
-      receive_connack
+      open_socket_connection()
+      @clean_session = false
+      send_connect_packet()
 
       # Start packet reading thread
       @read_thread = Thread.new(Thread.current) do |parent|
@@ -391,10 +401,38 @@ private
   def receive_packet
     begin
       # Poll socket - is there data waiting?
-      result = IO.select([@socket], nil, nil, SELECT_TIMEOUT)
+
+      begin
+        if not connected?
+          open_socket_connection()
+          send_connect_packet()
+          subscribe('asd')
+        end
+
+        result = IO.select([@socket], nil, nil, SELECT_TIMEOUT)
+      rescue Exception => err
+        if @reconnect
+          @socket = nil
+          sleep 1
+          return
+        else
+          raise err
+        end
+      end
+
       unless result.nil?
         # Yes - read in the packet
-        packet = MQTT::Packet.read(@socket)
+        begin
+          packet = MQTT::Packet.read(@socket)
+        rescue Exception => err
+          if @reconnect
+            @socket = nil
+            sleep 1
+            return
+          else
+            raise err
+          end
+        end
         if packet.class == MQTT::Packet::Publish
           message_id = packet.message_id
 
@@ -418,7 +456,6 @@ private
           message_id = packet.message_id
           packet = MQTT::Packet::Pubrel.new(:message_id => message_id)
           send_packet(packet)
-          ap '@'
           @expected_messages_out[message_id] = MQTT::Packet::Pubcomp.new(:message_id => message_id)
         end
 
@@ -434,7 +471,6 @@ private
           packet = MQTT::Packet::Pubcomp.new(:message_id => message_id)
           send_packet(packet)
 
-          ap packet
           @expected_messages_in.delete(message_id)
         end
       end
@@ -474,7 +510,18 @@ private
   # Send a packet to broker
   def send_packet(packet)
     # Throw exception if we aren't connected
-    raise MQTT::NotConnectedException if not connected?
+    if not connected?
+      if @reconnect
+        open_socket_connection()
+        send_connect_packet()
+        subscribe('asd')
+
+        send_packet(packet)
+        return
+      else
+        raise MQTT::NotConnectedException
+      end
+    end
 
     expected_packet_in = nil
     expected_packet_out = nil
