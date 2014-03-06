@@ -412,7 +412,8 @@ private
       # Poll socket - is there data waiting?
 
       begin
-        if not connected?
+        if not connected? and @reconnect
+          ap 'Reconnection'
           open_socket_connection()
           send_connect_packet()
           subscribe('asd')
