@@ -1,12 +1,10 @@
-begin
-  require "openssl"
-rescue LoadError
-end
+autoload :OpenSSL, 'openssl'
 
 # Client class for talking to an MQTT broker
 class MQTT::Client
-  attr_reader :remote_host     # Hostname of the remote broker
-  attr_reader :remote_port     # Port number of the remote broker
+  attr_accessor :remote_host   # Hostname of the remote broker
+  attr_accessor :remote_port   # Port number of the remote broker
+  attr_accessor :ssl           # True to enable SSL/TLS encrypted communication
   attr_accessor :keep_alive    # Time (in seconds) between pings to remote broker
   attr_accessor :clean_session # Set the 'Clean Session' flag when connecting?
   attr_accessor :client_id     # Client Identifier
@@ -17,10 +15,6 @@ class MQTT::Client
   attr_accessor :will_payload  # Contents of message that is sent by broker when client disconnect
   attr_accessor :will_qos      # The QoS level of the will message sent by the broker
   attr_accessor :will_retain   # If the Will message should be retain by the broker after it is sent
-  attr_accessor :tls_cafile    # The path to a file containing a CA certificate
-  attr_accessor :tls_certfile  # The path to a file containing the client's certificate
-  attr_accessor :tls_keyfile   # The path to a file containing the client's private key
-
 
   # Timeout between select polls (in seconds)
   SELECT_TIMEOUT = 0.5
@@ -28,7 +22,7 @@ class MQTT::Client
   # Default attribute values
   ATTR_DEFAULTS = {
     :remote_host => nil,
-    :remote_port => MQTT::DEFAULT_PORT,
+    :remote_port => nil,
     :keep_alive => 15,
     :clean_session => true,
     :client_id => nil,
@@ -39,9 +33,7 @@ class MQTT::Client
     :will_payload => nil,
     :will_qos => 0,
     :will_retain => false,
-    :tls_cafile => nil,
-    :tls_certfile => nil,
-    :tls_keyfile => nil
+    :ssl => false
   }
 
   # Create and connect a new MQTT Client
@@ -83,7 +75,7 @@ class MQTT::Client
   # - a URI that uses the MQTT scheme
   # - a hostname and port
   # - a Hash containing attributes to be set on the new instance
-  # 
+  #
   # If no arguments are given then the method will look for a URI
   # in the MQTT_BROKER environment variable.
   #
@@ -130,7 +122,12 @@ class MQTT::Client
 
     # Merge arguments with default values for attributes
     ATTR_DEFAULTS.merge(attr).each_pair do |k,v|
-      instance_variable_set("@#{k}", v)
+      self.send("#{k}=", v)
+    end
+
+    # Set a default port number
+    if @remote_port.nil?
+      @remote_port = @ssl ? MQTT::DEFAULT_SSL_PORT : MQTT::DEFAULT_PORT
     end
 
     # Initialise private instance variables
@@ -141,6 +138,29 @@ class MQTT::Client
     @read_queue = Queue.new
     @read_thread = nil
     @write_semaphore = Mutex.new
+  end
+
+  # Get the OpenSSL context, that is used if SSL/TLS is enabled
+  def ssl_context
+    @ssl_context ||= OpenSSL::SSL::SSLContext.new
+  end
+
+  # Set a path to a file containing a PEM-format client certificate
+  def cert_file=(path)
+    ssl_context.cert = OpenSSL::X509::Certificate.new(File.open(path))
+  end
+
+  # Set a path to a file containing a PEM-format client private key
+  def key_file=(path)
+    ssl_context.key = OpenSSL::PKey::RSA.new(File.open(path))
+  end
+
+  # Set a path to a file containing a PEM-format CA certificate and enable peer verification
+  def ca_file=(path)
+    ssl_context.ca_file = path
+    unless path.nil?
+      ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
+    end
   end
 
   def set_will(topic, payload, retain=false, qos=0)
@@ -168,23 +188,12 @@ class MQTT::Client
       # Create network socket
       tcp_socket = TCPSocket.new(@remote_host,@remote_port)
 
-      if @tls_certfile.nil? || @tls_keyfile.nil?
-        @socket = tcp_socket
-      else
-        raise 'openssl library not installed' unless defined?(OpenSSL)
-        ssl_context = OpenSSL::SSL::SSLContext.new
-
-        unless @tls_cafile.nil?
-          ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
-          ssl_context.ca_file = @tls_cafile
-        end
-
-        ssl_context.cert = OpenSSL::X509::Certificate.new(File.open(@tls_certfile))
-        ssl_context.key  = OpenSSL::PKey::RSA.new(File.open(@tls_keyfile))
-
+      if @ssl
         @socket = OpenSSL::SSL::SSLSocket.new(tcp_socket, ssl_context)
         @socket.sync_close = true
         @socket.connect
+      else
+        @socket = tcp_socket
       end
 
       # Protocol name and version
@@ -423,17 +432,24 @@ private
       @socket.write(data.to_s)
     end
   end
-  
+
   private
   def parse_uri(uri)
     uri = URI.parse(uri) unless uri.is_a?(URI)
-    raise "Only the mqtt:// scheme is supported" unless uri.scheme == 'mqtt'
-  
+    if uri.scheme == 'mqtt'
+      ssl = false
+    elsif uri.scheme == 'mqtts'
+      ssl = true
+    else
+      raise "Only the mqtt:// and mqtts:// schemes are supported"
+    end
+
     {
       :remote_host => uri.host,
-      :remote_port => uri.port || 1883,
+      :remote_port => uri.port || nil,
       :username => uri.user,
-      :password => uri.password
+      :password => uri.password,
+      :ssl => ssl
     }
   end
 

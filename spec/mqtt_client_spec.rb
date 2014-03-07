@@ -63,7 +63,6 @@ describe MQTT::Client do
       client.keep_alive.should == 60
     end
 
-    it "with a URI containing just a hostname" do
     it "with a combination of a host name and a hash of settings" do
       client = MQTT::Client.new('localhost', :keep_alive => 65)
       client.remote_host.should == 'localhost'
@@ -78,15 +77,32 @@ describe MQTT::Client do
       client.keep_alive.should == 65
     end
 
+    it "with a mqtt:// URI containing just a hostname" do
       client = MQTT::Client.new(URI.parse('mqtt://mqtt.example.com'))
       client.remote_host.should == 'mqtt.example.com'
       client.remote_port.should == 1883
+      client.ssl.should be_false
     end
 
-    it "with a URI containing a custom port number" do
+    it "with a mqtts:// URI containing just a hostname" do
+      client = MQTT::Client.new(URI.parse('mqtts://mqtt.example.com'))
+      client.remote_host.should == 'mqtt.example.com'
+      client.remote_port.should == 8883
+      client.ssl.should be_true
+    end
+
+    it "with a mqtt:// URI containing a custom port number" do
       client = MQTT::Client.new(URI.parse('mqtt://mqtt.example.com:1234/'))
       client.remote_host.should == 'mqtt.example.com'
       client.remote_port.should == 1234
+      client.ssl.should be_false
+    end
+
+    it "with a mqtts:// URI containing a custom port number" do
+      client = MQTT::Client.new(URI.parse('mqtts://mqtt.example.com:1234/'))
+      client.remote_host.should == 'mqtt.example.com'
+      client.remote_port.should == 1234
+      client.ssl.should be_true
     end
 
     it "with a URI containing a username and password" do
@@ -103,6 +119,13 @@ describe MQTT::Client do
       client.remote_port.should == 1883
     end
 
+    it "with a URI and a hash of settings" do
+      client = MQTT::Client.new('mqtt://mqtt.example.com', :keep_alive => 65)
+      client.remote_host.should == 'mqtt.example.com'
+      client.remote_port.should == 1883
+      client.keep_alive.should == 65
+    end
+
     it "with no arguments uses the MQTT_BROKER environment variable as connect URI" do
       ENV['MQTT_BROKER'] = 'mqtt://mqtt.example.com:1234'
       client = MQTT::Client.new
@@ -114,7 +137,7 @@ describe MQTT::Client do
       lambda {
         client = MQTT::Client.new(URI.parse('http://mqtt.example.com/'))
       }.should raise_error(
-        'Only the mqtt:// scheme is supported'
+        'Only the mqtt:// and mqtts:// schemes are supported'
       )
     end
 
@@ -124,6 +147,35 @@ describe MQTT::Client do
       }.should raise_error(
         'Unsupported number of arguments'
       )
+    end
+  end
+
+  describe "setting a client certificate file path" do
+    it "should add a certificate to the SSL context" do
+      client.ssl_context.cert.should be_nil
+      client.cert_file = fixture_path('client.pem')
+      client.ssl_context.cert.should be_a(OpenSSL::X509::Certificate)
+    end
+  end
+
+  describe "setting a client private key file path" do
+    it "should add a certificate to the SSL context" do
+      client.ssl_context.key.should be_nil
+      client.key_file = fixture_path('client.key')
+      client.ssl_context.key.should be_a(OpenSSL::PKey::RSA)
+    end
+  end
+
+  describe "setting a Certificate Authority file path" do
+    it "should add a CA file path to the SSL context" do
+      client.ssl_context.ca_file.should be_nil
+      client.ca_file = fixture_path('root-ca.pem')
+      client.ssl_context.ca_file.should == fixture_path('root-ca.pem')
+    end
+
+    it "should enable peer verification" do
+      client.ca_file = fixture_path('root-ca.pem')
+      client.ssl_context.verify_mode.should == OpenSSL::SSL::VERIFY_PEER
     end
   end
 
@@ -199,21 +251,26 @@ describe MQTT::Client do
       client.clean_session.should be_true
     end
 
-    it "should use TLS if certificate and key are given" do
-      context = double "SSLContext", :cert= => nil, :key= => nil
-      socket = double "SSLSocket", :sync_close= => true, :write => true, :connect => true
-      File.stub(:open).and_return("-----BEGIN CERTIFICATE-----")
+    context "and using ssl" do
+      let(:ssl_socket) { double("SSLSocket", :sync_close= => true, :write => true, :connect => true) }
 
-      OpenSSL::SSL::SSLContext.stub(:new).and_return(context)
-      OpenSSL::SSL::SSLSocket.stub(:new).and_return(socket)
+      it "should use ssl if it enabled using the :ssl => true parameter" do
+        OpenSSL::SSL::SSLSocket.should_receive(:new).and_return(ssl_socket)
+        ssl_socket.should_receive(:connect)
 
-      OpenSSL::X509::Certificate.stub(:new)
-      OpenSSL::PKey::RSA.stub(:new)
-      socket.should_receive(:connect)
+        client = MQTT::Client.new('mqtt.example.com', :ssl => true)
+        client.stub(:receive_connack)
+        client.connect
+      end
 
-      client.tls_certfile = "client.crt"
-      client.tls_keyfile = "client.key"
-      client.connect
+      it "should use ssl if it enabled using the mqtts:// scheme" do
+        OpenSSL::SSL::SSLSocket.should_receive(:new).and_return(ssl_socket)
+        ssl_socket.should_receive(:connect)
+
+        client = MQTT::Client.new('mqtts://mqtt.example.com')
+        client.stub(:receive_connack)
+        client.connect
+      end
     end
 
     context "with a last will and testament set" do
