@@ -4,8 +4,8 @@ require 'bundler'
 Bundler.require(:default, :development)
 require 'mqtt'
 
-#HOST = 'localhost'
-HOST = '10.100.0.139'
+HOST = 'localhost'
+#HOST = '10.100.0.139'
 
 def send_publish(start,delta,sleep_time)
   id = start

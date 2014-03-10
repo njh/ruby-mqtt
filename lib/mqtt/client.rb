@@ -1,7 +1,9 @@
+require 'set'
 begin
   require "openssl"
 rescue LoadError
 end
+
 
 # Client class for talking to an MQTT broker
 class MQTT::Client
@@ -141,7 +143,7 @@ class MQTT::Client
     @read_thread = nil
     @write_semaphore = Mutex.new
 
-    @last_subscription = nil#for reconnection
+    @subscriptions = Set.new
 
     @expected_messages_out = {}
     @expected_messages_in = {}
@@ -152,30 +154,6 @@ class MQTT::Client
     self.will_payload = payload
     self.will_retain = retain
     self.will_qos = qos
-  end
-
-  def open_socket_connection
-    # Create network socket
-    tcp_socket = TCPSocket.new(@remote_host,@remote_port)
-
-    if @tls_certfile.nil? || @tls_keyfile.nil?
-      @socket = tcp_socket
-    else
-      raise 'openssl library not installed' unless defined?(OpenSSL)
-      ssl_context = OpenSSL::SSL::SSLContext.new
-
-      unless @tls_cafile.nil?
-        ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
-        ssl_context.ca_file = @tls_cafile
-      end
-
-      ssl_context.cert = OpenSSL::X509::Certificate.new(File.open(@tls_certfile))
-      ssl_context.key  = OpenSSL::PKey::RSA.new(File.open(@tls_keyfile))
-
-      @socket = OpenSSL::SSL::SSLSocket.new(tcp_socket, ssl_context)
-      @socket.sync_close = true
-      @socket.connect
-    end
   end
 
   def send_connect_packet()
@@ -251,8 +229,8 @@ class MQTT::Client
       @socket.close unless @socket.nil?
       @socket = nil
     end
-    @read_thread.kill if @read_thread and @read_thread.alive?
-    @read_thread = nil
+
+    kill_read_thread()
   end
 
   # Checks whether the client is connected to the broker.
@@ -269,6 +247,10 @@ class MQTT::Client
 
   # Publish a message on a particular topic to the MQTT broker.
   def publish(topic, payload, retain=false, qos=0)
+    raise MQTT::ProtocolException.new('Topic cannot contain wildcard characters') if topic =~ /[\*\+]/
+    raise MQTT::ProtocolException.new('Invalid Topic size') if topic.bytesize > 65535
+    raise MQTT::ProtocolException.new('Invalid Payload size') if payload.bytesize > 65535
+
     packet = MQTT::Packet::Publish.new(
       :qos => qos,
       :retain => retain,
@@ -294,12 +276,20 @@ class MQTT::Client
   #   client.subscribe( 'a/b' => 0, 'c/d' => 1 )
   #
   def subscribe(*topics)
-    @last_subscription = topics
     packet = MQTT::Packet::Subscribe.new(
       :topics => topics,
       :message_id => @message_id.next
     )
+
+    packet.topics.each do |topic|
+      raise MQTT::ProtocolException.new('Invalid Topic size') if topic[0].bytesize > 65535
+    end
+
     send_packet(packet)
+
+    packet.topics.each do |topic|
+      @subscriptions << topic[0]
+    end
   end
 
   # Return the next message received from the MQTT broker.
@@ -403,23 +393,60 @@ class MQTT::Client
       :topics => topics,
       :message_id => @message_id.next
     )
+
+    packet.topics.each do |topic|
+      raise MQTT::ProtocolException.new('Invalid Topic size') if topic.bytesize > 65535
+    end
+
+    packet.topics.each do |topic|
+      @subscriptions.delete(topic)
+    end
+
     send_packet(packet)
   end
 
 private
+
+  def open_socket_connection
+    # Create network socket
+    tcp_socket = TCPSocket.new(@remote_host,@remote_port)
+
+    if @tls_certfile.nil? || @tls_keyfile.nil?
+      @socket = tcp_socket
+    else
+      raise 'openssl library not installed' unless defined?(OpenSSL)
+      ssl_context = OpenSSL::SSL::SSLContext.new
+
+      unless @tls_cafile.nil?
+        ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
+        ssl_context.ca_file = @tls_cafile
+      end
+
+      ssl_context.cert = OpenSSL::X509::Certificate.new(File.open(@tls_certfile))
+      ssl_context.key  = OpenSSL::PKey::RSA.new(File.open(@tls_keyfile))
+
+      @socket = OpenSSL::SSL::SSLSocket.new(tcp_socket, ssl_context)
+      @socket.sync_close = true
+      @socket.connect
+    end
+  end
+
+  def kill_read_thread
+    @read_thread.kill if @read_thread and @read_thread.alive?
+    @read_thread = nil
+  end
 
   # Try to read a packet from the broker
   # Also sends keep-alive ping packets.
   def receive_packet
     begin
       # Poll socket - is there data waiting?
-
       begin
         if not connected? and @reconnect
           ap 'Reconnection'
           open_socket_connection()
           send_connect_packet()
-          subscribe('asd')
+          subscribe(@subscriptions.first) unless @subscriptions.empty?
         end
 
         result = IO.select([@socket], nil, nil, SELECT_TIMEOUT)
@@ -497,11 +524,14 @@ private
 
     # Pass exceptions up to parent thread
     rescue Exception => exp
-      unless @socket.nil?
-        @socket.close
-        @socket = nil
-      end
       Thread.current[:parent].raise(exp)
+      unless @socket.nil?
+        @write_semaphore.synchronize do
+          @socket.close
+          @socket = nil
+        end
+      end
+      kill_read_thread()
     end
   end
 
