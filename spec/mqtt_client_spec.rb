@@ -247,11 +247,23 @@ describe MQTT::Client do
         "\x00\x08password"
     end
 
-    it "should reset clean session flag to true, if no client id is given" do
-      client.client_id = nil
-      client.clean_session = false
-      client.connect
-      client.clean_session.should be_true
+    context "no client id is given" do
+      it "should throw an exception if the clean session flag is false" do
+        lambda {
+          client.client_id = nil
+          client.clean_session = false
+          client.connect
+        }.should raise_error(
+          'Must provide a client_id if clean_session is set to false'
+        )
+      end
+
+      it "should generate a client if the clean session flag is true" do
+        client.client_id = nil
+        client.clean_session = true
+        client.connect
+        client.client_id.should match(/^\w+$/)
+      end
     end
 
     context "and using ssl" do

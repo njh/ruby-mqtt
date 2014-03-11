@@ -173,11 +173,16 @@ class MQTT::Client
   # Connect to the MQTT broker
   # If a block is given, then yield to that block and then disconnect again.
   def connect(clientid=nil)
-    if !clientid.nil?
+    unless clientid.nil?
       @client_id = clientid
-    elsif @client_id.nil?
-      @client_id = MQTT::Client.generate_client_id
-      @clean_session = true
+    end
+
+    if @client_id.nil? or @client_id.empty?
+      if @clean_session
+        @client_id = MQTT::Client.generate_client_id
+      else
+        raise 'Must provide a client_id if clean_session is set to false'
+      end
     end
 
     if @remote_host.nil?
@@ -186,7 +191,7 @@ class MQTT::Client
 
     if not connected?
       # Create network socket
-      tcp_socket = TCPSocket.new(@remote_host,@remote_port)
+      tcp_socket = TCPSocket.new(@remote_host, @remote_port)
 
       if @ssl
         @socket = OpenSSL::SSL::SSLSocket.new(tcp_socket, ssl_context)
