@@ -8,23 +8,23 @@ HOST = 'localhost'
 #HOST = '10.100.0.139'
 
 def create_standard_client()
-  client = MQTT::Client.connect({remote_host: HOST,remote_port: 1883, :reconnect => true,:clean_session => false})
+  client = MQTT::Client.connect({remote_host: HOST,remote_port: 1883, :reconnect => true, :v311 => true, :clean_session => false})
   return client
 end
 
 describe 'support ACK' do
-  it 'send messages' do
-    client = MQTT::Client.connect(HOST)
+  # it 'send messages' do
+  #   client = create_standard_client()
 
-    client.publish('topico','cuack1',false,0)
-    client.publish('topico','cuack2',false,1)
-    client.publish('topico','cuack1',false,2)
+  #   client.publish('topico','cuack1',false,0)
+  #   client.publish('topico','cuack2',false,1)
+  #   client.publish('topico','cuack1',false,2)
 
-    client.disconnect()
-  end
+  #   client.disconnect()
+  # end
 
   # it 'support disconnection' do
-  #   client = MQTT::Client.connect({remote_host: HOST,remote_port: 1883, :reconnect => true,:clean_session => false})
+  #   client = client = create_standard_client()
   #   loop do
   #     client.publish('topico','cuack1',false,0)
   #     sleep 0.25
@@ -32,14 +32,14 @@ describe 'support ACK' do
   #   client.disconnect()
   # end
 
-  # it 'Support publishing' do
-  #   client = MQTT::Client.connect({remote_host: HOST,remote_port: 1883, :reconnect => true,:clean_session => false,:client_id => 'cuack_user2' })
-  #   client.get(['cuack',2]) do |topic,message|
-  #     ap [topic,message]
-  #   end
+  it 'Support get batch messages' do
+    client = create_standard_client()
+    client.get(['cuack',2]) do |topic,message|
+      ap [topic,message]
+    end
 
-  #   client.disconnect()
-  # end
+    client.disconnect()
+  end
 
   # it 'support batch processing' do
   #   client = MQTT::Client.connect({remote_host: HOST,remote_port: 1883, :reconnect => true,:clean_session => false,:client_id => 'cuack_user' })

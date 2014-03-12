@@ -366,7 +366,7 @@ module MQTT
       # Get serialisation of packet's body
       def encode_body
         body = ''
-        if @client_id.nil? or @client_id.bytesize < 1 or @client_id.bytesize > 23
+        if @client_id.nil? or @client_id.bytesize < 0 or @client_id.bytesize > 23
           raise "Invalid client identifier when serialising packet"
         end
         body += encode_string(@protocol_name)
@@ -561,7 +561,7 @@ module MQTT
     # Class representing an MQTT Publish Release packet
     class Pubrel < MQTT::Packet
       attr_accessor :message_id
-      DEFAULTS = {:message_id => 0}
+      DEFAULTS = {:message_id => 0,:qos => 1}
 
       # Create a new Publish Release packet
       def initialize(args={})

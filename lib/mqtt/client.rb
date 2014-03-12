@@ -9,6 +9,7 @@ end
 class MQTT::Client
   attr_reader :remote_host     # Hostname of the remote broker
   attr_reader :remote_port     # Port number of the remote broker
+  attr_accessor :v311            # MQTT V3.1.1 version
   attr_accessor :keep_alive    # Time (in seconds) between pings to remote broker
   attr_accessor :clean_session # Set the 'Clean Session' flag when connecting?
   attr_accessor :client_id     # Client Identifier
@@ -48,7 +49,8 @@ class MQTT::Client
     :will_retain => false,
     :tls_cafile => nil,
     :tls_certfile => nil,
-    :tls_keyfile => nil
+    :tls_keyfile => nil,
+    :v311  => false
   }
 
   # Create and connect a new MQTT Client
@@ -170,6 +172,11 @@ class MQTT::Client
       :will_retain => @will_retain
     )
 
+    if @v311
+      packet.protocol_name = 'MQTT'
+      packet.protocol_version = 0x4
+    end
+
     # Send packet
     send_packet(packet)
 
@@ -184,7 +191,6 @@ class MQTT::Client
       @client_id = clientid
     elsif @client_id.nil?
       @client_id = MQTT::Client.generate_client_id
-      @clean_session = true
     end
 
     if @remote_host.nil?
@@ -193,7 +199,6 @@ class MQTT::Client
 
     if not connected?
       open_socket_connection()
-      @clean_session = false
       send_connect_packet()
 
       # Start packet reading thread
@@ -494,8 +499,8 @@ private
         #Client => Server
         if packet.class == MQTT::Packet::Pubrec
           message_id = packet.message_id
-          packet = MQTT::Packet::Pubrel.new(:message_id => message_id)
-          send_packet(packet)
+          send_packet = MQTT::Packet::Pubrel.new(:message_id => message_id)
+          send_packet(send_packet)
           @expected_messages_out[message_id] = MQTT::Packet::Pubcomp.new(:message_id => message_id)
         end
 
@@ -508,8 +513,8 @@ private
         #Server => Client
         if packet.class == MQTT::Packet::Pubrel
           message_id = packet.message_id
-          packet = MQTT::Packet::Pubcomp.new(:message_id => message_id)
-          send_packet(packet)
+          send_packet = MQTT::Packet::Pubcomp.new(:message_id => message_id)
+          send_packet(send_packet)
 
           @expected_messages_in.delete(message_id)
         end
