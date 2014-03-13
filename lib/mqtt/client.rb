@@ -2,19 +2,45 @@ autoload :OpenSSL, 'openssl'
 
 # Client class for talking to an MQTT broker
 class MQTT::Client
-  attr_accessor :remote_host   # Hostname of the remote broker
-  attr_accessor :remote_port   # Port number of the remote broker
-  attr_accessor :ssl           # True to enable SSL/TLS encrypted communication
-  attr_accessor :keep_alive    # Time (in seconds) between pings to remote broker
-  attr_accessor :clean_session # Set the 'Clean Session' flag when connecting?
-  attr_accessor :client_id     # Client Identifier
-  attr_accessor :ack_timeout   # Number of seconds to wait for acknowledgement packets
-  attr_accessor :username      # Username to authenticate to the broker with
-  attr_accessor :password      # Password to authenticate to the broker with
-  attr_accessor :will_topic    # The topic that the Will message is published to
-  attr_accessor :will_payload  # Contents of message that is sent by broker when client disconnect
-  attr_accessor :will_qos      # The QoS level of the will message sent by the broker
-  attr_accessor :will_retain   # If the Will message should be retain by the broker after it is sent
+  # Hostname of the remote broker
+  attr_accessor :remote_host
+
+  # Port number of the remote broker
+  attr_accessor :remote_port
+
+  # True to enable SSL/TLS encrypted communication
+  attr_accessor :ssl
+
+  # Time (in seconds) between pings to remote broker
+  attr_accessor :keep_alive
+
+  # Set the 'Clean Session' flag when connecting?
+  attr_accessor :clean_session
+
+  # Client Identifier
+  attr_accessor :client_id
+
+  # Number of seconds to wait for acknowledgement packets
+  attr_accessor :ack_timeout
+
+  # Username to authenticate to the broker with
+  attr_accessor :username
+
+  # Password to authenticate to the broker with
+  attr_accessor :password
+
+  # The topic that the Will message is published to
+  attr_accessor :will_topic
+
+  # Contents of message that is sent by broker when client disconnect
+  attr_accessor :will_payload
+
+  # The QoS level of the will message sent by the broker
+  attr_accessor :will_qos
+
+  # If the Will message should be retain by the broker after it is sent
+  attr_accessor :will_retain
+
 
   # Timeout between select polls (in seconds)
   SELECT_TIMEOUT = 0.5

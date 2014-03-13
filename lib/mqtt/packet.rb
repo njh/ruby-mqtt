@@ -5,10 +5,18 @@ module MQTT
   # Class representing a MQTT Packet
   # Performs binary encoding and decoding of headers
   class MQTT::Packet
-    attr_reader :duplicate   # Duplicate delivery flag
-    attr_reader :retain      # Retain flag
-    attr_reader :qos         # Quality of Service level
-    attr_reader :body_length # The length of the parsed packet body
+
+    # Duplicate delivery flag
+    attr_reader :duplicate
+
+    # Retain flag
+    attr_reader :retain
+
+    # Quality of Service level (0, 1, 2)
+    attr_reader :qos
+
+    # The length of the parsed packet body
+    attr_reader :body_length
 
     # Default attribute values
     ATTR_DEFAULTS = {
