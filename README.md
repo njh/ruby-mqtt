@@ -42,7 +42,7 @@ Different levels of QoS are used in this ruby-mqtt interface:
 	QoS1 - where the message is sent under the same conditions described for QoS0, and a reception acknowledgement is issued by the server. 
 	QoS2 - where a message is sent to the server requesting acknnowledgement of readiness for reception. The server responds indicating its readiness to receive the message. Afterwards, the same conditions apply as for QoS1.
 
-Functionality does not change while using any of the 3 above-mentioned conditions. However, a higher level of QoS is oriented towards higher reliability, and consequently, a slight decrease in speed.
+Functionality does not change while using any of the 3 above-mentioned conditions. However, a higher level of QoS is oriented towards higher reliability and will, consequently, show a slight decrease in speed.
 
 
 Retain messages
@@ -56,12 +56,24 @@ A clean session implies beginning a new session from scratch. When you connect a
 
 In an unclean or "dirty" session, the user specifies whether to continue the last session saved. Otherwise, the system will launch a brand new session. A previously-saved session is related to the user's subscription and it will save the subscription and all saved messages related to that subscription if QoS>0.
 
-In an unclean session, all messages received while the user was disconnected from the system will appear.
+Upon opening of an unclean session, all messages received while the user was disconnected from the system will appear.
 
 
 Will message
 ------------
+If an MQTT client connection ends unexpectedly, the user can configure mqtt to send a "last will and testament" message. The content of the message must be predefined, as well as the topic to send it to. The "last will" is a connection property. It must be created before connecting the client.
 
+The user must create a topic for the last will. For instance, a topic such as MQTTManagement/Connections/server URI/client identifer/Lost.
+
+A "last will and testament" must be set up using the MqttConnectionOptions.setWill(MqttTopic lastWillTopic, byte [] lastWillPayload, int lastWillQos, boolean lastWillRetained) method.
+
+The user mus consider creating a time stamp in the lastWillPayload message. Also, include other client information that assists in identifying the client and the circumstances of the connection. Pass the MqttConnectionOptions object to the MqttClient constructor.
+
+Set lastWillQos to 1 or 2, to make the message persistent in MQ, and to guarantee delivery. To retain the last lost connection information, set the lastWillRetained to true.
+
+The "last will" publication is sent to subscribers if the connection ends unexpectedly. It is sent if the connection ends without the client calling the specific disconnect method.
+
+To monitor connections, complement the "last will" message with other publications to record connections and programmed disconnections.
 
 
 Synopsis
