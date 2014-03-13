@@ -38,11 +38,11 @@ Quality of Service is a networking term that specifies a guaranteed throughput l
 
 Different levels of QoS are used in this ruby-mqtt interface:
 
-* QoS0 - where a message is sent by the user to the server and all those currently connected to it. No confirmation of reception is returned to the user. 
-* QoS1 - where the message is sent under the same conditions described for QoS0, and a reception acknowledgement is issued by the server. 
-* QoS2 - where a message is sent to the server requesting acknnowledgement of readiness for reception. The server responds indicating its readiness to receive the message. Afterwards, the same conditions apply as for QoS1.
+* QoS Level 0 - where a message is sent by the user to the server and all those currently connected to it. No confirmation of reception is returned to the user. 
+* QoS Level 1 - where the message is sent under the same conditions described for QoS0, and a reception acknowledgement is issued by the server. 
+* QoS Level 2 - where a message is sent to the server requesting acknnowledgement of readiness for reception. The server responds indicating its readiness to receive the message. Afterwards, the same conditions apply as for QoS Level 1.
 
-Functionality does not change while using any of the 3 above-mentioned conditions. However, a higher level of QoS is oriented towards higher reliability and will, consequently, show a slight decrease in speed.
+Functionality does not change while using any of the 3 above-mentioned conditions. However, a higher level of QoS is oriented towards higher reliability and will, consequently, result in a slight decrease in speed.
 
 
 Retain messages
