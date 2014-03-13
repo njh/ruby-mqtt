@@ -103,13 +103,13 @@ Connection:
     client = MQTT::Client.new('myserver.example.com', 18830)
     client = MQTT::Client.new({:remote_host => 'myserver.example.com',:remote_port => 1883 ... })
 
-The connection can be made with a block.
+The connection can be made without the use of a block:
 
     client = MQTT::Client.new('myserver.example.com', 18830)
     #client stuff
     client.disconnect()
 
-or if using a block, with an implicit disconnection at the end of the block.
+Or, if using a block, with an implicit disconnection at the end of the block.
 
     MQTT::Client.new('myserver.example.com', 18830) do |client|
         #client stuff
