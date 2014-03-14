@@ -1,8 +1,7 @@
 ruby-mqtt
 =========
 
-Pure Ruby gem that implements the MQTT (Message Queue Telemetry Transport) protocol,
-a lightweight protocol for publish/subscribe messaging.
+Pure Ruby gem that implements the MQTT protocol, a lightweight protocol for publish/subscribe messaging.
 
 
 Installing
@@ -46,11 +45,13 @@ Resources
 * GitHub Project: http://github.com/njh/ruby-mqtt
 * API Documentation: http://rubydoc.info/gems/mqtt/frames
 
+
 License
 -------
 
 The ruby-mqtt gem is licensed under the terms of the MIT license.
 See the file LICENSE for details.
+
 
 Contact
 -------
