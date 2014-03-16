@@ -1,33 +1,54 @@
 require 'set'
-begin
-  require "openssl"
-rescue LoadError
-end
+autoload :OpenSSL, 'openssl'
 
 
 # Client class for talking to an MQTT broker
 class MQTT::Client
-  attr_reader :remote_host     # Hostname of the remote broker
-  attr_reader :remote_port     # Port number of the remote broker
-  attr_accessor :v311            # MQTT V3.1.1 version
-  attr_accessor :keep_alive    # Time (in seconds) between pings to remote broker
-  attr_accessor :clean_session # Set the 'Clean Session' flag when connecting?
-  attr_accessor :client_id     # Client Identifier
-  attr_accessor :ack_timeout   # Number of seconds to wait for acknowledgement packets
-  attr_accessor :reconnect     # Reconnect after a dropped connection
-  attr_accessor :username      # Username to authenticate to the broker with
-  attr_accessor :password      # Password to authenticate to the broker with
-  attr_accessor :will_topic    # The topic that the Will message is published to
-  attr_accessor :will_payload  # Contents of message that is sent by broker when client disconnect
-  attr_accessor :will_qos      # The QoS level of the will message sent by the broker
-  attr_accessor :will_retain   # If the Will message should be retain by the broker after it is sent
-  attr_accessor :tls_cafile    # The path to a file containing a CA certificate
-  attr_accessor :tls_certfile  # The path to a file containing the client's certificate
-  attr_accessor :tls_keyfile   # The path to a file containing the client's private key
 
-  # OLD deprecated clean_start
-  alias :clean_start :clean_session
-  alias :clean_start= :clean_session=
+  # Hostname of the remote broker
+  attr_accessor :remote_host
+
+  # Port number of the remote broker
+  attr_accessor :remote_port
+
+  # True to enable SSL/TLS encrypted communication
+  attr_accessor :ssl
+
+  # Time (in seconds) between pings to remote broker
+  attr_accessor :keep_alive
+
+  # Set the 'Clean Session' flag when connecting?
+  attr_accessor :clean_session
+
+  # Client Identifier
+  attr_accessor :client_id
+
+  # Number of seconds to wait for acknowledgement packets
+  attr_accessor :ack_timeout
+
+  # Username to authenticate to the broker with
+  attr_accessor :username
+
+  # Password to authenticate to the broker with
+  attr_accessor :password
+
+  # The topic that the Will message is published to
+  attr_accessor :will_topic
+
+  # Contents of message that is sent by broker when client disconnect
+  attr_accessor :will_payload
+
+  # The QoS level of the will message sent by the broker
+  attr_accessor :will_qos
+
+  # If the Will message should be retain by the broker after it is sent
+  attr_accessor :will_retain
+
+  # MQTT V3.1.1 version
+  attr_accessor :v311
+
+  # Reconnect after a dropped connection
+  attr_accessor :reconnect
 
   # Timeout between select polls (in seconds)
   SELECT_TIMEOUT = 0.5
@@ -35,7 +56,7 @@ class MQTT::Client
   # Default attribute values
   ATTR_DEFAULTS = {
     :remote_host => nil,
-    :remote_port => MQTT::DEFAULT_PORT,
+    :remote_port => nil,
     :keep_alive => 15,
     :clean_session => true,
     :client_id => nil,
@@ -47,10 +68,8 @@ class MQTT::Client
     :will_payload => nil,
     :will_qos => 0,
     :will_retain => false,
-    :tls_cafile => nil,
-    :tls_certfile => nil,
-    :tls_keyfile => nil,
-    :v311  => false
+    :v311  => false,
+    :ssl => false
   }
 
   # Create and connect a new MQTT Client
@@ -106,34 +125,45 @@ class MQTT::Client
   #  client = MQTT::Client.new(:remote_host => 'myserver.example.com', :keep_alive => 30)
   #
   def initialize(*args)
+    if args.last.is_a?(Hash)
+      attr = args.pop
+    else
+      attr = {}
+    end
+
     if args.length == 0
       if ENV['MQTT_BROKER']
-        args = parse_uri(ENV['MQTT_BROKER'])
-      else
-        args = {}
+        attr.merge!(parse_uri(ENV['MQTT_BROKER']))
       end
-    elsif args.length == 1
+    end
+
+    if args.length >= 1
       case args[0]
-        when Hash
-          args = args[0]
         when URI
-          args = parse_uri(args[0])
+          attr.merge!(parse_uri(args[0]))
         when %r|^mqtts?://|
-          args = parse_uri(args[0])
+          attr.merge!(parse_uri(args[0]))
         else
-          args = {:remote_host => args[0]}
+          attr.merge!(:remote_host => args[0])
       end
-    elsif args.length == 1
-      args = {:remote_host => args[0]}
-    elsif args.length == 2
-      args = {:remote_host => args[0], :remote_port => args[1]}
-    else
+    end
+
+    if args.length >= 2
+      attr.merge!(:remote_port => args[1])
+    end
+
+    if args.length >= 3
       raise ArgumentError, "Unsupported number of arguments"
     end
 
     # Merge arguments with default values for attributes
-    ATTR_DEFAULTS.merge(args).each_pair do |k,v|
-      instance_variable_set("@#{k}", v)
+    ATTR_DEFAULTS.merge(attr).each_pair do |k,v|
+      self.send("#{k}=", v)
+    end
+
+    # Set a default port number
+    if @remote_port.nil?
+      @remote_port = @ssl ? MQTT::DEFAULT_SSL_PORT : MQTT::DEFAULT_PORT
     end
 
     # Initialise private instance variables
@@ -149,6 +179,29 @@ class MQTT::Client
 
     @expected_messages_out = {}
     @expected_messages_in = {}
+  end
+
+  # Get the OpenSSL context, that is used if SSL/TLS is enabled
+  def ssl_context
+    @ssl_context ||= OpenSSL::SSL::SSLContext.new
+  end
+
+  # Set a path to a file containing a PEM-format client certificate
+  def cert_file=(path)
+    ssl_context.cert = OpenSSL::X509::Certificate.new(File.open(path))
+  end
+
+  # Set a path to a file containing a PEM-format client private key
+  def key_file=(path)
+    ssl_context.key = OpenSSL::PKey::RSA.new(File.open(path))
+  end
+
+  # Set a path to a file containing a PEM-format CA certificate and enable peer verification
+  def ca_file=(path)
+    ssl_context.ca_file = path
+    unless path.nil?
+      ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
+    end
   end
 
   def set_will(topic, payload, retain=false, qos=0)
@@ -187,10 +240,16 @@ class MQTT::Client
   # Connect to the MQTT broker
   # If a block is given, then yield to that block and then disconnect again.
   def connect(clientid=nil)
-    if !clientid.nil?
+	unless clientid.nil?
       @client_id = clientid
-    elsif @client_id.nil?
-      @client_id = MQTT::Client.generate_client_id
+    end
+
+    if @client_id.nil? or @client_id.empty?
+      if @clean_session
+        @client_id = MQTT::Client.generate_client_id
+      else
+        raise 'Must provide a client_id if clean_session is set to false'
+      end
     end
 
     if @remote_host.nil?
@@ -416,26 +475,14 @@ class MQTT::Client
 private
 
   def open_socket_connection
-    # Create network socket
-    tcp_socket = TCPSocket.new(@remote_host,@remote_port)
+    tcp_socket = TCPSocket.new(@remote_host, @remote_port)
 
-    if @tls_certfile.nil? || @tls_keyfile.nil?
-      @socket = tcp_socket
-    else
-      raise 'openssl library not installed' unless defined?(OpenSSL)
-      ssl_context = OpenSSL::SSL::SSLContext.new
-
-      unless @tls_cafile.nil?
-        ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
-        ssl_context.ca_file = @tls_cafile
-      end
-
-      ssl_context.cert = OpenSSL::X509::Certificate.new(File.open(@tls_certfile))
-      ssl_context.key  = OpenSSL::PKey::RSA.new(File.open(@tls_keyfile))
-
+    if @ssl
       @socket = OpenSSL::SSL::SSLSocket.new(tcp_socket, ssl_context)
       @socket.sync_close = true
       @socket.connect
+    else
+      @socket = tcp_socket
     end
   end
 
@@ -655,16 +702,23 @@ private
     end
   end
 
-  private
+   private
   def parse_uri(uri)
     uri = URI.parse(uri) unless uri.is_a?(URI)
-    raise "Only the mqtt:// scheme is supported" unless uri.scheme == 'mqtt'
+    if uri.scheme == 'mqtt'
+      ssl = false
+    elsif uri.scheme == 'mqtts'
+      ssl = true
+    else
+      raise "Only the mqtt:// and mqtts:// schemes are supported"
+    end
 
     {
       :remote_host => uri.host,
-      :remote_port => uri.port || 1883,
+      :remote_port => uri.port || nil,
       :username => uri.user,
-      :password => uri.password
+      :password => uri.password,
+      :ssl => ssl
     }
   end
 

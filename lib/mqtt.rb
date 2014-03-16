@@ -15,6 +15,7 @@ end
 module MQTT
 
   DEFAULT_PORT = 1883
+  DEFAULT_SSL_PORT = 8883
 
   class Exception < Exception
   end

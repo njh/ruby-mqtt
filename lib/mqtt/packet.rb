@@ -5,13 +5,24 @@ module MQTT
   # Class representing a MQTT Packet
   # Performs binary encoding and decoding of headers
   class MQTT::Packet
-    attr_reader   :duplicate    # Duplicate delivery flag
-    attr_reader   :retain       # Retain flag
-    attr_reader   :qos          # Quality of Service level
-    attr_reader   :body_length  # The length of the parsed packet body
-    attr_accessor :creation_timestamp # Timestamp of publishing/receiving
 
-    DEFAULTS = {
+    # Duplicate delivery flag
+    attr_reader :duplicate
+
+    # Retain flag
+    attr_reader :retain
+
+    # Quality of Service level (0, 1, 2)
+    attr_reader :qos
+
+    # The length of the parsed packet body
+    attr_reader :body_length
+
+    # Timestamp of publishing/receiving
+    attr_accessor :creation_timestamp
+
+    # Default attribute values
+    ATTR_DEFAULTS = {
       :duplicate => false,
       :qos => 0,
       :retain => false,
@@ -106,7 +117,7 @@ module MQTT
 
     # Create a new empty packet
     def initialize(args={})
-      update_attributes(DEFAULTS.merge(args))
+      update_attributes(ATTR_DEFAULTS.merge(args))
       @creation_timestamp = Time.now.to_i
     end
 
@@ -276,7 +287,7 @@ module MQTT
       attr_accessor :message_id
       attr_accessor :payload
 
-      DEFAULTS = {
+      ATTR_DEFAULTS = {
           :topic => nil,
           :message_id => 0,
           :payload => ''
@@ -284,7 +295,7 @@ module MQTT
 
       # Create a new Publish packet
       def initialize(args={})
-        super(DEFAULTS.merge(args))
+        super(ATTR_DEFAULTS.merge(args))
       end
 
       # Get serialisation of packet's body
@@ -342,11 +353,7 @@ module MQTT
       attr_accessor :username
       attr_accessor :password
 
-      # OLD deprecated clean_start
-      alias :clean_start :clean_session
-      alias :clean_start= :clean_session=
-
-      DEFAULTS = {
+      ATTR_DEFAULTS = {
         :protocol_name => 'MQIsdp',
         :protocol_version => 0x03,
         :client_id => nil,
@@ -362,7 +369,7 @@ module MQTT
 
       # Create a new Client Connect packet
       def initialize(args={})
-        super(DEFAULTS.merge(args))
+        super(ATTR_DEFAULTS.merge(args))
       end
 
       # Get serialisation of packet's body
@@ -457,11 +464,11 @@ module MQTT
     # Class representing an MQTT Connect Acknowledgment Packet
     class Connack < MQTT::Packet
       attr_accessor :return_code
-      DEFAULTS = {:return_code => 0x00}
+      ATTR_DEFAULTS = {:return_code => 0x00}
 
       # Create a new Client Connect packet
       def initialize(args={})
-        super(DEFAULTS.merge(args))
+        super(ATTR_DEFAULTS.merge(args))
       end
 
       # Get a string message corresponding to a return code
@@ -510,11 +517,11 @@ module MQTT
     # Class representing an MQTT Publish Acknowledgment packet
     class Puback < MQTT::Packet
       attr_accessor :message_id
-      DEFAULTS = {:message_id => 0}
+      ATTR_DEFAULTS = {:message_id => 0}
 
       # Create a new Publish Acknowledgment packet
       def initialize(args={})
-        super(DEFAULTS.merge(args))
+        super(ATTR_DEFAULTS.merge(args))
       end
 
       # Get serialisation of packet's body
@@ -539,11 +546,11 @@ module MQTT
     # Class representing an MQTT Publish Received packet
     class Pubrec < MQTT::Packet
       attr_accessor :message_id
-      DEFAULTS = {:message_id => 0}
+      ATTR_DEFAULTS = {:message_id => 0}
 
       # Create a new Publish Recieved packet
       def initialize(args={})
-        super(DEFAULTS.merge(args))
+        super(ATTR_DEFAULTS.merge(args))
       end
 
       # Get serialisation of packet's body
@@ -568,11 +575,12 @@ module MQTT
     # Class representing an MQTT Publish Release packet
     class Pubrel < MQTT::Packet
       attr_accessor :message_id
-      DEFAULTS = {:message_id => 0,:qos => 1}
+
+      ATTR_DEFAULTS = {:message_id => 0,:qos => 1}
 
       # Create a new Publish Release packet
       def initialize(args={})
-        super(DEFAULTS.merge(args))
+        super(ATTR_DEFAULTS.merge(args))
       end
 
       # Get serialisation of packet's body
@@ -597,11 +605,11 @@ module MQTT
     # Class representing an MQTT Publish Complete packet
     class Pubcomp < MQTT::Packet
       attr_accessor :message_id
-      DEFAULTS = {:message_id => 0}
+      ATTR_DEFAULTS = {:message_id => 0}
 
       # Create a new Publish Complete packet
       def initialize(args={})
-        super(DEFAULTS.merge(args))
+        super(ATTR_DEFAULTS.merge(args))
       end
 
       # Get serialisation of packet's body
@@ -627,11 +635,11 @@ module MQTT
     class Subscribe < MQTT::Packet
       attr_accessor :message_id
       attr_reader :topics
-      DEFAULTS = {:message_id => 0}
+      ATTR_DEFAULTS = {:message_id => 0}
 
       # Create a new Subscribe packet
       def initialize(args={})
-        super(DEFAULTS.merge(args))
+        super(ATTR_DEFAULTS.merge(args))
         @topics ||= []
         @qos = 1 # Force a QOS of 1
       end
@@ -715,11 +723,11 @@ module MQTT
     class Suback < MQTT::Packet
       attr_accessor :message_id
       attr_reader :granted_qos
-      DEFAULTS = {:message_id => 0}
+      ATTR_DEFAULTS = {:message_id => 0}
 
       # Create a new Subscribe Acknowledgment packet
       def initialize(args={})
-        super(DEFAULTS.merge(args))
+        super(ATTR_DEFAULTS.merge(args))
         @granted_qos ||= []
       end
 
@@ -763,11 +771,11 @@ module MQTT
     class Unsubscribe < MQTT::Packet
       attr_reader :topics
       attr_accessor :message_id
-      DEFAULTS = {:message_id => 0}
+      ATTR_DEFAULTS = {:message_id => 0}
 
       # Create a new Unsubscribe packet
       def initialize(args={})
-        super(DEFAULTS.merge(args))
+        super(ATTR_DEFAULTS.merge(args))
         @topics ||= []
         @qos = 1 # Force a QOS of 1
       end
@@ -810,11 +818,11 @@ module MQTT
     # Class representing an MQTT Unsubscribe Acknowledgment packet
     class Unsuback < MQTT::Packet
       attr_accessor :message_id
-      DEFAULTS = {:message_id => 0}
+      ATTR_DEFAULTS = {:message_id => 0}
 
       # Create a new Unsubscribe Acknowledgment packet
       def initialize(args={})
-        super(DEFAULTS.merge(args))
+        super(ATTR_DEFAULTS.merge(args))
       end
 
       # Get serialisation of packet's body
