@@ -17,13 +17,14 @@ namespace :spec do
 end
 
 desc "Run the specs."
-RSpec::Core::RakeTask.new(:test_311,:host,:port,:wildcard_test,:username,:password) do |rspec,args|
-  usage_msg = "Usage: rake test_311[MQTT_BROKER_ADDRESS,MQTT_PORT,wildcard_test,USERNAME,PASSWORD]
-  i.e. $ rake test_311[192.168.0.3,1883,false,mqtt_user,user_password]
-  i.e. $ rake test_311[192.168.0.3,1883,false]"
+RSpec::Core::RakeTask.new(:test_311,:host,:port,:exclude_wildcard_test,:only_basic_test,:username,:password) do |rspec,args|
+  usage_msg = "Usage: rake test_311[MQTT_BROKER_ADDRESS,MQTT_PORT,exclude_wildcard_test,only_basic_test,USERNAME,PASSWORD]
+  i.e. $ rake test_311[192.168.0.3,1883,false,false,mqtt_user,user_password]
+  i.e. $ rake test_311[192.168.0.3]"
 
-  args.with_defaults(:port => '1883', :wildcard_test => 'true',:username => nil,:password =>nil)
-  wildcard_test = (args[:wildcard_test] != 'false')
+  args.with_defaults(:port => '1883', :exclude_wildcard_test => 'false',:only_basic_test => 'false',:username => nil,:password =>nil)
+  exclude_wildcard_test   = (args[:exclude_wildcard_test] == 'true')
+  only_basic_test = (args[:only_basic_test] == 'true')
 
   raise usage_msg if args[:host].nil?
   raise usage_msg if args[:username].nil? == false and args[:password].nil?
@@ -34,12 +35,17 @@ RSpec::Core::RakeTask.new(:test_311,:host,:port,:wildcard_test,:username,:passwo
   ENV['MQTT_PASSWORD'] = args[:password]
 
   opts = ["--format", "doc",'--colour']
-  unless wildcard_test
+  if exclude_wildcard_test
     opts << '--tag'
     opts << '~wildcard_test'
   end
+
+  if only_basic_test
+    opts << '--tag'
+    opts << 'basic'
+  end
   rspec.rspec_opts = opts
-  rspec.pattern = "spec/test_311_spec.rb"
+  rspec.pattern = "spec/test_311.rb"
 end
 
 namespace :doc do

@@ -240,11 +240,15 @@ class MQTT::Client
   # Connect to the MQTT broker
   # If a block is given, then yield to that block and then disconnect again.
   def connect(clientid=nil)
-	unless clientid.nil?
+	  unless clientid.nil?
       @client_id = clientid
     end
 
-    if @client_id.nil? or @client_id.empty?
+    is_empty_client_id = @client_id.nil?
+    #MQTT 3.1.1 spec supports ids with zero length
+    is_empty_client_id = true if @v311 == false and @client_id.nil? == false and @client_id.empty?
+
+    if is_empty_client_id
       if @clean_session
         @client_id = MQTT::Client.generate_client_id
       else
@@ -253,7 +257,7 @@ class MQTT::Client
     end
 
     if @remote_host.nil?
-      raise 'No MQTT broker host set when attempting to connect'
+      raise MQTT::ProtocolException.new('No MQTT broker host set when attempting to connect')
     end
 
     if not connected?
