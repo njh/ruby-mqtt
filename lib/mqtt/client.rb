@@ -502,7 +502,6 @@ private
       # Poll socket - is there data waiting?
       begin
         if not connected? and @reconnect
-          ap 'Reconnection'
           open_socket_connection()
           send_connect_packet()
           subscribe(@subscriptions.first) unless @subscriptions.empty?
