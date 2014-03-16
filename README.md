@@ -71,9 +71,9 @@ Upon opening of an unclean session, all messages received while the user was dis
 
 ### Will message ###
 
-If an MQTT client connection ends unexpectedly, the user can configure mqtt to send a "last will and testament" message. The content of the message must be predefined, as well as the topic to send it to. The "last will" is a connection property. It must be created before connecting the client.
+If a MQTT client connection ends unexpectedly, the user can configure mqtt to send a "last will and testament" message. The content of the message must be predefined, as well as the topic to send it to. The "last will" is a connection property. It must be created before connecting the client.
 
-The will message is comprised of a topic, payload, QoS level and a retain value.
+The will message is comprised of a topic, payload, QoS level, and a retain value.
 
 
 
