@@ -5,10 +5,11 @@ module MQTT
   # Class representing a MQTT Packet
   # Performs binary encoding and decoding of headers
   class MQTT::Packet
-    attr_reader :duplicate   # Duplicate delivery flag
-    attr_reader :retain      # Retain flag
-    attr_reader :qos         # Quality of Service level
-    attr_reader :body_length # The length of the parsed packet body
+    attr_reader   :duplicate    # Duplicate delivery flag
+    attr_reader   :retain       # Retain flag
+    attr_reader   :qos          # Quality of Service level
+    attr_reader   :body_length  # The length of the parsed packet body
+    attr_accessor :creation_timestamp # Timestamp of publishing/receiving
 
     DEFAULTS = {
       :duplicate => false,
@@ -106,6 +107,7 @@ module MQTT
     # Create a new empty packet
     def initialize(args={})
       update_attributes(DEFAULTS.merge(args))
+      @creation_timestamp = Time.now.to_i
     end
 
     def update_attributes(attr={})
@@ -366,9 +368,14 @@ module MQTT
       # Get serialisation of packet's body
       def encode_body
         body = ''
-        if @client_id.nil? or @client_id.bytesize < 0 or @client_id.bytesize > 23
+        if @client_id.nil? or @client_id.bytesize > 23
           raise "Invalid client identifier when serialising packet"
         end
+
+        if @client_id.bytesize == 0 and @clean_session == false
+          raise "Cannot send an empty client with :clean_session = false"
+        end
+
         body += encode_string(@protocol_name)
         body += encode_bytes(@protocol_version.to_i)
 
@@ -877,7 +884,6 @@ module MQTT
       end
     end
   end
-
 
   # An enumeration of the MQTT packet types
   PACKET_TYPES = [

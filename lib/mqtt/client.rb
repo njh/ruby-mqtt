@@ -217,11 +217,11 @@ class MQTT::Client
 
   # Disconnect from the MQTT broker.
   # If you don't want to say goodbye to the broker, set send_msg to false.
-  def disconnect(send_msg=true)
+  def disconnect(send_msg=true,wait_timeout=10)
     if connected?
       if send_msg
         begin
-          timeout(10) do
+          timeout(wait_timeout) do
             while @expected_messages_out.keys.size > 0 or @expected_messages_in.keys.size > 0
               sleep 0.1
             end
@@ -256,12 +256,13 @@ class MQTT::Client
     raise MQTT::ProtocolException.new('Invalid Topic size') if topic.bytesize > 65535
     raise MQTT::ProtocolException.new('Invalid Payload size') if payload.bytesize > 65535
 
+    @message_id = @message_id.next
     packet = MQTT::Packet::Publish.new(
       :qos => qos,
       :retain => retain,
       :topic => topic,
       :payload => payload,
-      :message_id => @message_id.next
+      :message_id => @message_id
     )
 
     # Send the packet
@@ -281,9 +282,10 @@ class MQTT::Client
   #   client.subscribe( 'a/b' => 0, 'c/d' => 1 )
   #
   def subscribe(*topics)
+    @message_id = @message_id.next
     packet = MQTT::Packet::Subscribe.new(
       :topics => topics,
-      :message_id => @message_id.next
+      :message_id => @message_id
     )
 
     packet.topics.each do |topic|
@@ -394,9 +396,10 @@ class MQTT::Client
       topics = topics.first
     end
 
+    @message_id = @message_id.next
     packet = MQTT::Packet::Unsubscribe.new(
       :topics => topics,
-      :message_id => @message_id.next
+      :message_id => @message_id
     )
 
     packet.topics.each do |topic|
@@ -482,7 +485,7 @@ private
           message_id = packet.message_id
 
           if packet.qos == 0
-
+            #nothing
           elsif packet.qos == 1
             ack_packet = MQTT::Packet::Puback.new(:message_id => message_id)
             send_packet(ack_packet)
@@ -490,7 +493,7 @@ private
             ack_packet = MQTT::Packet::Pubrec.new(:message_id => message_id)
             send_packet(ack_packet)
 
-            @expected_messages_in[message_id] = MQTT::Packet::Pubrel.new(:message_id => message_id)
+            @expected_messages_in[message_id] = {:expected => MQTT::Packet::Pubrel.new(:message_id => message_id), :origin => ack_packet}
           end
 
           @read_queue.push(packet)
@@ -499,24 +502,25 @@ private
         #Client => Server
         if packet.class == MQTT::Packet::Pubrec
           message_id = packet.message_id
-          send_packet = MQTT::Packet::Pubrel.new(:message_id => message_id)
-          send_packet(send_packet)
-          @expected_messages_out[message_id] = MQTT::Packet::Pubcomp.new(:message_id => message_id)
+          ack_packet = MQTT::Packet::Pubrel.new(:message_id => message_id)
+          send_packet(ack_packet)
+          @expected_messages_out[message_id] = {:expected => MQTT::Packet::Pubcomp.new(:message_id => message_id), :origin => ack_packet}
         end
 
         #Client => Server
         if packet.class == MQTT::Packet::Pubcomp or packet.class == MQTT::Packet::Puback
           message_id = packet.message_id
-          @expected_messages_out.delete(message_id)
+
+          process_last_message_ack(:outbound,message_id)
         end
 
         #Server => Client
         if packet.class == MQTT::Packet::Pubrel
           message_id = packet.message_id
-          send_packet = MQTT::Packet::Pubcomp.new(:message_id => message_id)
-          send_packet(send_packet)
+          ack_packet = MQTT::Packet::Pubcomp.new(:message_id => message_id)
+          send_packet(ack_packet)
 
-          @expected_messages_in.delete(message_id)
+          process_last_message_ack(:inbound,message_id)
         end
       end
 
@@ -526,6 +530,9 @@ private
       end
 
       # FIXME: check we received a ping response recently?
+
+      # Time to verify expected messages
+      process_unreceived_acks()
 
     # Pass exceptions up to parent thread
     rescue Exception => exp
@@ -537,6 +544,54 @@ private
         end
       end
       kill_read_thread()
+    end
+  end
+
+  def process_last_message_ack(message_direction,message_id)
+    if message_direction == :inbound
+      @expected_messages_in.delete(message_id)
+    elsif message_direction == :outbound
+      @expected_messages_out.delete(message_id)
+    else
+      raise 'Invalid message_direction'
+    end
+  end
+
+  def process_unreceived_acks()
+    resend_time = @keep_alive
+
+    @expected_messages_in.each do |message_id,packets|
+      packet = packets[:expected]
+      origin = packets[:origin]
+
+      if [MQTT::Packet::Publish,MQTT::Packet::Pubrec].include?(origin.class)
+        diff_time = Time.now.to_i - packet.creation_timestamp
+        #ap [diff_time,packet]
+
+        if diff_time >= resend_time
+          origin.duplicate = true#Duplicated message
+          packet.creation_timestamp,origin.creation_timestamp = Time.now.to_i,Time.now.to_i
+          send_packet(origin)
+          @expected_messages_in[packet.message_id] = {:expected => packet,:origin => origin}
+        end
+      end
+    end
+
+    @expected_messages_out.each do |message_id,packets|
+      packet = packets[:expected]
+      origin = packets[:origin]
+
+      if [MQTT::Packet::Publish,MQTT::Packet::Pubrec].include?(origin.class)
+        diff_time = Time.now.to_i - packet.creation_timestamp
+        #ap [diff_time,packet]
+
+        if diff_time >= resend_time
+          origin.duplicate = true#Duplicated message
+          packet.creation_timestamp,origin.creation_timestamp = Time.now.to_i,Time.now.to_i
+          send_packet(origin)
+          @expected_messages_out[packet.message_id] = {:expected => packet,:origin => origin}
+        end
+      end
     end
   end
 
@@ -591,8 +646,8 @@ private
       expected_packet_out = MQTT::Packet::Pubcomp.new(:message_id => packet.message_id)
     end
 
-    @expected_messages_in[expected_packet_in.message_id] = expected_packet_in unless expected_packet_in.nil?
-    @expected_messages_out[expected_packet_out.message_id] = expected_packet_out unless expected_packet_out.nil?
+    @expected_messages_in[expected_packet_in.message_id] =   {:expected=>expected_packet_in ,:origin => packet} unless expected_packet_in.nil?
+    @expected_messages_out[expected_packet_out.message_id] = {:expected=>expected_packet_out,:origin => packet} unless expected_packet_out.nil?
 
     # Only allow one thread to write to socket at a time
     @write_semaphore.synchronize do
