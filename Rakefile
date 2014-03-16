@@ -20,6 +20,7 @@ desc "Run the specs."
 RSpec::Core::RakeTask.new(:test_311,:host,:port) do |t,args|
   usage_msg = "Usage: rake test_311[MQTT_BROKER_ADDRESS,MQTT_PORT]
   i.e. $ rake test_311[192.168.0.3,1883]"
+
   raise usage_msg if args[:host].nil?
 
   p args
