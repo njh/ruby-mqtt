@@ -4,24 +4,34 @@ ruby-mqtt
 Pure Ruby gem that implements the MQTT (Message Queue Telemetry Transport) protocol. MQTT is a machine-to-machine (M2M)/"Internet of Things" connectivity protocol. Designed as an extremely lightweight publish/subscribe messaging transport, it is useful for connections with remote locations where a small code footprint is required and/or network bandwidth is at a premium.
 
 
+## Table of Contents ##
+- [Installation](#installation)
+- [MQTT Protocol Summary](#mqtt-protocol)
+- [Library Usage](#synopsis)
+- [Resources](#resources)
+- [License](#license)
+- [Contact](#contact)
+
 Installation
 ------------
 
 You may get the latest stable version from Rubygems at:
 
-    $ gem install mqtt
+~~$ gem install mqtt~~ Unavailable while the merge request is not finished.
 
+Optionally, you can use this fork using bundler:
 
-MQTT Protocol
----------------
+    gem 'mqtt', :git => 'https://github.com/tierconnect/ruby-mqtt.git'
+
+## MQTT Protocol ##
+
 
 MQTT is a lightweight messaging protocol based on message publishing/subscription, for use on top of a TCP/IP protocol. Every MQTT message includes a topic that classifies it. MQTT servers use topics to determine which subscribers should receive messages published to the server.
 
 To provide more flexibility, MQTT supports a hierarchical topic namespace. This allows app designers to organize topics to simplify their management. Levels in the hierarchy are delimited by the '/' character.
 
 
-Wildcards 
----------
+### Wildcards ###
 
 For subscriptions, two wildcard characters are supported:
 
@@ -32,8 +42,8 @@ For subscriptions, two wildcard characters are supported:
 Publishers are not allowed to use the wildcard characters in their topic names.
 
 
-QoS
----
+### QoS ###
+
 Quality of Service is a networking term that specifies a guaranteed throughput level. Quality of service technology is intended for guaranteed timely delivery of specific application data or resources to a particular destination or destinations.
 
 Different levels of QoS are used in this ruby-mqtt interface:
@@ -45,13 +55,13 @@ Different levels of QoS are used in this ruby-mqtt interface:
 Functionality does not change while using any of the 3 above-mentioned conditions. However, a higher level of QoS is oriented towards higher reliability and will, consequently, result in a slight decrease in speed.
 
 
-Retain messages
----------------
+### Retain messages ###
+
 The use of this capability enables the user to mark a message to be retained for future use and users. The system retains the message and publishes it for each subsequent subscriber. There is a limit of 1 retained message per user per topic!!!
 
 
-Clean/Unclean sessions
-----------------------
+### Clean/Unclean sessions ###
+
 A clean session implies beginning a new session from scratch. When you connect an MQTT client application using the MqttClient.connect method, the client identifies the connection using the client identifier and the address of the server. The server checks whether session information has been saved from a previous connection to the server. If a previous session still exists, and cleanSession=true, then the previous session information at the client and server is cleared. If cleanSession=false the previous session is resumed. If no previous session exists, a new session is started.
 
 In an unclean or "dirty" session, the user specifies whether to continue the last session saved. Otherwise, the system will launch a brand new session. A previously-saved session is related to the user's subscription and it will save the subscription and all saved messages related to that subscription if QoS>0.
@@ -59,16 +69,16 @@ In an unclean or "dirty" session, the user specifies whether to continue the las
 Upon opening of an unclean session, all messages received while the user was disconnected from the system will appear.
 
 
-Will message
-------------
+### Will message ###
+
 If an MQTT client connection ends unexpectedly, the user can configure mqtt to send a "last will and testament" message. The content of the message must be predefined, as well as the topic to send it to. The "last will" is a connection property. It must be created before connecting the client.
 
 The will message is comprised of a topic, payload, QoS level and a retain value.
 
 
 
-Synopsis
---------
+## Synopsis ##
+
 
     require 'rubygems'
     require 'mqtt'
@@ -88,22 +98,30 @@ Synopsis
 
 Connection:
 
-    client = MQTT::Client.new('mqtt://myserver.example.com')
-    client = MQTT::Client.new('mqtt://user:pass@myserver.example.com')
-    client = MQTT::Client.new('myserver.example.com')
-    client = MQTT::Client.new('myserver.example.com', 18830)
-    client = MQTT::Client.new({:remote_host => 'myserver.example.com',:remote_port => 1883 ... })
+    client = MQTT::Client.connect('mqtt://myserver.example.com')
+    client = MQTT::Client.connect('mqtt://user:pass@myserver.example.com')
+    client = MQTT::Client.connect('myserver.example.com')
+    client = MQTT::Client.connect('myserver.example.com', 18830)
+    client = MQTT::Client.connect({:remote_host => 'myserver.example.com',:remote_port => 1883 ... })
+    
+SSL Connection
+
+    client = MQTT::Client.new({:remote_host => 'myserver.example.com',:remote_port => 1883,:ssl => true })
+    client.cert_file = path_to('client.pem')
+    client.key_file  = path_to('client.key')
+    client.ca_file   = path_to('root-ca.pem')
+    client.connect()
 
 The connection can be made without the use of a block:
 
-    client = MQTT::Client.new('myserver.example.com', 18830)
-    #client stuff
+    client = MQTT::Client.connect('myserver.example.com', 18830)
+       #client stuff
     client.disconnect()
 
 Or, if using a block, with an implicit disconnection at the end of the block.
 
-    MQTT::Client.new('myserver.example.com', 18830) do |client|
-        #client stuff
+    MQTT::Client.connect('myserver.example.com', 18830) do |client|
+       #client stuff
     end
 
 
@@ -111,13 +129,12 @@ The default options for the map parameter are:
 
     ATTR_DEFAULTS = {
        :remote_host => nil,
-       :remote_port => MQTT::DEFAULT_PORT,
+       :remote_port => nil,
     
        :keep_alive => 15,
        :clean_session => true,
        :client_id => nil,
        :ack_timeout => 5,
-       :reconnect => false,
        :username => nil,
        :password => nil,
     
@@ -126,35 +143,29 @@ The default options for the map parameter are:
        :will_qos => 0,
        :will_retain => false,
     
-       :tls_cafile => nil,
-       :tls_certfile => nil,
-       :tls_keyfile => nil,
-    
+       :reconnect => false,
+       :ssl => false,
        :v311  => false
     }
 
 * :keep_alive - Time to determine a live client/server
-* :clean_session - Start with a new session or an unclean one (subscriptions saved or wiped, respectively)
+* :clean_session - Start with a new session or an unclean one (subscriptions wiped or saved, respectively)
 * :client_id - Client id sent to the server. Autogenerated if nil.
 * :ack_timeout - Timeout to receive an ACK.
-* :reconnect - If the connection is dropped, reconnect.
 * :username - If the servers supports auth, the username.
 * :password - If the servers supports auth, the username.
 
-A will topic is a message that the server should send in the scenario of a server disconnection.
+A will topic is a message that the server should send in the scenario of a client disconnection.
 * :will_topic
 * :will_payload
 * :will_qos
 * :will_retain
 
-Files for SSL auth.
-* :tls_cafile
-* :tls_certfile
-* :tls_keyfile
+Miscellanea parameters.
 
-By default, messages are sent complying with the MQTT 3.1.0 spec. With this parameter set as "true", the messages are sent based on the MQTT 3.1.1 spec.
-:v311  => false
-
+* :reconnect - If the connection is dropped, reconnect.
+* :ssl - If the connection will use a ssl connection
+* :v311 By default, messages are sent complying with the MQTT 3.1.0 spec. With this parameter set as "true", the messages are sent based on the MQTT 3.1.1 spec.
 
 Subscribe
 Select topic and qos level (0 if not provided)
