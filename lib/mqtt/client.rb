@@ -1,4 +1,6 @@
 autoload :OpenSSL, 'openssl'
+autoload :URI, 'uri'
+
 
 # Client class for talking to an MQTT broker
 class MQTT::Client
