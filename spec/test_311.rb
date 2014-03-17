@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# encoding: utf-8
 #
 # Testsuite for 3.1.1 MQTT spec.
 #
