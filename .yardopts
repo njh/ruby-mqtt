@@ -1,0 +1,6 @@
+--no-private
+--exclude lib/mqtt/patches/
+-
+README.md
+NEWS.md
+LICENSE.md
