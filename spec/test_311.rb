@@ -144,15 +144,15 @@ describe test_name do
 
   it 'Unsubscribed for inexistent topic' do
     create_standard_client() do |client|
-      client.unsubscribe('inexistent_topic')
+      client.unsubscribe('inexistent')
     end
   end
 
   it 'Repeated Subscriptions' do
     create_standard_client() do |client|
-      client.subscribe(['repeated_topic',0])
-      client.subscribe(['repeated_topic',1])
-      client.subscribe(['repeated_topic',2])
+      client.subscribe(['repeated',0])
+      client.subscribe(['repeated',1])
+      client.subscribe(['repeated',2])
     end
   end
 
