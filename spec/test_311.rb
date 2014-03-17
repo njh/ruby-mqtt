@@ -82,7 +82,7 @@ describe test_name do
   end
 
   it 'Connection with Will message', :basic => true do
-    will_topic = '/will_topic/%d' % Time.now.to_i
+    will_topic = '/wills/%d' % Time.now.to_i
     will_message = Time.now.to_i.to_s
     client1 = MQTT::Client.connect(get_base_connection_map().merge({:will_topic => will_topic,:will_payload => will_message,:will_qos=>1,:will_retain=>true}))
     client2 = MQTT::Client.connect(get_base_connection_map().merge({:will_topic => will_topic,:will_payload => will_message,:will_qos=>1,:will_retain=>false}))
@@ -197,7 +197,7 @@ describe test_name do
   end
 
   it 'Publish an get messages with utf characters' do
-    topic = 'utf_test_%d' % Time.now.to_i
+    topic = 'utf-test-%d' % Time.now.to_i
     utf_message = "asdñ+çáü米"
 
     client_pub = create_standard_client()
@@ -216,7 +216,7 @@ describe test_name do
   end
 
   it 'Queue messages while client is offline', :basic => true do
-    random_topic = 'disconnected_topic_%d_' % Time.now.to_i
+    random_topic = 'disconnected-topic-%d-' % Time.now.to_i
 
     client_sub = create_unclean_client('disconnected_client') do |client_sub|
       client_sub.subscribe([random_topic+'2',2],[random_topic+'1',1])
@@ -234,7 +234,7 @@ describe test_name do
   end
 
   it 'Overlapping topics',:wildcard_test => true, :basic => true do
-    topic = 'multiple/topic_%d' % Time.now.to_i
+    topic = 'multiple/topic-%d' % Time.now.to_i
     message_sent = Time.now.to_i.to_s
 
     client_sub = create_standard_client()
