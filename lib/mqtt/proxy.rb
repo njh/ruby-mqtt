@@ -4,7 +4,6 @@ class MQTT::Proxy
   attr_reader :local_port
   attr_reader :broker_host
   attr_reader :broker_port
-  attr_reader :listen_queue
   attr_reader :select_timeout
   attr_reader :logger
 
