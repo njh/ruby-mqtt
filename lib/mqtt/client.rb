@@ -65,6 +65,7 @@ class MQTT::Client
   }
 
   # Create and connect a new MQTT Client
+  #
   # Accepts the same arguments as creating a new client.
   # If a block is given, then it will be executed before disconnecting again.
   #
@@ -191,6 +192,10 @@ class MQTT::Client
     end
   end
 
+  # Set the Will for the client
+  #
+  # The will is a message that will be delivered by the broker when the client dies.
+  # The Will must be set before establishing a connection to the broker
   def set_will(topic, payload, retain=false, qos=0)
     self.will_topic = topic
     self.will_payload = payload
@@ -283,6 +288,9 @@ class MQTT::Client
   end
 
   # Send a MQTT ping message to indicate that the MQTT client is alive.
+  #
+  # Note that you will not normally need to call this method
+  # as it is called automatically
   def ping
     packet = MQTT::Packet::Pingreq.new
     send_packet(packet)
