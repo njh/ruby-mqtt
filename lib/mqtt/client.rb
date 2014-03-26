@@ -10,7 +10,14 @@ class MQTT::Client
   # Port number of the remote broker
   attr_accessor :remote_port
 
-  # True to enable SSL/TLS encrypted communication
+  # Set to true to enable SSL/TLS encrypted communication
+  #
+  # Set to a symbol to use a specific variant of SSL/TLS.
+  # Allowed values include: 
+  # 
+  # @example Using TLS 1.0
+  #    client = Client.new('mqtt.example.com', :ssl => :TLSv1)
+  # @see OpenSSL::SSL::SSLContext::METHODS
   attr_accessor :ssl
 
   # Time (in seconds) between pings to remote broker
@@ -227,6 +234,11 @@ class MQTT::Client
       tcp_socket = TCPSocket.new(@remote_host, @remote_port)
 
       if @ssl
+        # Set the protocol version
+        if @ssl.is_a?(Symbol)
+          ssl_context.ssl_version = @ssl
+        end
+
         @socket = OpenSSL::SSL::SSLSocket.new(tcp_socket, ssl_context)
         @socket.sync_close = true
         @socket.connect
