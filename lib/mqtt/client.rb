@@ -268,7 +268,9 @@ class MQTT::Client
       # Start packet reading thread
       @read_thread = Thread.new(Thread.current) do |parent|
         Thread.current[:parent] = parent
-        loop { receive_packet }
+        while connected? do
+          receive_packet
+        end
       end
     end
 
@@ -296,7 +298,7 @@ class MQTT::Client
 
   # Checks whether the client is connected to the broker.
   def connected?
-    not @socket.nil?
+    (not @socket.nil?) and (not @socket.closed?)
   end
 
   # Send a MQTT ping message to indicate that the MQTT client is alive.
@@ -429,7 +431,7 @@ private
   def receive_packet
     begin
       # Poll socket - is there data waiting?
-      result = IO.select([@socket], nil, nil, SELECT_TIMEOUT)
+      result = IO.select([@socket], [], [], SELECT_TIMEOUT)
       unless result.nil?
         # Yes - read in the packet
         packet = MQTT::Packet.read(@socket)

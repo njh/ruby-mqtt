@@ -267,7 +267,15 @@ describe MQTT::Client do
     end
 
     context "and using ssl" do
-      let(:ssl_socket) { double("SSLSocket", :sync_close= => true, :write => true, :connect => true) }
+      let(:ssl_socket) {
+        double(
+          "SSLSocket",
+          :sync_close= => true,
+          :write => true,
+          :connect => true,
+          :closed? => false
+        )
+      }
 
       it "should use ssl if it enabled using the :ssl => true parameter" do
         OpenSSL::SSL::SSLSocket.should_receive(:new).and_return(ssl_socket)
