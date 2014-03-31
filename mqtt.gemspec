@@ -20,9 +20,19 @@ Gem::Specification.new do |gem|
   gem.executables   = %w()
   gem.require_paths = %w(lib)
 
-  gem.add_development_dependency 'bundler',     '>= 1.0.14'
-  gem.add_development_dependency 'yard',        '>= 0.7.2'
-  gem.add_development_dependency 'rake',        '>= 0.8.7'
-  gem.add_development_dependency 'rspec',       '>= 2.6.0'
-  gem.add_development_dependency 'simplecov'
+  if Gem.ruby_version > Gem::Version.new('1.9')
+    gem.add_development_dependency 'bundler',  '>= 1.5.0'
+    gem.add_development_dependency 'rake',     '>= 0.10.0'
+    gem.add_development_dependency 'yard',     '>= 0.8.0'
+    gem.add_development_dependency 'rspec',    '>= 2.6.0'
+    gem.add_development_dependency 'simplecov'
+  elsif Gem.ruby_version > Gem::Version.new('1.8')
+    gem.add_development_dependency 'bundler',  '>= 1.1.0'
+    gem.add_development_dependency 'rake',     '~> 0.9.0'
+    gem.add_development_dependency 'yard',     '>= 0.8.0'
+    gem.add_development_dependency 'rspec',    '>= 2.6.0'
+  else
+    raise "#{Gem.ruby_version} is an unsupported version of ruby"
+  end
+
 end
