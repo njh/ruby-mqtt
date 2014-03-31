@@ -284,6 +284,11 @@ class MQTT::Client
   # Disconnect from the MQTT broker.
   # If you don't want to say goodbye to the broker, set send_msg to false.
   def disconnect(send_msg=true)
+    # Stop reading packets from the socket first
+    @read_thread.kill if @read_thread and @read_thread.alive?
+    @read_thread = nil
+
+    # Close the socket if it is open
     if connected?
       if send_msg
         packet = MQTT::Packet::Disconnect.new
@@ -292,8 +297,6 @@ class MQTT::Client
       @socket.close unless @socket.nil?
       @socket = nil
     end
-    @read_thread.kill if @read_thread and @read_thread.alive?
-    @read_thread = nil
   end
 
   # Checks whether the client is connected to the broker.
