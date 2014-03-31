@@ -67,7 +67,7 @@ describe test_name do
 
   it 'Connection based on the 3.1.1 spec', :basic => true do
     create_standard_client() do |client|
-      sleep 0.5
+      sleep 0.25
     end
   end
 
