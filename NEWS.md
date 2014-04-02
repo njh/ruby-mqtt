@@ -1,6 +1,21 @@
 Ruby MQTT NEWS
 ==============
 
+Ruby MQTT Version 0.2.0 (2014-04-02)
+------------------------------------
+
+* Added SSL/TLS support
+* Added support for passing connection details using a URI
+* Added support for using the MQTT_BROKER environment variable
+* Allow passing array of topics to Client#unsubscribe
+* Allow more combinations of arguments to be passed to a new Client
+* No longer defaults to ‘localhost’ if there is no broker configured
+* Fixed more 'unused variable' warnings
+* Documentation improvements
+* Ruby 1.8 fixes
+* Ruby 2 fixes
+
+
 Ruby MQTT Version 0.1.0 (2013-09-07)
 ------------------------------------
 
