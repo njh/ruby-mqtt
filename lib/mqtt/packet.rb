@@ -336,7 +336,7 @@ module MQTT
       protected
       def inspect_payload
         str = payload.to_s
-        if str.bytesize < 16
+        if str.bytesize < 16 and str =~ /^[ -~]*$/
           "'#{str}'"
         else
           "... (#{str.bytesize} bytes)"

@@ -382,6 +382,11 @@ describe MQTT::Packet::Publish do
       packet = MQTT::Packet::Publish.new( :topic => "topic", :payload => 'x'*32 )
       packet.inspect.should == "#<MQTT::Packet::Publish: d0, q0, r0, m0, 'topic', ... (32 bytes)>"
     end
+
+    it "should only output the length of a binary payload" do
+      packet = MQTT::Packet.parse("\x31\x12\x00\x04test\x8D\xF8\x09\x40\xC4\xE7\x4f\xF0\xFF\x30\xE0\xE7")
+      packet.inspect.should == "#<MQTT::Packet::Publish: d0, q0, r1, m0, 'test', ... (12 bytes)>"
+    end
   end
 end
 
