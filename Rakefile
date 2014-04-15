@@ -25,5 +25,6 @@ namespace :doc do
   end
 end
 
+task :test => :spec
 task :specs => :spec
 task :default => :spec
