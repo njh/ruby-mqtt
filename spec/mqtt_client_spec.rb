@@ -122,6 +122,12 @@ describe MQTT::Client do
       client.remote_port.should == 1883
     end
 
+    it "with a URI as a string including port" do
+      client = MQTT::Client.new('mqtt://user:pass@m10.cloudmqtt.com:13858', nil)
+      client.remote_host.should == 'm10.cloudmqtt.com'
+      client.remote_port.should == 13858
+    end
+
     it "with a URI and a hash of settings" do
       client = MQTT::Client.new('mqtt://mqtt.example.com', :keep_alive => 65)
       client.remote_host.should == 'mqtt.example.com'
