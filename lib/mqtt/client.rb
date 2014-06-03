@@ -149,7 +149,7 @@ class MQTT::Client
     end
 
     if args.length >= 2
-      attr.merge!(:remote_port => args[1])
+      attr.merge!(:remote_port => args[1]) unless args[1].nil?
     end
 
     if args.length >= 3
