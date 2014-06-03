@@ -27,7 +27,7 @@ Gem::Specification.new do |gem|
     gem.add_development_dependency 'rspec',    '~> 2.14.0'
     gem.add_development_dependency 'simplecov'
   elsif Gem.ruby_version > Gem::Version.new('1.8')
-    gem.add_development_dependency 'bundler',  '~> 1.1.0'
+    gem.add_development_dependency 'bundler',  '>= 1.1.0'
     gem.add_development_dependency 'rake',     '~> 0.9.0'
     gem.add_development_dependency 'yard',     '~> 0.8.0'
     gem.add_development_dependency 'rspec',    '~> 2.14.0'
