@@ -489,6 +489,24 @@ describe MQTT::Client do
       client.publish('test')
       socket.string.should == "\x30\x06\x00\x04test"
     end
+
+    it "should throw an ArgumentError exception, if the topic is nil" do
+      lambda {
+        client.publish(nil)
+      }.should raise_error(
+        ArgumentError,
+        'Topic name cannot be nil'
+      )
+    end
+
+    it "should throw an ArgumentError exception, if the topic is empty" do
+      lambda {
+        client.publish("")
+      }.should raise_error(
+        ArgumentError,
+        'Topic name cannot be empty'
+      )
+    end
   end
 
   describe "when calling the 'subscribe' method" do

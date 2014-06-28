@@ -316,6 +316,9 @@ class MQTT::Client
 
   # Publish a message on a particular topic to the MQTT broker.
   def publish(topic, payload='', retain=false, qos=0)
+    raise ArgumentError.new("Topic name cannot be nil") if topic.nil?
+    raise ArgumentError.new("Topic name cannot be empty") if topic.empty?
+
     packet = MQTT::Packet::Publish.new(
       :qos => qos,
       :retain => retain,
