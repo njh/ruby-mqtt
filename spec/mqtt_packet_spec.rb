@@ -149,6 +149,11 @@ describe MQTT::Packet::Publish do
       packet.to_s.should == "\x3C\x12\x00\x03c/d\x00\x05hello world"
     end
 
+    it "should output the correct bytes for a packet with an empty payload" do
+      packet = MQTT::Packet::Publish.new( :topic => 'test' )
+      packet.to_s.should == "\x30\x06\x00\x04test"
+    end
+
     it "should output a string as binary / 8-bit ASCII" do
       packet = MQTT::Packet::Publish.new( :topic => 'test', :payload => 'hello world' )
       packet.to_s.encoding.to_s.should == "ASCII-8BIT"
@@ -244,6 +249,22 @@ describe MQTT::Packet::Publish do
     it "should set the payload correctly" do
       packet.payload.should == 'hello world'
       packet.payload.encoding.to_s.should == 'ASCII-8BIT'
+    end
+  end
+
+  describe "when parsing a packet with an empty payload" do
+    let(:packet) { MQTT::Packet.parse( "\x30\x06\x00\x04test" ) }
+
+    it "should correctly create the right type of packet object" do
+      packet.class.should == MQTT::Packet::Publish
+    end
+
+    it "should set the topic name correctly" do
+      packet.topic.should == 'test'
+    end
+
+    it "should set the payload correctly" do
+      packet.payload.should be_empty
     end
   end
 

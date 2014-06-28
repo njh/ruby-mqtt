@@ -315,7 +315,7 @@ class MQTT::Client
   end
 
   # Publish a message on a particular topic to the MQTT broker.
-  def publish(topic, payload, retain=false, qos=0)
+  def publish(topic, payload='', retain=false, qos=0)
     packet = MQTT::Packet::Publish.new(
       :qos => qos,
       :retain => retain,

@@ -484,6 +484,11 @@ describe MQTT::Client do
       client.publish('topic','payload', false, 2)
       socket.string.should == "\x34\x10\x00\x05topic\x00\x01payload"
     end
+
+    it "should write a valid PUBLISH packet with no payload" do
+      client.publish('test')
+      socket.string.should == "\x30\x06\x00\x04test"
+    end
   end
 
   describe "when calling the 'subscribe' method" do
