@@ -143,17 +143,17 @@ describe MQTT::Client do
     end
 
     it "with an unsupported URI scheme" do
-      lambda {
+      expect {
         client = MQTT::Client.new(URI.parse('http://mqtt.example.com/'))
-      }.should raise_error(
+      }.to raise_error(
         'Only the mqtt:// and mqtts:// schemes are supported'
       )
     end
 
     it "with three arguments" do
-      lambda {
+      expect {
         client = MQTT::Client.new(1, 2, 3)
-      }.should raise_error(
+      }.to raise_error(
         'Unsupported number of arguments'
       )
     end
@@ -222,10 +222,10 @@ describe MQTT::Client do
     end
 
     it "should throw an exception if no host is configured" do
-      lambda {
+      expect {
         client = MQTT::Client.new
         client.connect
-      }.should raise_error(
+      }.to raise_error(
         'No MQTT broker host set when attempting to connect'
       )
     end
@@ -255,11 +255,11 @@ describe MQTT::Client do
 
     context "no client id is given" do
       it "should throw an exception if the clean session flag is false" do
-        lambda {
+        expect {
           client.client_id = nil
           client.clean_session = false
           client.connect
-        }.should raise_error(
+        }.to raise_error(
           'Must provide a client_id if clean_session is set to false'
         )
       end
@@ -378,37 +378,37 @@ describe MQTT::Client do
     it "should not throw an exception for a successful CONNACK packet" do
       socket.write("\x20\x02\x00\x00")
       socket.rewind
-      lambda { client.send(:receive_connack) }.should_not raise_error
+      expect { client.send(:receive_connack) }.not_to raise_error
     end
 
     it "should throw an exception if the packet type isn't CONNACK" do
       socket.write("\xD0\x00")
       socket.rewind
-      lambda { client.send(:receive_connack) }.should raise_error(MQTT::ProtocolException)
+      expect { client.send(:receive_connack) }.to raise_error(MQTT::ProtocolException)
     end
 
     it "should throw an exception if the CONNACK packet return code is 'unacceptable protocol version'" do
       socket.write("\x20\x02\x00\x01")
       socket.rewind
-      lambda { client.send(:receive_connack) }.should raise_error(MQTT::ProtocolException, /unacceptable protocol version/i)
+      expect { client.send(:receive_connack) }.to raise_error(MQTT::ProtocolException, /unacceptable protocol version/i)
     end
 
     it "should throw an exception if the CONNACK packet return code is 'client identifier rejected'" do
       socket.write("\x20\x02\x00\x02")
       socket.rewind
-      lambda { client.send(:receive_connack) }.should raise_error(MQTT::ProtocolException, /client identifier rejected/i)
+      expect { client.send(:receive_connack) }.to raise_error(MQTT::ProtocolException, /client identifier rejected/i)
     end
 
     it "should throw an exception if the CONNACK packet return code is 'broker unavailable'" do
       socket.write("\x20\x02\x00\x03")
       socket.rewind
-      lambda { client.send(:receive_connack) }.should raise_error(MQTT::ProtocolException, /broker unavailable/i)
+      expect { client.send(:receive_connack) }.to raise_error(MQTT::ProtocolException, /broker unavailable/i)
     end
 
     it "should throw an exception if the CONNACK packet return code is an unknown" do
       socket.write("\x20\x02\x00\xAA")
       socket.rewind
-      lambda { client.send(:receive_connack) }.should raise_error(MQTT::ProtocolException, /connection refused/i)
+      expect { client.send(:receive_connack) }.to raise_error(MQTT::ProtocolException, /connection refused/i)
     end
   end
 
@@ -491,18 +491,18 @@ describe MQTT::Client do
     end
 
     it "should throw an ArgumentError exception, if the topic is nil" do
-      lambda {
+      expect {
         client.publish(nil)
-      }.should raise_error(
+      }.to raise_error(
         ArgumentError,
         'Topic name cannot be nil'
       )
     end
 
     it "should throw an ArgumentError exception, if the topic is empty" do
-      lambda {
+      expect {
         client.publish("")
-      }.should raise_error(
+      }.to raise_error(
         ArgumentError,
         'Topic name cannot be empty'
       )

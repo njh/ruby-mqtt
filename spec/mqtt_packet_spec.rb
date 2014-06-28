@@ -30,17 +30,17 @@ describe MQTT::Packet do
     end
 
     it "should throw an exception the QoS is greater than 2" do
-      lambda {
+      expect {
         packet = MQTT::Packet.new( :qos => 3 )
-      }.should raise_error(
+      }.to raise_error(
         'Invalid QoS value: 3'
       )
     end
 
     it "should throw an exception the QoS is less than 0" do
-      lambda {
+      expect {
         packet = MQTT::Packet.new( :qos => -1 )
-      }.should raise_error(
+      }.to raise_error(
         'Invalid QoS value: -1'
       )
     end
@@ -165,17 +165,17 @@ describe MQTT::Packet::Publish do
     end
 
     it "should throw an exception when there is no topic name" do
-      lambda {
+      expect {
         MQTT::Packet::Publish.new.to_s
-      }.should raise_error(
+      }.to raise_error(
         'Invalid topic name when serialising packet'
       )
     end
 
     it "should throw an exception when there is an empty topic name" do
-      lambda {
+      expect {
         MQTT::Packet::Publish.new( :topic => '' ).to_s
-      }.should raise_error(
+      }.to raise_error(
         'Invalid topic name when serialising packet'
       )
     end
@@ -183,10 +183,10 @@ describe MQTT::Packet::Publish do
 
   describe "when serialising an oversized packet" do
     it "should throw an exception when body is bigger than 256MB" do
-      lambda {
+      expect {
         packet = MQTT::Packet::Publish.new( :topic => 'test', :payload => 'x'*268435455 )
         packet.to_s
-      }.should raise_error(
+      }.to raise_error(
         'Error serialising packet: body is more than 256MB'
       )
     end
@@ -270,9 +270,9 @@ describe MQTT::Packet::Publish do
 
   describe "when parsing a packet with a invalid QoS value" do
     it "should throw an exception" do
-      lambda {
+      expect {
         packet = MQTT::Packet.parse( "\x36\x12\x00\x03a/b\x00\x05hello world" )
-      }.should raise_error(
+      }.to raise_error(
         'Invalid QoS value: 3'
       )
     end
@@ -427,17 +427,17 @@ describe MQTT::Packet::Connect do
     end
 
     it "should throw an exception when there is no client identifier" do
-      lambda {
+      expect {
         MQTT::Packet::Connect.new.to_s
-      }.should raise_error(
+      }.to raise_error(
         'Invalid client identifier when serialising packet'
       )
     end
 
     it "should throw an exception if the keep alive value is less than 0" do
-      lambda {
+      expect {
         MQTT::Packet::Connect.new(:client_id => 'test', :keep_alive => -2).to_s
-      }.should raise_error(
+      }.to raise_error(
         'Invalid keep-alive value: cannot be less than 0'
       )
     end
@@ -781,11 +781,11 @@ describe MQTT::Packet::Connect do
 
   describe "when parsing packet with an unknown protocol name" do
     it "should throw a protocol exception" do
-      lambda {
+      expect {
         packet = MQTT::Packet.parse(
           "\x10\x16\x00\x06FooBar\x03\x00\x00\x0a\x00\x08myclient"
         )
-      }.should raise_error(
+      }.to raise_error(
         MQTT::ProtocolException,
         "Unsupported protocol name: FooBar"
       )
@@ -794,11 +794,11 @@ describe MQTT::Packet::Connect do
 
   describe "when parsing packet with an unknown protocol version" do
     it "should throw a protocol exception" do
-      lambda {
+      expect {
         packet = MQTT::Packet.parse(
           "\x10\x16\x00\x06MQIsdp\x02\x00\x00\x0a\x00\x08myclient"
         )
-      }.should raise_error(
+      }.to raise_error(
         MQTT::ProtocolException,
         "Unsupported protocol version: 2"
       )
@@ -959,9 +959,9 @@ describe MQTT::Packet::Connack do
 
   describe "when parsing packet with extra bytes on the end" do
     it "should throw an exception" do
-      lambda {
+      expect {
         packet = MQTT::Packet.parse( "\x20\x03\x00\x00\x00" )
-      }.should raise_error(
+      }.to raise_error(
         MQTT::ProtocolException,
         "Extra bytes at end of Connect Acknowledgment packet"
       )
@@ -1002,9 +1002,9 @@ describe MQTT::Packet::Puback do
 
   describe "when parsing packet with extra bytes on the end" do
     it "should throw an exception" do
-      lambda {
+      expect {
         packet = MQTT::Packet.parse( "\x40\x03\x12\x34\x00" )
-      }.should raise_error(
+      }.to raise_error(
         MQTT::ProtocolException,
         "Extra bytes at end of Publish Acknowledgment packet"
       )
@@ -1039,9 +1039,9 @@ describe MQTT::Packet::Pubrec do
 
   describe "when parsing packet with extra bytes on the end" do
     it "should throw an exception" do
-      lambda {
+      expect {
         packet = MQTT::Packet.parse( "\x50\x03\x12\x34\x00" )
-      }.should raise_error(
+      }.to raise_error(
         MQTT::ProtocolException,
         "Extra bytes at end of Publish Received packet"
       )
@@ -1076,9 +1076,9 @@ describe MQTT::Packet::Pubrel do
 
   describe "when parsing packet with extra bytes on the end" do
     it "should throw an exception" do
-      lambda {
+      expect {
         packet = MQTT::Packet.parse( "\x60\x03\x12\x34\x00" )
-      }.should raise_error(
+      }.to raise_error(
         MQTT::ProtocolException,
         "Extra bytes at end of Publish Release packet"
       )
@@ -1113,9 +1113,9 @@ describe MQTT::Packet::Pubcomp do
 
   describe "when parsing packet with extra bytes on the end" do
     it "should throw an exception" do
-      lambda {
+      expect {
         MQTT::Packet.parse( "\x70\x03\x12\x34\x00" )
-      }.should raise_error(
+      }.to raise_error(
         MQTT::ProtocolException,
         "Extra bytes at end of Publish Complete packet"
       )
@@ -1158,9 +1158,9 @@ describe MQTT::Packet::Subscribe do
     end
 
     it "should throw an exception when setting topic with a non-string" do
-      lambda {
+      expect {
         packet.topics = 56
-      }.should raise_error(
+      }.to raise_error(
         'Invalid topics input: 56'
       )
     end
@@ -1178,9 +1178,9 @@ describe MQTT::Packet::Subscribe do
     end
 
     it "should throw an exception when no topics are given" do
-      lambda {
+      expect {
         MQTT::Packet::Subscribe.new.to_s
-      }.should raise_error(
+      }.to raise_error(
         'no topics given when serialising packet'
       )
     end
@@ -1252,17 +1252,17 @@ describe MQTT::Packet::Suback do
     end
 
     it "should throw an exception when no granted QOSs are given" do
-      lambda {
+      expect {
         MQTT::Packet::Suback.new(:message_id => 7).to_s
-      }.should raise_error(
+      }.to raise_error(
         'no granted QOS given when serialising packet'
       )
     end
 
     it "should throw an exception if the granted QOS is not an integer" do
-      lambda {
+      expect {
         MQTT::Packet::Suback.new(:granted_qos => :foo, :message_id => 8).to_s
-      }.should raise_error(
+      }.to raise_error(
         'granted QOS should be an integer or an array of QOS levels'
       )
     end
@@ -1326,9 +1326,9 @@ describe MQTT::Packet::Unsubscribe do
     end
 
     it "should throw an exception when no topics are given" do
-      lambda {
+      expect {
         MQTT::Packet::Unsubscribe.new.to_s
-      }.should raise_error(
+      }.to raise_error(
         'no topics given when serialising packet'
       )
     end
@@ -1387,9 +1387,9 @@ describe MQTT::Packet::Unsuback do
 
   describe "when parsing packet with extra bytes on the end" do
     it "should throw an exception" do
-      lambda {
+      expect {
         packet = MQTT::Packet.parse( "\xB0\x03\x12\x34\x00" )
-      }.should raise_error(
+      }.to raise_error(
         MQTT::ProtocolException,
         "Extra bytes at end of Unsubscribe Acknowledgment packet"
       )
@@ -1417,9 +1417,9 @@ describe MQTT::Packet::Pingreq do
     end
 
     it "should throw an exception if the packet has a payload" do
-      lambda {
+      expect {
         MQTT::Packet.parse( "\xC0\x05hello" )
-      }.should raise_error(
+      }.to raise_error(
         'Extra bytes at end of Ping Request packet'
       )
     end
@@ -1446,9 +1446,9 @@ describe MQTT::Packet::Pingresp do
     end
 
     it "should throw an exception if the packet has a payload" do
-      lambda {
+      expect {
         MQTT::Packet.parse( "\xD0\x05hello" )
-      }.should raise_error(
+      }.to raise_error(
         'Extra bytes at end of Ping Response packet'
       )
     end
@@ -1476,9 +1476,9 @@ describe MQTT::Packet::Disconnect do
     end
 
     it "should throw an exception if the packet has a payload" do
-      lambda {
+      expect {
         MQTT::Packet.parse( "\xE0\x05hello" )
-      }.should raise_error(
+      }.to raise_error(
         'Extra bytes at end of Disconnect packet'
       )
     end
@@ -1494,9 +1494,9 @@ end
 describe "Serialising an invalid packet" do
   context "that has a no type" do
     it "should throw an exception" do
-      lambda {
+      expect {
         MQTT::Packet.new.to_s
-      }.should raise_error(
+      }.to raise_error(
         RuntimeError,
         "Invalid packet type: MQTT::Packet"
       )
@@ -1507,10 +1507,10 @@ end
 describe "Reading in an invalid packet from a socket" do
   context "that has 0 length" do
     it "should throw an exception" do
-      lambda {
+      expect {
         socket = StringIO.new
         MQTT::Packet.read(socket)
-      }.should raise_error(
+      }.to raise_error(
         MQTT::ProtocolException,
         "Failed to read byte from socket"
       )
@@ -1519,10 +1519,10 @@ describe "Reading in an invalid packet from a socket" do
 
   context "that has an incomplete packet length header" do
     it "should throw an exception" do
-      lambda {
+      expect {
         socket = StringIO.new("\x30\xFF")
         MQTT::Packet.read(socket)
-      }.should raise_error(
+      }.to raise_error(
         MQTT::ProtocolException,
         "Failed to read byte from socket"
       )
@@ -1531,10 +1531,10 @@ describe "Reading in an invalid packet from a socket" do
 
   context "that has the maximum number of bytes in the length header" do
     it "should throw an exception" do
-      lambda {
+      expect {
         socket = StringIO.new("\x30\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF")
         MQTT::Packet.read(socket)
-      }.should raise_error(
+      }.to raise_error(
         MQTT::ProtocolException,
         "Failed to parse packet - input buffer (4) is not the same as the body length header (268435455)"
       )
@@ -1545,9 +1545,9 @@ end
 describe "Parsing an invalid packet" do
   context "that has no length" do
     it "should throw an exception" do
-      lambda {
+      expect {
         MQTT::Packet.parse( "" )
-      }.should raise_error(
+      }.to raise_error(
         MQTT::ProtocolException,
         "Invalid packet: less than 2 bytes long"
       )
@@ -1556,9 +1556,9 @@ describe "Parsing an invalid packet" do
 
   context "that has an invalid type identifier" do
     it "should throw an exception" do
-      lambda {
+      expect {
         MQTT::Packet.parse( "\x00\x00" )
-      }.should raise_error(
+      }.to raise_error(
         MQTT::ProtocolException,
         "Invalid packet type identifier: 0"
       )
@@ -1567,9 +1567,9 @@ describe "Parsing an invalid packet" do
 
   context "that has an incomplete packet length header" do
     it "should throw an exception" do
-      lambda {
+      expect {
         MQTT::Packet.parse( "\x30\xFF" )
-      }.should raise_error(
+      }.to raise_error(
         MQTT::ProtocolException,
         "The packet length header is incomplete"
       )
@@ -1578,9 +1578,9 @@ describe "Parsing an invalid packet" do
 
   context "that has too many bytes in the length field" do
     it "should throw an exception" do
-      lambda {
+      expect {
         MQTT::Packet.parse( "\x30\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF" )
-      }.should raise_error(
+      }.to raise_error(
         MQTT::ProtocolException,
         'Failed to parse packet - input buffer (4) is not the same as the body length header (268435455)'
       )
@@ -1589,9 +1589,9 @@ describe "Parsing an invalid packet" do
 
   context "that has a bigger buffer than expected" do
     it "should throw an exception" do
-      lambda {
+      expect {
         MQTT::Packet.parse( "\x30\x11\x00\x04testhello big world" )
-      }.should raise_error(
+      }.to raise_error(
         MQTT::ProtocolException,
         "Failed to parse packet - input buffer (21) is not the same as the body length header (17)"
       )
@@ -1600,9 +1600,9 @@ describe "Parsing an invalid packet" do
 
   context "that has a smaller buffer than expected" do
     it "should throw an exception" do
-      lambda {
+      expect {
         MQTT::Packet.parse( "\x30\x11\x00\x04testhello" )
-      }.should raise_error(
+      }.to raise_error(
         MQTT::ProtocolException,
         "Failed to parse packet - input buffer (11) is not the same as the body length header (17)"
       )
