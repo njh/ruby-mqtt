@@ -489,7 +489,7 @@ describe MQTT::Packet::Connect do
       packet.to_s.should ==
         "\x10\x5F"+ # fixed header (2)
         "\x00\x06MQIsdp"+ # protocol name (8)
-        "\x03\xf6"+ # protocol version + flags (2)
+        "\x03\xf6"+ # protocol level + flags (2)
         "\xff\xff"+ # keep alive (2)
         "\x00\x1712345678901234567890123"+ # client identifier (25)
         "\x00\x0Awill_topic"+ # will topic (12)
@@ -520,8 +520,8 @@ describe MQTT::Packet::Connect do
       packet.protocol_name.encoding.to_s.should == 'UTF-8'
     end
 
-    it "should set the Protocol Version of the packet correctly" do
-      packet.protocol_version.should == 3
+    it "should set the Protocol Level of the packet correctly" do
+      packet.protocol_level.should == 3
     end
 
     it "should set the Client Identifier of the packet correctly" do
@@ -578,8 +578,8 @@ describe MQTT::Packet::Connect do
       packet.protocol_name.encoding.to_s.should == 'UTF-8'
     end
 
-    it "should set the Protocol Version of the packet correctly" do
-      packet.protocol_version.should == 3
+    it "should set the Protocol Level of the packet correctly" do
+      packet.protocol_level.should == 3
     end
 
     it "should set the Client Identifier of the packet correctly" do
@@ -635,8 +635,8 @@ describe MQTT::Packet::Connect do
       packet.protocol_name.encoding.to_s.should == 'UTF-8'
     end
 
-    it "should set the Protocol Version of the packet correctly" do
-      packet.protocol_version.should == 3
+    it "should set the Protocol Level of the packet correctly" do
+      packet.protocol_level.should == 3
     end
 
     it "should set the Client Identifier of the packet correctly" do
@@ -714,7 +714,7 @@ describe MQTT::Packet::Connect do
       MQTT::Packet.parse(
         "\x10\x5F"+ # fixed header (2)
         "\x00\x06MQIsdp"+ # protocol name (8)
-        "\x03\xf6"+ # protocol version + flags (2)
+        "\x03\xf6"+ # protocol level + flags (2)
         "\xff\xff"+ # keep alive (2)
         "\x00\x1712345678901234567890123"+ # client identifier (25)
         "\x00\x0Awill_topic"+ # will topic (12)
@@ -737,8 +737,8 @@ describe MQTT::Packet::Connect do
       packet.protocol_name.encoding.to_s.should == 'UTF-8'
     end
 
-    it "should set the Protocol Version of the packet correctly" do
-      packet.protocol_version.should == 3
+    it "should set the Protocol Level of the packet correctly" do
+      packet.protocol_level.should == 3
     end
 
     it "should set the Keep Alive Timer of the packet correctly" do
@@ -792,7 +792,7 @@ describe MQTT::Packet::Connect do
     end
   end
 
-  describe "when parsing packet with an unknown protocol version" do
+  describe "when parsing packet with an unknown protocol level" do
     it "should throw a protocol exception" do
       expect {
         packet = MQTT::Packet.parse(
@@ -800,7 +800,7 @@ describe MQTT::Packet::Connect do
         )
       }.to raise_error(
         MQTT::ProtocolException,
-        "Unsupported protocol version: 2"
+        "Unsupported protocol level: 2"
       )
     end
   end

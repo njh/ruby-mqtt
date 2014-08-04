@@ -350,7 +350,11 @@ module MQTT
       attr_accessor :protocol_name
 
       # The version number of the protocol (defaults to 3)
-      attr_accessor :protocol_version
+      attr_accessor :protocol_level
+
+      # OLD deprecated protocol_version attribute
+      alias :protocol_version :protocol_level
+      alias :protocol_version= :protocol_level=
 
       # The client identifier string
       attr_accessor :client_id
@@ -382,7 +386,7 @@ module MQTT
       # Default attribute values
       ATTR_DEFAULTS = {
         :protocol_name => 'MQIsdp',
-        :protocol_version => 0x03,
+        :protocol_level => 0x03,
         :client_id => nil,
         :clean_session => true,
         :keep_alive => 15,
@@ -406,7 +410,7 @@ module MQTT
           raise "Invalid client identifier when serialising packet"
         end
         body += encode_string(@protocol_name)
-        body += encode_bytes(@protocol_version.to_i)
+        body += encode_bytes(@protocol_level.to_i)
 
         if @keep_alive < 0
           raise "Invalid keep-alive value: cannot be less than 0"
@@ -438,17 +442,16 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         @protocol_name = shift_string(buffer)
-        @protocol_version = shift_byte(buffer).to_i
-
         if @protocol_name != 'MQIsdp'
           raise ProtocolException.new(
             "Unsupported protocol name: #{@protocol_name}"
           )
         end
 
-        if @protocol_version != 3
+        @protocol_level = shift_byte(buffer).to_i
+        if @protocol_level != 3
           raise ProtocolException.new(
-            "Unsupported protocol version: #{@protocol_version}"
+            "Unsupported protocol level: #{@protocol_level}"
           )
         end
 
