@@ -473,7 +473,9 @@ private
     Timeout.timeout(@ack_timeout) do
       packet = MQTT::Packet.read(@socket)
       if packet.class != MQTT::Packet::Connack
-        raise MQTT::ProtocolException.new("Response wan't a connection acknowledgement: #{packet.class}")
+        raise MQTT::ProtocolException.new(
+          "Response wan't a connection acknowledgement: #{packet.class}"
+        )
       end
 
       # Check the return code
