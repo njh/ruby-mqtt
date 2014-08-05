@@ -16,8 +16,8 @@ class MQTT::Client
   # Set to true to enable SSL/TLS encrypted communication
   #
   # Set to a symbol to use a specific variant of SSL/TLS.
-  # Allowed values include: 
-  # 
+  # Allowed values include:
+  #
   # @example Using TLS 1.0
   #    client = Client.new('mqtt.example.com', :ssl => :TLSv1)
   # @see OpenSSL::SSL::SSLContext::METHODS

@@ -5,16 +5,16 @@ class MQTT::Proxy
 
   # Port to bind listening socket to
   attr_reader :local_port
-  
+
   # Address of upstream broker to send packets upstream to
   attr_reader :broker_host
-  
+
   # Port of upstream broker to send packets upstream to.
   attr_reader :broker_port
 
   # Time in seconds before disconnecting an idle connection
   attr_reader :select_timeout
-  
+
   # Ruby Logger object to send informational messages to
   attr_reader :logger
 

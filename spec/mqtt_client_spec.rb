@@ -213,11 +213,11 @@ describe MQTT::Client do
     end
 
     context "protocol version 3.1.0" do
-    it "should write a valid CONNECT packet to the socket if not connected" do
+      it "should write a valid CONNECT packet to the socket if not connected" do
         client.version = '3.1.0'
-      client.connect('myclient')
-      socket.string.should == "\020\026\x00\x06MQIsdp\x03\x02\x00\x0f\x00\x08myclient"
-    end
+        client.connect('myclient')
+        socket.string.should == "\020\026\x00\x06MQIsdp\x03\x02\x00\x0f\x00\x08myclient"
+      end
     end
 
     context "protocol version 3.1.1" do
