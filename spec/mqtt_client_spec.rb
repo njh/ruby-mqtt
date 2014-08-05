@@ -28,6 +28,7 @@ describe MQTT::Client do
       client = MQTT::Client.new
       client.remote_host.should == nil
       client.remote_port.should == 1883
+      client.version.should == '3.1.0'
       client.keep_alive.should == 15
     end
 
@@ -211,9 +212,20 @@ describe MQTT::Client do
       client.connect('myclient')
     end
 
+    context "protocol version 3.1.0" do
     it "should write a valid CONNECT packet to the socket if not connected" do
+        client.version = '3.1.0'
       client.connect('myclient')
       socket.string.should == "\020\026\x00\x06MQIsdp\x03\x02\x00\x0f\x00\x08myclient"
+    end
+    end
+
+    context "protocol version 3.1.1" do
+      it "should write a valid CONNECT packet to the socket if not connected" do
+        client.version = '3.1.1'
+        client.connect('myclient')
+        socket.string.should == "\020\024\x00\x04MQTT\x04\x02\x00\x0f\x00\x08myclient"
+      end
     end
 
     it "should try and read an acknowledgement packet to the socket if not connected" do

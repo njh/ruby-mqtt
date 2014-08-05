@@ -10,6 +10,9 @@ class MQTT::Client
   # Port number of the remote broker
   attr_accessor :remote_port
 
+  # The version number of the MQTT protocol to use (default 3.1.0)
+  attr_accessor :version
+
   # Set to true to enable SSL/TLS encrypted communication
   #
   # Set to a symbol to use a specific variant of SSL/TLS.
@@ -58,6 +61,7 @@ class MQTT::Client
   ATTR_DEFAULTS = {
     :remote_host => nil,
     :remote_port => nil,
+    :version => '3.1.0',
     :keep_alive => 15,
     :clean_session => true,
     :client_id => nil,
@@ -246,8 +250,9 @@ class MQTT::Client
         @socket = tcp_socket
       end
 
-      # Protocol name and version
+      # Construct a connect packet
       packet = MQTT::Packet::Connect.new(
+        :version => @version,
         :clean_session => @clean_session,
         :keep_alive => @keep_alive,
         :client_id => @client_id,
