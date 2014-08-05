@@ -423,8 +423,12 @@ module MQTT
       # Get serialisation of packet's body
       def encode_body
         body = ''
-        if @client_id.nil? or @client_id.bytesize < 1 or @client_id.bytesize > 23
-          raise "Invalid client identifier when serialising packet"
+        if @version == '3.1.0'
+          if @client_id.nil? or @client_id.bytesize < 1
+            raise "Client identifier too short while serialising packet"
+          elsif @client_id.bytesize > 23
+            raise "Client identifier too long when serialising packet"
+          end
         end
         body += encode_string(@protocol_name)
         body += encode_bytes(@protocol_level.to_i)

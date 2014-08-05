@@ -223,7 +223,10 @@ class MQTT::Client
 
     if @client_id.nil? or @client_id.empty?
       if @clean_session
-        @client_id = MQTT::Client.generate_client_id
+        if @version == '3.1.0'
+          # Empty client id is not allowed for version 3.1.0
+          @client_id = MQTT::Client.generate_client_id
+        end
       else
         raise 'Must provide a client_id if clean_session is set to false'
       end

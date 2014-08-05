@@ -426,12 +426,44 @@ describe MQTT::Packet::Connect do
       packet.to_s.should == "\020\026\x00\x06MQIsdp\x03\x00\x00\x0f\x00\x08myclient"
     end
 
-    it "should throw an exception when there is no client identifier" do
-      expect {
-        MQTT::Packet::Connect.new.to_s
-      }.to raise_error(
-        'Invalid client identifier when serialising packet'
-      )
+    context "protocol version 3.1.0" do
+      it "should throw an exception when there is no client identifier" do
+        expect {
+          MQTT::Packet::Connect.new(:version => '3.1.0', :client_id => '').to_s
+        }.to raise_error(
+          'Client identifier too short while serialising packet'
+        )
+      end
+
+      it "should throw an exception when the client identifier is too long" do
+        expect {
+          client_id = '0EB8D2FE7C254715B4467C5B2ECAD100'
+          MQTT::Packet::Connect.new(:version => '3.1.0', :client_id => client_id).to_s
+        }.to raise_error(
+          'Client identifier too long when serialising packet'
+        )
+      end
+    end
+
+    context "protocol version 3.1.1" do
+      it "should allow no client identifier" do
+        packet = MQTT::Packet::Connect.new(
+          :version => '3.1.1',
+          :client_id => '',
+          :clean_session => true
+        )
+        packet.to_s.should == "\020\014\x00\x04MQTT\x04\x02\x00\x0f\x00\x00"
+      end
+
+      it "should allow a 32 character client identifier" do
+        client_id = '0EB8D2FE7C254715B4467C5B2ECAD100'
+        packet = MQTT::Packet::Connect.new(
+          :version => '3.1.1',
+          :client_id => client_id,
+          :clean_session => true
+        )
+        packet.to_s.should == "\x10,\x00\x04MQTT\x04\x02\x00\x0F\x00\x200EB8D2FE7C254715B4467C5B2ECAD100"
+      end
     end
 
     it "should throw an exception if the keep alive value is less than 0" do

@@ -276,11 +276,25 @@ describe MQTT::Client do
         )
       end
 
-      it "should generate a client if the clean session flag is true" do
-        client.client_id = nil
-        client.clean_session = true
-        client.connect
-        client.client_id.should match(/^\w+$/)
+      context "protocol version 3.1.0" do
+        it "should generate a client if the clean session flag is true" do
+          client.version = '3.1.0'
+          client.client_id = nil
+          client.clean_session = true
+          client.connect
+          client.client_id.should match(/^\w+$/)
+        end
+      end
+
+      context "protocol version 3.1.1" do
+        it "should send empty client if the clean session flag is true" do
+          client.version = '3.1.1'
+          client.client_id = nil
+          client.clean_session = true
+          client.connect
+          client.client_id.should be_nil
+          socket.string.should == "\020\014\x00\x04MQTT\x04\x02\x00\x0f\x00\x00"
+        end
       end
     end
 
