@@ -498,9 +498,27 @@ describe MQTT::Packet::Connect do
         "\x00\x0Epass0123456789"  # password (16)
     end
 
+    context 'protocol version 3.1.1' do
+      it "should output the correct bytes for a packet with no flags" do
+        packet = MQTT::Packet::Connect.new( :version => '3.1.1', :client_id => 'myclient' )
+        packet.to_s.should == "\020\024\x00\x04MQTT\x04\x02\x00\x0f\x00\x08myclient"
+      end
+    end
+
+    context 'an invalid protocol version number' do
+      it "should throw a protocol exception" do
+        expect {
+          packet = MQTT::Packet::Connect.new( :version => 'x.x.x', :client_id => 'myclient' )
+        }.to raise_error(
+          ArgumentError,
+          "Unsupported protocol version: x.x.x"
+        )
+      end
+    end
+
   end
 
-  describe "when parsing a simple Connect packet" do
+  describe "when parsing a simple 3.1.0 Connect packet" do
     let(:packet) do
       MQTT::Packet.parse(
         "\x10\x16\x00\x06MQIsdp\x03\x00\x00\x0a\x00\x08myclient"
@@ -522,6 +540,60 @@ describe MQTT::Packet::Connect do
 
     it "should set the Protocol Level of the packet correctly" do
       packet.protocol_level.should == 3
+    end
+
+    it "should set the Protocol version of the packet correctly" do
+      packet.version.should == '3.1.0'
+    end
+
+    it "should set the Client Identifier of the packet correctly" do
+      packet.client_id.should == 'myclient'
+      packet.client_id.encoding.to_s.should == 'UTF-8'
+    end
+
+    it "should set the Keep Alive timer of the packet correctly" do
+      packet.keep_alive.should == 10
+    end
+
+    it "should set not have the clean session flag set" do
+      packet.clean_session.should be_false
+    end
+
+    it "should set the the username field of the packet to nil" do
+      packet.username.should be_nil
+    end
+
+    it "should set the the password field of the packet to nil" do
+      packet.password.should be_nil
+    end
+  end
+
+  describe "when parsing a simple 3.1.1 Connect packet" do
+    let(:packet) do
+      MQTT::Packet.parse(
+        "\x10\x14\x00\x04MQTT\x04\x00\x00\x0a\x00\x08myclient"
+      )
+    end
+
+    it "should correctly create the right type of packet object" do
+      packet.class.should == MQTT::Packet::Connect
+    end
+
+    it "should set the QOS of the packet correctly" do
+      packet.qos.should == 0
+    end
+
+    it "should set the Protocol Name of the packet correctly" do
+      packet.protocol_name.should == 'MQTT'
+      packet.protocol_name.encoding.to_s.should == 'UTF-8'
+    end
+
+    it "should set the Protocol Level of the packet correctly" do
+      packet.protocol_level.should == 4
+    end
+
+    it "should set the Protocol version of the packet correctly" do
+      packet.version.should == '3.1.1'
     end
 
     it "should set the Client Identifier of the packet correctly" do
@@ -582,6 +654,10 @@ describe MQTT::Packet::Connect do
       packet.protocol_level.should == 3
     end
 
+    it "should set the Protocol version of the packet correctly" do
+      packet.version.should == '3.1.0'
+    end
+
     it "should set the Client Identifier of the packet correctly" do
       packet.client_id.should == 'myclient'
       packet.client_id.encoding.to_s.should == 'UTF-8'
@@ -637,6 +713,10 @@ describe MQTT::Packet::Connect do
 
     it "should set the Protocol Level of the packet correctly" do
       packet.protocol_level.should == 3
+    end
+
+    it "should set the Protocol version of the packet correctly" do
+      packet.version.should == '3.1.0'
     end
 
     it "should set the Client Identifier of the packet correctly" do
@@ -741,6 +821,10 @@ describe MQTT::Packet::Connect do
       packet.protocol_level.should == 3
     end
 
+    it "should set the Protocol version of the packet correctly" do
+      packet.version.should == '3.1.0'
+    end
+
     it "should set the Keep Alive Timer of the packet correctly" do
       packet.keep_alive.should == 65535
     end
@@ -787,7 +871,7 @@ describe MQTT::Packet::Connect do
         )
       }.to raise_error(
         MQTT::ProtocolException,
-        "Unsupported protocol name: FooBar"
+        "Unsupported protocol: FooBar/3"
       )
     end
   end
@@ -800,7 +884,7 @@ describe MQTT::Packet::Connect do
         )
       }.to raise_error(
         MQTT::ProtocolException,
-        "Unsupported protocol level: 2"
+        "Unsupported protocol: MQIsdp/2"
       )
     end
   end

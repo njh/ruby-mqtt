@@ -5,6 +5,9 @@ module MQTT
   # Class representing a MQTT Packet
   # Performs binary encoding and decoding of headers
   class MQTT::Packet
+    # The version number of the MQTT protocol to use (default 3.1.0)
+    attr_reader :version
+
     # Duplicate delivery flag
     attr_reader :duplicate
 
@@ -19,6 +22,7 @@ module MQTT
 
     # Default attribute values
     ATTR_DEFAULTS = {
+      :version => '3.1.0',
       :duplicate => false,
       :qos => 0,
       :retain => false,
@@ -130,6 +134,11 @@ module MQTT
         raise "Invalid packet type: #{self.class}"
       end
       return index
+    end
+
+    # Set the protocol version number
+    def version=(arg)
+      @version = arg.to_s
     end
 
     # Set the dup flag (true/false)
@@ -282,11 +291,11 @@ module MQTT
     class Publish < MQTT::Packet
       # The topic name to publish to
       attr_accessor :topic
-      
+
       # Identifier for an individual publishing flow
       # Only required in PUBLISH Packets where the QoS level is 1 or 2
       attr_accessor :message_id
-      
+
       # The data to be published
       attr_accessor :payload
 
@@ -346,10 +355,10 @@ module MQTT
 
     # Class representing an MQTT Connect Packet
     class Connect < MQTT::Packet
-      # The name of the protocol (defaults to MQIsdp)
+      # The name of the protocol
       attr_accessor :protocol_name
 
-      # The version number of the protocol (defaults to 3)
+      # The version number of the protocol
       attr_accessor :protocol_level
 
       # OLD deprecated protocol_version attribute
@@ -358,35 +367,33 @@ module MQTT
 
       # The client identifier string
       attr_accessor :client_id
-      
+
       # Set to false to keep a persistent session with the broker
       attr_accessor :clean_session
 
       # Period the broker should keep connection open for between pings
       attr_accessor :keep_alive
-      
+
       # The topic name to send the Will message to
       attr_accessor :will_topic
-      
+
       # The QoS level to send the Will message as
       attr_accessor :will_qos
-      
+
       # Set to true to make the Will message retained
       attr_accessor :will_retain
-      
+
       # The payload of the Will message
       attr_accessor :will_payload
-      
+
       # The username for authenticating with the broker
       attr_accessor :username
-      
+
       # The password for authenticating with the broker
       attr_accessor :password
 
       # Default attribute values
       ATTR_DEFAULTS = {
-        :protocol_name => 'MQIsdp',
-        :protocol_level => 0x03,
         :client_id => nil,
         :clean_session => true,
         :keep_alive => 15,
@@ -401,6 +408,16 @@ module MQTT
       # Create a new Client Connect packet
       def initialize(args={})
         super(ATTR_DEFAULTS.merge(args))
+
+        if version == '3.1.0' or version == '3.1'
+          self.protocol_name ||= 'MQIsdp'
+          self.protocol_level ||= 0x03
+        elsif version == '3.1.1'
+          self.protocol_name ||= 'MQTT'
+          self.protocol_level ||= 0x04
+        else
+          raise ArgumentError.new("Unsupported protocol version: #{version}")
+        end
       end
 
       # Get serialisation of packet's body
@@ -442,16 +459,14 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         @protocol_name = shift_string(buffer)
-        if @protocol_name != 'MQIsdp'
-          raise ProtocolException.new(
-            "Unsupported protocol name: #{@protocol_name}"
-          )
-        end
-
         @protocol_level = shift_byte(buffer).to_i
-        if @protocol_level != 3
+        if @protocol_name == 'MQIsdp' and @protocol_level == 3
+          @version = '3.1.0'
+        elsif @protocol_name == 'MQTT' and @protocol_level == 4
+          @version = '3.1.1'
+        else
           raise ProtocolException.new(
-            "Unsupported protocol level: #{@protocol_level}"
+            "Unsupported protocol: #{@protocol_name}/#{@protocol_level}"
           )
         end
 
@@ -680,7 +695,7 @@ module MQTT
     class Subscribe < MQTT::Packet
       # Identifier for an individual publishing flow
       attr_accessor :message_id
-      
+
       # One or more topic names to subscribe to
       attr_reader :topics
 
