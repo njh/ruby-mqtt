@@ -479,7 +479,7 @@ private
       packet = MQTT::Packet.read(@socket)
       if packet.class != MQTT::Packet::Connack
         raise MQTT::ProtocolException.new(
-          "Response wan't a connection acknowledgement: #{packet.class}"
+          "Response wasn't a connection acknowledgement: #{packet.class}"
         )
       end
 
