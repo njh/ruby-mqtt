@@ -5,10 +5,18 @@ autoload :URI, 'uri'
 # Client class for talking to an MQTT broker
 class MQTT::Client
   # Hostname of the remote broker
-  attr_accessor :remote_host
+  attr_accessor :host
+
+  # OLD deprecated remote_host attribute
+  alias_method :remote_host, :host
+  alias_method :remote_host=, :host=
 
   # Port number of the remote broker
-  attr_accessor :remote_port
+  attr_accessor :port
+
+  # OLD deprecated remote_host attribute
+  alias_method :remote_port, :port
+  alias_method :remote_port=, :port=
 
   # The version number of the MQTT protocol to use (default 3.1.0)
   attr_accessor :version
@@ -59,8 +67,8 @@ class MQTT::Client
 
   # Default attribute values
   ATTR_DEFAULTS = {
-    :remote_host => nil,
-    :remote_port => nil,
+    :host => nil,
+    :port => nil,
     :version => '3.1.0',
     :keep_alive => 15,
     :clean_session => true,
@@ -125,8 +133,8 @@ class MQTT::Client
   #  client = MQTT::Client.new('mqtt://user:pass@myserver.example.com')
   #  client = MQTT::Client.new('myserver.example.com')
   #  client = MQTT::Client.new('myserver.example.com', 18830)
-  #  client = MQTT::Client.new(:remote_host => 'myserver.example.com')
-  #  client = MQTT::Client.new(:remote_host => 'myserver.example.com', :keep_alive => 30)
+  #  client = MQTT::Client.new(:host => 'myserver.example.com')
+  #  client = MQTT::Client.new(:host => 'myserver.example.com', :keep_alive => 30)
   #
   def initialize(*args)
     if args.last.is_a?(Hash)
@@ -148,12 +156,12 @@ class MQTT::Client
         when %r|^mqtts?://|
           attr.merge!(parse_uri(args[0]))
         else
-          attr.merge!(:remote_host => args[0])
+          attr.merge!(:host => args[0])
       end
     end
 
     if args.length >= 2
-      attr.merge!(:remote_port => args[1]) unless args[1].nil?
+      attr.merge!(:port => args[1]) unless args[1].nil?
     end
 
     if args.length >= 3
@@ -166,8 +174,8 @@ class MQTT::Client
     end
 
     # Set a default port number
-    if @remote_port.nil?
-      @remote_port = @ssl ? MQTT::DEFAULT_SSL_PORT : MQTT::DEFAULT_PORT
+    if @port.nil?
+      @port = @ssl ? MQTT::DEFAULT_SSL_PORT : MQTT::DEFAULT_PORT
     end
 
     # Initialise private instance variables
@@ -232,13 +240,13 @@ class MQTT::Client
       end
     end
 
-    if @remote_host.nil?
+    if @host.nil?
       raise 'No MQTT broker host set when attempting to connect'
     end
 
     if not connected?
       # Create network socket
-      tcp_socket = TCPSocket.new(@remote_host, @remote_port)
+      tcp_socket = TCPSocket.new(@host, @port)
 
       if @ssl
         # Set the protocol version
@@ -516,8 +524,8 @@ private
     end
 
     {
-      :remote_host => uri.host,
-      :remote_port => uri.port || nil,
+      :host => uri.host,
+      :port => uri.port || nil,
       :username => uri.user,
       :password => uri.password,
       :ssl => ssl

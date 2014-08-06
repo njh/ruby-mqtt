@@ -9,7 +9,7 @@ require 'mqtt'
 
 
 MQTT::Client.connect(
-  :remote_host => 'test.mosquitto.org',
+  :host => 'test.mosquitto.org',
   :username => 'test',
   :password => 'password'
 ) do |client|

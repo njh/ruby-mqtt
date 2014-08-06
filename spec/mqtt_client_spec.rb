@@ -13,7 +13,7 @@ describe MQTT::Client do
     ENV.delete('MQTT_BROKER')
   end
 
-  let(:client) { MQTT::Client.new(:remote_host => 'localhost') }
+  let(:client) { MQTT::Client.new(:host => 'localhost') }
   let(:socket) do
     socket = StringIO.new
     if socket.respond_to?(:set_encoding)
@@ -26,121 +26,121 @@ describe MQTT::Client do
   describe "initializing a client" do
     it "with no arguments, it should use the defaults" do
       client = MQTT::Client.new
-      client.remote_host.should == nil
-      client.remote_port.should == 1883
+      client.host.should == nil
+      client.port.should == 1883
       client.version.should == '3.1.0'
       client.keep_alive.should == 15
     end
 
     it "with a single string argument, it should use it has the host" do
       client = MQTT::Client.new('otherhost.mqtt.org')
-      client.remote_host.should == 'otherhost.mqtt.org'
-      client.remote_port.should == 1883
+      client.host.should == 'otherhost.mqtt.org'
+      client.port.should == 1883
       client.keep_alive.should == 15
     end
 
     it "with two arguments, it should use it as the host and port" do
       client = MQTT::Client.new('otherhost.mqtt.org', 1000)
-      client.remote_host.should == 'otherhost.mqtt.org'
-      client.remote_port.should == 1000
+      client.host.should == 'otherhost.mqtt.org'
+      client.port.should == 1000
       client.keep_alive.should == 15
     end
 
     it "with names arguments, it should use those as arguments" do
-      client = MQTT::Client.new(:remote_host => 'otherhost.mqtt.org', :remote_port => 1000)
-      client.remote_host.should == 'otherhost.mqtt.org'
-      client.remote_port.should == 1000
+      client = MQTT::Client.new(:host => 'otherhost.mqtt.org', :port => 1000)
+      client.host.should == 'otherhost.mqtt.org'
+      client.port.should == 1000
       client.keep_alive.should == 15
     end
 
     it "with a hash, it should use those as arguments" do
-      client = MQTT::Client.new({:remote_host => 'otherhost.mqtt.org', :remote_port => 1000})
-      client.remote_host.should == 'otherhost.mqtt.org'
-      client.remote_port.should == 1000
+      client = MQTT::Client.new({:host => 'otherhost.mqtt.org', :port => 1000})
+      client.host.should == 'otherhost.mqtt.org'
+      client.port.should == 1000
       client.keep_alive.should == 15
     end
 
     it "with a hash containing just a keep alive setting" do
-      client = MQTT::Client.new(:remote_host => 'localhost', :keep_alive => 60)
-      client.remote_host.should == 'localhost'
-      client.remote_port.should == 1883
+      client = MQTT::Client.new(:host => 'localhost', :keep_alive => 60)
+      client.host.should == 'localhost'
+      client.port.should == 1883
       client.keep_alive.should == 60
     end
 
     it "with a combination of a host name and a hash of settings" do
       client = MQTT::Client.new('localhost', :keep_alive => 65)
-      client.remote_host.should == 'localhost'
-      client.remote_port.should == 1883
+      client.host.should == 'localhost'
+      client.port.should == 1883
       client.keep_alive.should == 65
     end
 
     it "with a combination of a host name, port and a hash of settings" do
       client = MQTT::Client.new('localhost', 1888, :keep_alive => 65)
-      client.remote_host.should == 'localhost'
-      client.remote_port.should == 1888
+      client.host.should == 'localhost'
+      client.port.should == 1888
       client.keep_alive.should == 65
     end
 
     it "with a mqtt:// URI containing just a hostname" do
       client = MQTT::Client.new(URI.parse('mqtt://mqtt.example.com'))
-      client.remote_host.should == 'mqtt.example.com'
-      client.remote_port.should == 1883
+      client.host.should == 'mqtt.example.com'
+      client.port.should == 1883
       client.ssl.should be_false
     end
 
     it "with a mqtts:// URI containing just a hostname" do
       client = MQTT::Client.new(URI.parse('mqtts://mqtt.example.com'))
-      client.remote_host.should == 'mqtt.example.com'
-      client.remote_port.should == 8883
+      client.host.should == 'mqtt.example.com'
+      client.port.should == 8883
       client.ssl.should be_true
     end
 
     it "with a mqtt:// URI containing a custom port number" do
       client = MQTT::Client.new(URI.parse('mqtt://mqtt.example.com:1234/'))
-      client.remote_host.should == 'mqtt.example.com'
-      client.remote_port.should == 1234
+      client.host.should == 'mqtt.example.com'
+      client.port.should == 1234
       client.ssl.should be_false
     end
 
     it "with a mqtts:// URI containing a custom port number" do
       client = MQTT::Client.new(URI.parse('mqtts://mqtt.example.com:1234/'))
-      client.remote_host.should == 'mqtt.example.com'
-      client.remote_port.should == 1234
+      client.host.should == 'mqtt.example.com'
+      client.port.should == 1234
       client.ssl.should be_true
     end
 
     it "with a URI containing a username and password" do
       client = MQTT::Client.new(URI.parse('mqtt://auser:bpass@mqtt.example.com'))
-      client.remote_host.should == 'mqtt.example.com'
-      client.remote_port.should == 1883
+      client.host.should == 'mqtt.example.com'
+      client.port.should == 1883
       client.username.should == 'auser'
       client.password.should == 'bpass'
     end
 
     it "with a URI as a string" do
       client = MQTT::Client.new('mqtt://mqtt.example.com')
-      client.remote_host.should == 'mqtt.example.com'
-      client.remote_port.should == 1883
+      client.host.should == 'mqtt.example.com'
+      client.port.should == 1883
     end
 
     it "with a URI as a string including port" do
       client = MQTT::Client.new('mqtt://user:pass@m10.cloudmqtt.com:13858', nil)
-      client.remote_host.should == 'm10.cloudmqtt.com'
-      client.remote_port.should == 13858
+      client.host.should == 'm10.cloudmqtt.com'
+      client.port.should == 13858
     end
 
     it "with a URI and a hash of settings" do
       client = MQTT::Client.new('mqtt://mqtt.example.com', :keep_alive => 65)
-      client.remote_host.should == 'mqtt.example.com'
-      client.remote_port.should == 1883
+      client.host.should == 'mqtt.example.com'
+      client.port.should == 1883
       client.keep_alive.should == 65
     end
 
     it "with no arguments uses the MQTT_BROKER environment variable as connect URI" do
       ENV['MQTT_BROKER'] = 'mqtt://mqtt.example.com:1234'
       client = MQTT::Client.new
-      client.remote_host.should == 'mqtt.example.com'
-      client.remote_port.should == 1234
+      client.host.should == 'mqtt.example.com'
+      client.port.should == 1234
     end
 
     it "with an unsupported URI scheme" do
@@ -186,6 +186,20 @@ describe MQTT::Client do
     it "should enable peer verification" do
       client.ca_file = fixture_path('root-ca.pem')
       client.ssl_context.verify_mode.should == OpenSSL::SSL::VERIFY_PEER
+    end
+  end
+
+  describe "legacy attribute names" do
+    it "should allow getting and setting the host name using the remote_host method" do
+      client.remote_host = 'remote-host.example.com'
+      client.host.should == 'remote-host.example.com'
+      client.remote_host.should == 'remote-host.example.com'
+    end
+
+    it "should allow getting and setting the port using the remote_port method" do
+      client.remote_port = 9999
+      client.port.should == 9999
+      client.remote_port.should == 9999
     end
   end
 
