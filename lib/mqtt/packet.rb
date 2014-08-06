@@ -362,8 +362,8 @@ module MQTT
       attr_accessor :protocol_level
 
       # OLD deprecated protocol_version attribute
-      alias :protocol_version :protocol_level
-      alias :protocol_version= :protocol_level=
+      alias_method :protocol_version, :protocol_level
+      alias_method :protocol_version=, :protocol_level=
 
       # The client identifier string
       attr_accessor :client_id
