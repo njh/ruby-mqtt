@@ -8,6 +8,13 @@ module MQTT
     # The version number of the MQTT protocol to use (default 3.1.0)
     attr_reader :version
 
+    # Identifier to link related control packets together
+    attr_accessor :id
+
+    # OLD deprecated message_id attribute
+    alias_method :message_id, :id
+    alias_method :message_id=, :id=
+
     # Duplicate delivery flag
     attr_reader :duplicate
 
@@ -23,6 +30,7 @@ module MQTT
     # Default attribute values
     ATTR_DEFAULTS = {
       :version => '3.1.0',
+      :id => 0,
       :duplicate => false,
       :qos => 0,
       :retain => false,
@@ -292,17 +300,12 @@ module MQTT
       # The topic name to publish to
       attr_accessor :topic
 
-      # Identifier for an individual publishing flow
-      # Only required in PUBLISH Packets where the QoS level is 1 or 2
-      attr_accessor :message_id
-
       # The data to be published
       attr_accessor :payload
 
       # Default attribute values
       ATTR_DEFAULTS = {
           :topic => nil,
-          :message_id => 0,
           :payload => ''
       }
 
@@ -318,7 +321,7 @@ module MQTT
           raise "Invalid topic name when serialising packet"
         end
         body += encode_string(@topic)
-        body += encode_short(@message_id) unless qos == 0
+        body += encode_short(@id) unless qos == 0
         body += payload.to_s.force_encoding('ASCII-8BIT')
         return body
       end
@@ -327,7 +330,7 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         @topic = shift_string(buffer)
-        @message_id = shift_short(buffer) unless qos == 0
+        @id = shift_short(buffer) unless qos == 0
         @payload = buffer
       end
 
@@ -337,7 +340,7 @@ module MQTT
         "d#{duplicate ? '1' : '0'}, " +
         "q#{qos}, " +
         "r#{retain ? '1' : '0'}, " +
-        "m#{message_id}, " +
+        "m#{id}, " +
         "'#{topic}', " +
         "#{inspect_payload}>"
       end
@@ -565,26 +568,15 @@ module MQTT
 
     # Class representing an MQTT Publish Acknowledgment packet
     class Puback < MQTT::Packet
-      # Identifier for an individual publishing flow
-      attr_accessor :message_id
-
-      # Default attribute values
-      ATTR_DEFAULTS = {:message_id => 0}
-
-      # Create a new Publish Acknowledgment packet
-      def initialize(args={})
-        super(ATTR_DEFAULTS.merge(args))
-      end
-
       # Get serialisation of packet's body
       def encode_body
-        encode_short(@message_id)
+        encode_short(@id)
       end
 
       # Parse the body (variable header and payload) of a packet
       def parse_body(buffer)
         super(buffer)
-        @message_id = shift_short(buffer)
+        @id = shift_short(buffer)
         unless buffer.empty?
           raise ProtocolException.new("Extra bytes at end of Publish Acknowledgment packet")
         end
@@ -592,32 +584,21 @@ module MQTT
 
       # Returns a human readable string, summarising the properties of the packet
       def inspect
-        "\#<#{self.class}: 0x%2.2X>" % message_id
+        "\#<#{self.class}: 0x%2.2X>" % id
       end
     end
 
     # Class representing an MQTT Publish Received packet
     class Pubrec < MQTT::Packet
-      # Identifier for an individual publishing flow
-      attr_accessor :message_id
-
-      # Default attribute values
-      ATTR_DEFAULTS = {:message_id => 0}
-
-      # Create a new Publish Recieved packet
-      def initialize(args={})
-        super(ATTR_DEFAULTS.merge(args))
-      end
-
       # Get serialisation of packet's body
       def encode_body
-        encode_short(@message_id)
+        encode_short(@id)
       end
 
       # Parse the body (variable header and payload) of a packet
       def parse_body(buffer)
         super(buffer)
-        @message_id = shift_short(buffer)
+        @id = shift_short(buffer)
         unless buffer.empty?
           raise ProtocolException.new("Extra bytes at end of Publish Received packet")
         end
@@ -625,32 +606,21 @@ module MQTT
 
       # Returns a human readable string, summarising the properties of the packet
       def inspect
-        "\#<#{self.class}: 0x%2.2X>" % message_id
+        "\#<#{self.class}: 0x%2.2X>" % id
       end
     end
 
     # Class representing an MQTT Publish Release packet
     class Pubrel < MQTT::Packet
-      # Identifier for an individual publishing flow
-      attr_accessor :message_id
-
-      # Default attribute values
-      ATTR_DEFAULTS = {:message_id => 0}
-
-      # Create a new Publish Release packet
-      def initialize(args={})
-        super(ATTR_DEFAULTS.merge(args))
-      end
-
       # Get serialisation of packet's body
       def encode_body
-        encode_short(@message_id)
+        encode_short(@id)
       end
 
       # Parse the body (variable header and payload) of a packet
       def parse_body(buffer)
         super(buffer)
-        @message_id = shift_short(buffer)
+        @id = shift_short(buffer)
         unless buffer.empty?
           raise ProtocolException.new("Extra bytes at end of Publish Release packet")
         end
@@ -658,32 +628,21 @@ module MQTT
 
       # Returns a human readable string, summarising the properties of the packet
       def inspect
-        "\#<#{self.class}: 0x%2.2X>" % message_id
+        "\#<#{self.class}: 0x%2.2X>" % id
       end
     end
 
     # Class representing an MQTT Publish Complete packet
     class Pubcomp < MQTT::Packet
-      # Identifier for an individual publishing flow
-      attr_accessor :message_id
-
-      # Default attribute values
-      ATTR_DEFAULTS = {:message_id => 0}
-
-      # Create a new Publish Complete packet
-      def initialize(args={})
-        super(ATTR_DEFAULTS.merge(args))
-      end
-
       # Get serialisation of packet's body
       def encode_body
-        encode_short(@message_id)
+        encode_short(@id)
       end
 
       # Parse the body (variable header and payload) of a packet
       def parse_body(buffer)
         super(buffer)
-        @message_id = shift_short(buffer)
+        @id = shift_short(buffer)
         unless buffer.empty?
           raise ProtocolException.new("Extra bytes at end of Publish Complete packet")
         end
@@ -691,24 +650,18 @@ module MQTT
 
       # Returns a human readable string, summarising the properties of the packet
       def inspect
-        "\#<#{self.class}: 0x%2.2X>" % message_id
+        "\#<#{self.class}: 0x%2.2X>" % id
       end
     end
 
     # Class representing an MQTT Client Subscribe packet
     class Subscribe < MQTT::Packet
-      # Identifier for an individual publishing flow
-      attr_accessor :message_id
-
       # One or more topic names to subscribe to
       attr_reader :topics
 
-      # Default attribute values
-      ATTR_DEFAULTS = {:message_id => 0}
-
       # Create a new Subscribe packet
       def initialize(args={})
-        super(ATTR_DEFAULTS.merge(args))
+        super(args)
         @topics ||= []
         @qos = 1 # Force a QOS of 1
       end
@@ -760,7 +713,7 @@ module MQTT
         if @topics.empty?
           raise "no topics given when serialising packet"
         end
-        body = encode_short(@message_id)
+        body = encode_short(@id)
         topics.each do |item|
           body += encode_string(item[0])
           body += encode_bytes(item[1])
@@ -771,7 +724,7 @@ module MQTT
       # Parse the body (variable header and payload) of a packet
       def parse_body(buffer)
         super(buffer)
-        @message_id = shift_short(buffer)
+        @id = shift_short(buffer)
         @topics = []
         while(buffer.bytesize>0)
           topic_name = shift_string(buffer)
@@ -783,7 +736,7 @@ module MQTT
       # Returns a human readable string, summarising the properties of the packet
       def inspect
         _str = "\#<#{self.class}: 0x%2.2X, %s>" % [
-          message_id,
+          id,
           topics.map {|t| "'#{t[0]}':#{t[1]}"}.join(', ')
         ]
       end
@@ -791,18 +744,12 @@ module MQTT
 
     # Class representing an MQTT Subscribe Acknowledgment packet
     class Suback < MQTT::Packet
-      # Identifier to tie the Subscribe request to the Suback response
-      attr_accessor :message_id
-
       # The QoS level that was granted for the subscribe request
       attr_reader :granted_qos
 
-      # Default attribute values
-      ATTR_DEFAULTS = {:message_id => 0}
-
       # Create a new Subscribe Acknowledgment packet
       def initialize(args={})
-        super(ATTR_DEFAULTS.merge(args))
+        super(args)
         @granted_qos ||= []
       end
 
@@ -823,7 +770,7 @@ module MQTT
         if @granted_qos.empty?
           raise "no granted QOS given when serialising packet"
         end
-        body = encode_short(@message_id)
+        body = encode_short(@id)
         granted_qos.each { |qos| body += encode_bytes(qos) }
         return body
       end
@@ -831,7 +778,7 @@ module MQTT
       # Parse the body (variable header and payload) of a packet
       def parse_body(buffer)
         super(buffer)
-        @message_id = shift_short(buffer)
+        @id = shift_short(buffer)
         while(buffer.bytesize>0)
           @granted_qos << shift_byte(buffer)
         end
@@ -839,7 +786,7 @@ module MQTT
 
       # Returns a human readable string, summarising the properties of the packet
       def inspect
-        "\#<#{self.class}: 0x%2.2X, qos=%s>" % [message_id, granted_qos.join(',')]
+        "\#<#{self.class}: 0x%2.2X, qos=%s>" % [id, granted_qos.join(',')]
       end
     end
 
@@ -848,15 +795,9 @@ module MQTT
       # One or more topics to unsubscribe from
       attr_reader :topics
 
-      # Identifier to tie the Unsubscribe request to the Unsuback response
-      attr_accessor :message_id
-
-      # Default attribute values
-      ATTR_DEFAULTS = {:message_id => 0}
-
       # Create a new Unsubscribe packet
       def initialize(args={})
-        super(ATTR_DEFAULTS.merge(args))
+        super(args)
         @topics ||= []
         @qos = 1 # Force a QOS of 1
       end
@@ -875,7 +816,7 @@ module MQTT
         if @topics.empty?
           raise "no topics given when serialising packet"
         end
-        body = encode_short(@message_id)
+        body = encode_short(@id)
         topics.each { |topic| body += encode_string(topic) }
         return body
       end
@@ -883,7 +824,7 @@ module MQTT
       # Parse the body (variable header and payload) of a packet
       def parse_body(buffer)
         super(buffer)
-        @message_id = shift_short(buffer)
+        @id = shift_short(buffer)
         while(buffer.bytesize>0)
           @topics << shift_string(buffer)
         end
@@ -892,7 +833,7 @@ module MQTT
       # Returns a human readable string, summarising the properties of the packet
       def inspect
         "\#<#{self.class}: 0x%2.2X, %s>" % [
-          message_id,
+          id,
           topics.map {|t| "'#{t}'"}.join(', ')
         ]
       end
@@ -900,26 +841,20 @@ module MQTT
 
     # Class representing an MQTT Unsubscribe Acknowledgment packet
     class Unsuback < MQTT::Packet
-      # Identifier to tie the Unsubscribe request to the Unsuback response
-      attr_accessor :message_id
-
-      # Default attribute values
-      ATTR_DEFAULTS = {:message_id => 0}
-
       # Create a new Unsubscribe Acknowledgment packet
       def initialize(args={})
-        super(ATTR_DEFAULTS.merge(args))
+        super(args)
       end
 
       # Get serialisation of packet's body
       def encode_body
-        encode_short(@message_id)
+        encode_short(@id)
       end
 
       # Parse the body (variable header and payload) of a packet
       def parse_body(buffer)
         super(buffer)
-        @message_id = shift_short(buffer)
+        @id = shift_short(buffer)
         unless buffer.empty?
           raise ProtocolException.new("Extra bytes at end of Unsubscribe Acknowledgment packet")
         end
@@ -927,7 +862,7 @@ module MQTT
 
       # Returns a human readable string, summarising the properties of the packet
       def inspect
-        "\#<#{self.class}: 0x%2.2X>" % message_id
+        "\#<#{self.class}: 0x%2.2X>" % id
       end
     end
 

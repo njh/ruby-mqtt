@@ -179,7 +179,7 @@ class MQTT::Client
     end
 
     # Initialise private instance variables
-    @message_id = 0
+    @packet_id = 0
     @last_pingreq = Time.now
     @last_pingresp = Time.now
     @socket = nil
@@ -336,11 +336,11 @@ class MQTT::Client
     raise ArgumentError.new("Topic name cannot be empty") if topic.empty?
 
     packet = MQTT::Packet::Publish.new(
+      :id => @packet_id.next,
       :qos => qos,
       :retain => retain,
       :topic => topic,
-      :payload => payload,
-      :message_id => @message_id.next
+      :payload => payload
     )
 
     # Send the packet
@@ -361,8 +361,8 @@ class MQTT::Client
   #
   def subscribe(*topics)
     packet = MQTT::Packet::Subscribe.new(
-      :topics => topics,
-      :message_id => @message_id.next
+      :id => @packet_id.next,
+      :topics => topics
     )
     send_packet(packet)
   end
@@ -441,7 +441,7 @@ class MQTT::Client
 
     packet = MQTT::Packet::Unsubscribe.new(
       :topics => topics,
-      :message_id => @message_id.next
+      :id => @packet_id.next
     )
     send_packet(packet)
   end

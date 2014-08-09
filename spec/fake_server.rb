@@ -97,7 +97,7 @@ class MQTT::FakeServer
           @last_publish = packet
         when MQTT::Packet::Subscribe
           client.write MQTT::Packet::Suback.new(
-            :message_id => packet.message_id,
+            :id => packet.id,
             :granted_qos => 0
           )
           topic = packet.topics[0][0]

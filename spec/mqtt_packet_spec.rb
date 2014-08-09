@@ -135,17 +135,17 @@ describe MQTT::Packet::Publish do
     end
 
     it "should output the correct bytes for a packet with QOS 1 and no flags" do
-      packet = MQTT::Packet::Publish.new( :qos => 1, :message_id => 5, :topic => 'a/b', :payload => 'hello world' )
+      packet = MQTT::Packet::Publish.new( :id => 5, :qos => 1, :topic => 'a/b', :payload => 'hello world' )
       packet.to_s.should == "\x32\x12\x00\x03a/b\x00\x05hello world"
     end
 
     it "should output the correct bytes for a packet with QOS 2 and retain flag set" do
-      packet = MQTT::Packet::Publish.new( :qos => 2, :retain => true, :message_id => 5, :topic => 'c/d', :payload => 'hello world' )
+      packet = MQTT::Packet::Publish.new( :id => 5, :qos => 2, :retain => true, :topic => 'c/d', :payload => 'hello world' )
       packet.to_s.should == "\x35\x12\x00\x03c/d\x00\x05hello world"
     end
 
     it "should output the correct bytes for a packet with QOS 2 and dup flag set" do
-      packet = MQTT::Packet::Publish.new( :qos => 2, :duplicate => true, :message_id => 5, :topic => 'c/d', :payload => 'hello world' )
+      packet = MQTT::Packet::Publish.new( :id => 5, :qos => 2, :duplicate => true, :topic => 'c/d', :payload => 'hello world' )
       packet.to_s.should == "\x3C\x12\x00\x03c/d\x00\x05hello world"
     end
 
@@ -1099,7 +1099,7 @@ end
 describe MQTT::Packet::Puback do
   describe "when serialising a packet" do
     it "should output the correct bytes for a packet with no flags" do
-      packet = MQTT::Packet::Puback.new( :message_id => 0x1234 )
+      packet = MQTT::Packet::Puback.new( :id => 0x1234 )
       packet.to_s.should == "\x40\x02\x12\x34"
     end
   end
@@ -1112,7 +1112,7 @@ describe MQTT::Packet::Puback do
     end
 
     it "should set the message id of the packet correctly" do
-      packet.message_id.should == 0x1234
+      packet.id.should == 0x1234
     end
   end
 
@@ -1128,7 +1128,7 @@ describe MQTT::Packet::Puback do
   end
 
   it "should output the right string when calling inspect" do
-    packet = MQTT::Packet::Puback.new( :message_id => 0x1234 )
+    packet = MQTT::Packet::Puback.new( :id => 0x1234 )
     packet.inspect.should == "#<MQTT::Packet::Puback: 0x1234>"
   end
 end
@@ -1136,7 +1136,7 @@ end
 describe MQTT::Packet::Pubrec do
   describe "when serialising a packet" do
     it "should output the correct bytes for a packet with no flags" do
-      packet = MQTT::Packet::Pubrec.new( :message_id => 0x1234 )
+      packet = MQTT::Packet::Pubrec.new( :id => 0x1234 )
       packet.to_s.should == "\x50\x02\x12\x34"
     end
   end
@@ -1149,7 +1149,7 @@ describe MQTT::Packet::Pubrec do
     end
 
     it "should set the message id of the packet correctly" do
-      packet.message_id.should == 0x1234
+      packet.id.should == 0x1234
     end
   end
 
@@ -1165,7 +1165,7 @@ describe MQTT::Packet::Pubrec do
   end
 
   it "should output the right string when calling inspect" do
-    packet = MQTT::Packet::Pubrec.new( :message_id => 0x1234 )
+    packet = MQTT::Packet::Pubrec.new( :id => 0x1234 )
     packet.inspect.should == "#<MQTT::Packet::Pubrec: 0x1234>"
   end
 end
@@ -1173,7 +1173,7 @@ end
 describe MQTT::Packet::Pubrel do
   describe "when serialising a packet" do
     it "should output the correct bytes for a packet with no flags" do
-      packet = MQTT::Packet::Pubrel.new( :message_id => 0x1234 )
+      packet = MQTT::Packet::Pubrel.new( :id => 0x1234 )
       packet.to_s.should == "\x60\x02\x12\x34"
     end
   end
@@ -1186,7 +1186,7 @@ describe MQTT::Packet::Pubrel do
     end
 
     it "should set the message id of the packet correctly" do
-      packet.message_id.should == 0x1234
+      packet.id.should == 0x1234
     end
   end
 
@@ -1202,7 +1202,7 @@ describe MQTT::Packet::Pubrel do
   end
 
   it "should output the right string when calling inspect" do
-    packet = MQTT::Packet::Pubrel.new( :message_id => 0x1234 )
+    packet = MQTT::Packet::Pubrel.new( :id => 0x1234 )
     packet.inspect.should == "#<MQTT::Packet::Pubrel: 0x1234>"
   end
 end
@@ -1210,7 +1210,7 @@ end
 describe MQTT::Packet::Pubcomp do
   describe "when serialising a packet" do
     it "should output the correct bytes for a packet with no flags" do
-      packet = MQTT::Packet::Pubcomp.new( :message_id => 0x1234 )
+      packet = MQTT::Packet::Pubcomp.new( :id => 0x1234 )
       packet.to_s.should == "\x70\x02\x12\x34"
     end
   end
@@ -1223,7 +1223,7 @@ describe MQTT::Packet::Pubcomp do
     end
 
     it "should set the message id of the packet correctly" do
-      packet.message_id.should == 0x1234
+      packet.id.should == 0x1234
     end
   end
 
@@ -1239,7 +1239,7 @@ describe MQTT::Packet::Pubcomp do
   end
 
   it "should output the right string when calling inspect" do
-    packet = MQTT::Packet::Pubcomp.new( :message_id => 0x1234 )
+    packet = MQTT::Packet::Pubcomp.new( :id => 0x1234 )
     packet.inspect.should == "#<MQTT::Packet::Pubcomp: 0x1234>"
   end
 end
@@ -1284,12 +1284,12 @@ describe MQTT::Packet::Subscribe do
 
   describe "when serialising a packet" do
     it "should output the correct bytes for a packet with a single topic" do
-      packet = MQTT::Packet::Subscribe.new( :topics => 'a/b', :message_id => 1 )
+      packet = MQTT::Packet::Subscribe.new( :id => 1, :topics => 'a/b' )
       packet.to_s.should == "\x82\x08\x00\x01\x00\x03a/b\x00"
     end
 
     it "should output the correct bytes for a packet with multiple topics" do
-      packet = MQTT::Packet::Subscribe.new( :topics => [['a/b', 0], ['c/d', 1]], :message_id => 6 )
+      packet = MQTT::Packet::Subscribe.new( :id => 6, :topics => [['a/b', 0], ['c/d', 1]] )
       packet.to_s.should == "\x82\x0e\000\x06\x00\x03a/b\x00\x00\x03c/d\x01"
     end
 
@@ -1314,7 +1314,7 @@ describe MQTT::Packet::Subscribe do
     end
 
     it "should set the Message ID correctly" do
-      packet.message_id.should == 1
+      packet.id.should == 1
     end
 
     it "should set the topic name correctly" do
@@ -1334,7 +1334,7 @@ describe MQTT::Packet::Subscribe do
     end
 
     it "should set the Message ID correctly" do
-      packet.message_id.should == 6
+      packet.id.should == 6
     end
 
     it "should set the topic name correctly" do
@@ -1358,18 +1358,18 @@ end
 describe MQTT::Packet::Suback do
   describe "when serialising a packet" do
     it "should output the correct bytes for an acknowledgement to a single topic" do
-      packet = MQTT::Packet::Suback.new( :granted_qos => 0, :message_id => 5 )
+      packet = MQTT::Packet::Suback.new( :id => 5, :granted_qos => 0 )
       packet.to_s.should == "\x90\x03\x00\x05\x00"
     end
 
     it "should output the correct bytes for an acknowledgement to a two topics" do
-      packet = MQTT::Packet::Suback.new( :granted_qos => [0,1], :message_id => 6 )
+      packet = MQTT::Packet::Suback.new( :id => 6 , :granted_qos => [0,1] )
       packet.to_s.should == "\x90\x04\x00\x06\x00\x01"
     end
 
     it "should throw an exception when no granted QOSs are given" do
       expect {
-        MQTT::Packet::Suback.new(:message_id => 7).to_s
+        MQTT::Packet::Suback.new( :id => 7 ).to_s
       }.to raise_error(
         'no granted QOS given when serialising packet'
       )
@@ -1377,7 +1377,7 @@ describe MQTT::Packet::Suback do
 
     it "should throw an exception if the granted QOS is not an integer" do
       expect {
-        MQTT::Packet::Suback.new(:granted_qos => :foo, :message_id => 8).to_s
+        MQTT::Packet::Suback.new( :id => 8, :granted_qos => :foo ).to_s
       }.to raise_error(
         'granted QOS should be an integer or an array of QOS levels'
       )
@@ -1392,7 +1392,7 @@ describe MQTT::Packet::Suback do
     end
 
     it "should set the message id of the packet correctly" do
-      packet.message_id.should == 0x1234
+      packet.id.should == 0x1234
     end
 
     it "should set the Granted QOS of the packet correctly" do
@@ -1408,7 +1408,7 @@ describe MQTT::Packet::Suback do
     end
 
     it "should set the message id of the packet correctly" do
-      packet.message_id.should == 0x1234
+      packet.id.should == 0x1234
     end
 
     it "should set the Granted QOS of the packet correctly" do
@@ -1418,12 +1418,12 @@ describe MQTT::Packet::Suback do
 
   describe "when calling the inspect method" do
     it "should output correct string for a single granted qos" do
-      packet = MQTT::Packet::Suback.new(:message_id => 0x1234, :granted_qos => 0)
+      packet = MQTT::Packet::Suback.new(:id => 0x1234, :granted_qos => 0)
       packet.inspect.should == "#<MQTT::Packet::Suback: 0x1234, qos=0>"
     end
 
     it "should output correct string for multiple topics" do
-      packet = MQTT::Packet::Suback.new(:message_id => 0x1235, :granted_qos => [0,1,2])
+      packet = MQTT::Packet::Suback.new(:id => 0x1235, :granted_qos => [0,1,2])
       packet.inspect.should == "#<MQTT::Packet::Suback: 0x1235, qos=0,1,2>"
     end
   end
@@ -1432,12 +1432,12 @@ end
 describe MQTT::Packet::Unsubscribe do
   describe "when serialising a packet" do
     it "should output the correct bytes for a packet with single topic" do
-      packet = MQTT::Packet::Unsubscribe.new( :topics => 'a/b', :message_id => 5 )
+      packet = MQTT::Packet::Unsubscribe.new( :id => 5, :topics => 'a/b' )
       packet.to_s.should == "\xa2\x07\x00\x05\x00\x03a/b"
     end
 
     it "should output the correct bytes for a packet with multiple topics" do
-      packet = MQTT::Packet::Unsubscribe.new( :topics => ['a/b','c/d'], :message_id => 6 )
+      packet = MQTT::Packet::Unsubscribe.new( :id => 6, :topics => ['a/b','c/d'] )
       packet.to_s.should == "\xa2\x0c\000\006\000\003a/b\000\003c/d"
     end
 
@@ -1473,7 +1473,7 @@ describe MQTT::Packet::Unsubscribe do
     end
 
     it "should output correct string for multiple topics" do
-      packet = MQTT::Packet::Unsubscribe.new(:message_id => 42, :topics => ['a', 'b', 'c'])
+      packet = MQTT::Packet::Unsubscribe.new( :id => 42, :topics => ['a', 'b', 'c'] )
       packet.inspect.should == "#<MQTT::Packet::Unsubscribe: 0x2A, 'a', 'b', 'c'>"
     end
   end
@@ -1482,7 +1482,7 @@ end
 describe MQTT::Packet::Unsuback do
   describe "when serialising a packet" do
     it "should output the correct bytes for a packet with no flags" do
-      packet = MQTT::Packet::Unsuback.new( :message_id => 0x1234 )
+      packet = MQTT::Packet::Unsuback.new( :id => 0x1234 )
       packet.to_s.should == "\xB0\x02\x12\x34"
     end
   end
@@ -1497,7 +1497,7 @@ describe MQTT::Packet::Unsuback do
     end
 
     it "should set the message id of the packet correctly" do
-      packet.message_id.should == 0x1234
+      packet.id.should == 0x1234
     end
   end
 
@@ -1513,7 +1513,7 @@ describe MQTT::Packet::Unsuback do
   end
 
   it "should output the right string when calling inspect" do
-    packet = MQTT::Packet::Unsuback.new( :message_id => 0x1234 )
+    packet = MQTT::Packet::Unsuback.new( :id => 0x1234 )
     packet.inspect.should == "#<MQTT::Packet::Unsuback: 0x1234>"
   end
 end
