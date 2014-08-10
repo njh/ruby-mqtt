@@ -1003,7 +1003,7 @@ describe MQTT::Packet::Connack do
     end
   end
 
-  describe "when parsing a broker unavailable packet" do
+  describe "when parsing a server unavailable packet" do
     let(:packet) do
       MQTT::Packet.parse( "\x20\x02\x00\x03" )
     end
@@ -1017,11 +1017,11 @@ describe MQTT::Packet::Connack do
     end
 
     it "should set the return message of the packet correctly" do
-      packet.return_msg.should match(/broker unavailable/i)
+      packet.return_msg.should match(/server unavailable/i)
     end
   end
 
-  describe "when parsing a broker unavailable packet" do
+  describe "when parsing a server unavailable packet" do
     let(:packet) do
       MQTT::Packet.parse( "\x20\x02\x00\x04" )
     end
@@ -1039,7 +1039,7 @@ describe MQTT::Packet::Connack do
     end
   end
 
-  describe "when parsing a broker unavailable packet" do
+  describe "when parsing a server unavailable packet" do
     let(:packet) do
       MQTT::Packet.parse( "\x20\x02\x00\x05" )
     end

@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 #
-# Connect to a MQTT broker based on a URI in
+# Connect to a MQTT server based on a URI in
 # an environment variable
 #
 
@@ -13,7 +13,7 @@ require 'mqtt'
 #
 # Note that you need Ruby 2.0+ to use TLS with test.mosquitto.org
 #
-ENV['MQTT_BROKER'] = 'mqtts://test.mosquitto.org:8883'
+ENV['MQTT_SERVER'] = 'mqtts://test.mosquitto.org:8883'
 
 MQTT::Client.connect do |client|
   puts "Connected"

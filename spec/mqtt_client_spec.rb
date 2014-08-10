@@ -10,7 +10,7 @@ describe MQTT::Client do
 
   before(:each) do
     # Reset environment variable
-    ENV.delete('MQTT_BROKER')
+    ENV.delete('MQTT_SERVER')
   end
 
   let(:client) { MQTT::Client.new(:host => 'localhost') }
@@ -136,8 +136,8 @@ describe MQTT::Client do
       client.keep_alive.should == 65
     end
 
-    it "with no arguments uses the MQTT_BROKER environment variable as connect URI" do
-      ENV['MQTT_BROKER'] = 'mqtt://mqtt.example.com:1234'
+    it "with no arguments uses the MQTT_SERVER environment variable as connect URI" do
+      ENV['MQTT_SERVER'] = 'mqtt://mqtt.example.com:1234'
       client = MQTT::Client.new
       client.host.should == 'mqtt.example.com'
       client.port.should == 1234
@@ -252,7 +252,7 @@ describe MQTT::Client do
         client = MQTT::Client.new
         client.connect
       }.to raise_error(
-        'No MQTT broker host set when attempting to connect'
+        'No MQTT server host set when attempting to connect'
       )
     end
 
@@ -439,10 +439,10 @@ describe MQTT::Client do
       expect { client.send(:receive_connack) }.to raise_error(MQTT::ProtocolException, /client identifier rejected/i)
     end
 
-    it "should throw an exception if the CONNACK packet return code is 'broker unavailable'" do
+    it "should throw an exception if the CONNACK packet return code is 'server unavailable'" do
       socket.write("\x20\x02\x00\x03")
       socket.rewind
-      expect { client.send(:receive_connack) }.to raise_error(MQTT::ProtocolException, /broker unavailable/i)
+      expect { client.send(:receive_connack) }.to raise_error(MQTT::ProtocolException, /server unavailable/i)
     end
 
     it "should throw an exception if the CONNACK packet return code is an unknown" do

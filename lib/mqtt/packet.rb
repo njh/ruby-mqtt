@@ -371,10 +371,10 @@ module MQTT
       # The client identifier string
       attr_accessor :client_id
 
-      # Set to false to keep a persistent session with the broker
+      # Set to false to keep a persistent session with the server
       attr_accessor :clean_session
 
-      # Period the broker should keep connection open for between pings
+      # Period the server should keep connection open for between pings
       attr_accessor :keep_alive
 
       # The topic name to send the Will message to
@@ -389,10 +389,10 @@ module MQTT
       # The payload of the Will message
       attr_accessor :will_payload
 
-      # The username for authenticating with the broker
+      # The username for authenticating with the server
       attr_accessor :username
 
-      # The password for authenticating with the broker
+      # The password for authenticating with the server
       attr_accessor :password
 
       # Default attribute values
@@ -532,7 +532,7 @@ module MQTT
           when 0x02
             "Connection refused: client identifier rejected"
           when 0x03
-            "Connection refused: broker unavailable"
+            "Connection refused: server unavailable"
           when 0x04
             "Connection refused: bad user name or password"
           when 0x05

@@ -9,7 +9,7 @@ Ruby MQTT Version 0.2.0 (2014-04-02)
 * Added support for using the MQTT_BROKER environment variable
 * Allow passing array of topics to Client#unsubscribe
 * Allow more combinations of arguments to be passed to a new Client
-* No longer defaults to ‘localhost’ if there is no broker configured
+* No longer defaults to ‘localhost’ if there is no server configured
 * Fixed more 'unused variable' warnings
 * Documentation improvements
 * Ruby 1.8 fixes

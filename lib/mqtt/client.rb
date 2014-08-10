@@ -2,16 +2,16 @@ autoload :OpenSSL, 'openssl'
 autoload :URI, 'uri'
 
 
-# Client class for talking to an MQTT broker
+# Client class for talking to an MQTT server
 class MQTT::Client
-  # Hostname of the remote broker
+  # Hostname of the remote server
   attr_accessor :host
 
   # OLD deprecated remote_host attribute
   alias_method :remote_host, :host
   alias_method :remote_host=, :host=
 
-  # Port number of the remote broker
+  # Port number of the remote server
   attr_accessor :port
 
   # OLD deprecated remote_host attribute
@@ -31,7 +31,7 @@ class MQTT::Client
   # @see OpenSSL::SSL::SSLContext::METHODS
   attr_accessor :ssl
 
-  # Time (in seconds) between pings to remote broker
+  # Time (in seconds) between pings to remote server
   attr_accessor :keep_alive
 
   # Set the 'Clean Session' flag when connecting?
@@ -43,22 +43,22 @@ class MQTT::Client
   # Number of seconds to wait for acknowledgement packets
   attr_accessor :ack_timeout
 
-  # Username to authenticate to the broker with
+  # Username to authenticate to the server with
   attr_accessor :username
 
-  # Password to authenticate to the broker with
+  # Password to authenticate to the server with
   attr_accessor :password
 
   # The topic that the Will message is published to
   attr_accessor :will_topic
 
-  # Contents of message that is sent by broker when client disconnect
+  # Contents of message that is sent by server when client disconnect
   attr_accessor :will_payload
 
-  # The QoS level of the will message sent by the broker
+  # The QoS level of the will message sent by the server
   attr_accessor :will_qos
 
-  # If the Will message should be retain by the broker after it is sent
+  # If the Will message should be retain by the server after it is sent
   attr_accessor :will_retain
 
 
@@ -125,7 +125,7 @@ class MQTT::Client
   # - a Hash containing attributes to be set on the new instance
   #
   # If no arguments are given then the method will look for a URI
-  # in the MQTT_BROKER environment variable.
+  # in the MQTT_SERVER environment variable.
   #
   # Examples:
   #  client = MQTT::Client.new
@@ -144,8 +144,8 @@ class MQTT::Client
     end
 
     if args.length == 0
-      if ENV['MQTT_BROKER']
-        attr.merge!(parse_uri(ENV['MQTT_BROKER']))
+      if ENV['MQTT_SERVER']
+        attr.merge!(parse_uri(ENV['MQTT_SERVER']))
       end
     end
 
@@ -213,8 +213,8 @@ class MQTT::Client
 
   # Set the Will for the client
   #
-  # The will is a message that will be delivered by the broker when the client dies.
-  # The Will must be set before establishing a connection to the broker
+  # The will is a message that will be delivered by the server when the client dies.
+  # The Will must be set before establishing a connection to the server
   def set_will(topic, payload, retain=false, qos=0)
     self.will_topic = topic
     self.will_payload = payload
@@ -222,7 +222,7 @@ class MQTT::Client
     self.will_qos = qos
   end
 
-  # Connect to the MQTT broker
+  # Connect to the MQTT server
   # If a block is given, then yield to that block and then disconnect again.
   def connect(clientid=nil)
     unless clientid.nil?
@@ -241,7 +241,7 @@ class MQTT::Client
     end
 
     if @host.nil?
-      raise 'No MQTT broker host set when attempting to connect'
+      raise 'No MQTT server host set when attempting to connect'
     end
 
     if not connected?
@@ -297,8 +297,8 @@ class MQTT::Client
     end
   end
 
-  # Disconnect from the MQTT broker.
-  # If you don't want to say goodbye to the broker, set send_msg to false.
+  # Disconnect from the MQTT server.
+  # If you don't want to say goodbye to the server, set send_msg to false.
   def disconnect(send_msg=true)
     # Stop reading packets from the socket first
     @read_thread.kill if @read_thread and @read_thread.alive?
@@ -315,7 +315,7 @@ class MQTT::Client
     end
   end
 
-  # Checks whether the client is connected to the broker.
+  # Checks whether the client is connected to the server.
   def connected?
     (not @socket.nil?) and (not @socket.closed?)
   end
@@ -330,7 +330,7 @@ class MQTT::Client
     @last_pingreq = Time.now
   end
 
-  # Publish a message on a particular topic to the MQTT broker.
+  # Publish a message on a particular topic to the MQTT server.
   def publish(topic, payload='', retain=false, qos=0)
     raise ArgumentError.new("Topic name cannot be nil") if topic.nil?
     raise ArgumentError.new("Topic name cannot be empty") if topic.empty?
@@ -347,7 +347,7 @@ class MQTT::Client
     send_packet(packet)
   end
 
-  # Send a subscribe message for one or more topics on the MQTT broker.
+  # Send a subscribe message for one or more topics on the MQTT server.
   # The topics parameter should be one of the following:
   # * String: subscribe to one topic with QOS 0
   # * Array: subscribe to multiple topics with QOS 0
@@ -367,7 +367,7 @@ class MQTT::Client
     send_packet(packet)
   end
 
-  # Return the next message received from the MQTT broker.
+  # Return the next message received from the MQTT server.
   # An optional topic can be given to subscribe to.
   #
   # The method either returns the topic and message as an array:
@@ -395,7 +395,7 @@ class MQTT::Client
     end
   end
 
-  # Return the next packet object received from the MQTT broker.
+  # Return the next packet object received from the MQTT server.
   # An optional topic can be given to subscribe to.
   #
   # The method either returns a single packet:
@@ -433,7 +433,7 @@ class MQTT::Client
     @read_queue.length
   end
 
-  # Send a unsubscribe message for one or more topics on the MQTT broker
+  # Send a unsubscribe message for one or more topics on the MQTT server
   def unsubscribe(*topics)
     if topics.is_a?(Enumerable) and topics.count == 1
       topics = topics.first
@@ -448,7 +448,7 @@ class MQTT::Client
 
 private
 
-  # Try to read a packet from the broker
+  # Try to read a packet from the server
   # Also sends keep-alive ping packets.
   def receive_packet
     begin
@@ -501,7 +501,7 @@ private
     end
   end
 
-  # Send a packet to broker
+  # Send a packet to server
   def send_packet(data)
     # Throw exception if we aren't connected
     raise MQTT::NotConnectedException if not connected?

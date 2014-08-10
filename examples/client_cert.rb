@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 #
-# Connect to a MQTT broker using SSL/TLS Client Certificate,
+# Connect to a MQTT server using SSL/TLS Client Certificate,
 # send a single message and then receive it back
 #
 

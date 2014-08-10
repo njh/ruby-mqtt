@@ -7,8 +7,8 @@ require 'mqtt'
 proxy = MQTT::Proxy.new(
     :local_host => '0.0.0.0',
     :local_port => 1883,
-    :broker_host => 'test.mosquitto.org',
-    :broker_port => 1883
+    :server_host => 'test.mosquitto.org',
+    :server_port => 1883
 )
 
 proxy.client_filter = lambda { |packet|
@@ -16,8 +16,8 @@ proxy.client_filter = lambda { |packet|
   return packet
 }
 
-proxy.broker_filter = lambda { |packet|
-  puts "From broker: #{packet.inspect}"
+proxy.server_filter = lambda { |packet|
+  puts "From server: #{packet.inspect}"
   return packet
 }
 
