@@ -15,14 +15,8 @@ module MQTT
     alias_method :message_id, :id
     alias_method :message_id=, :id=
 
-    # Duplicate delivery flag
-    attr_reader :duplicate
-
-    # Retain flag
-    attr_reader :retain
-
-    # Quality of Service level (0, 1, 2)
-    attr_reader :qos
+    # Array of 4 bits in the fixed header
+    attr_accessor :flags
 
     # The length of the parsed packet body
     attr_reader :body_length
@@ -31,9 +25,7 @@ module MQTT
     ATTR_DEFAULTS = {
       :version => '3.1.0',
       :id => 0,
-      :duplicate => false,
-      :qos => 0,
-      :retain => false,
+      :flags => [false, false, false, false],
       :body_length => nil
     }
 
@@ -43,6 +35,7 @@ module MQTT
       packet = create_from_header(
         read_byte(socket)
       )
+      packet.validate_flags
 
       # Read in the packet length
       multiplier = 1
@@ -82,6 +75,7 @@ module MQTT
       # Create a new packet object
       bytes = buffer.unpack("C5")
       packet = create_from_header(bytes.first)
+      packet.validate_flags
 
       # Parse the packet length
       body_length = 0
@@ -115,12 +109,16 @@ module MQTT
         raise ProtocolException.new("Invalid packet type identifier: #{type_id}")
       end
 
+      # FIXME: must be better way of doing this
+      flags = [
+        (byte & 0x01 == 0x01),
+        (byte & 0x02 == 0x02),
+        (byte & 0x04 == 0x04),
+        (byte & 0x08 == 0x08),
+      ]
+
       # Create a new packet object
-      packet_class.new(
-        :duplicate => ((byte & 0x08) >> 3) == 0x01,
-        :qos => ((byte & 0x06) >> 1),
-        :retain => ((byte & 0x01) >> 0) == 0x01
-      )
+      packet_class.new(:flags => flags)
     end
 
     # Create a new empty packet
@@ -131,7 +129,11 @@ module MQTT
     # Set packet attributes from a hash of attribute names and values
     def update_attributes(attr={})
       attr.each_pair do |k,v|
-        send("#{k}=", v)
+        if v.is_a?(Array) or v.is_a?(Hash)
+          send("#{k}=", v.dup)
+        else
+          send("#{k}=", v)
+        end
       end
     end
 
@@ -147,32 +149,6 @@ module MQTT
     # Set the protocol version number
     def version=(arg)
       @version = arg.to_s
-    end
-
-    # Set the dup flag (true/false)
-    def duplicate=(arg)
-      if arg.kind_of?(Integer)
-        @duplicate = (arg != 0)
-      else
-        @duplicate = arg
-      end
-    end
-
-    # Set the retain flag (true/false)
-    def retain=(arg)
-      if arg.kind_of?(Integer)
-        @retain = (arg != 0)
-      else
-        @retain = arg
-      end
-    end
-
-    # Set the Quality of Service level (0/1/2)
-    def qos=(arg)
-      @qos = arg.to_i
-      if @qos < 0 or @qos > 2
-        raise "Invalid QoS value: #{@qos}"
-      end
     end
 
     # Set the length of the packet body
@@ -200,9 +176,10 @@ module MQTT
       # Encode the fixed header
       header = [
         ((type_id.to_i & 0x0F) << 4) |
-        ((duplicate ? 0x1 : 0x0) << 3) |
-        ((qos.to_i & 0x03) << 1) |
-        (retain ? 0x1 : 0x0)
+        (flags[3] ? 0x8 : 0x0) |
+        (flags[2] ? 0x4 : 0x0) |
+        (flags[1] ? 0x2 : 0x0) |
+        (flags[0] ? 0x1 : 0x0)
       ]
 
       # Get the packet's variable header and payload
@@ -225,6 +202,12 @@ module MQTT
 
       # Convert header to binary and add on body
       header.pack('C*') + body
+    end
+
+    def validate_flags
+      if flags != [false, false, false, false]
+        raise ProtocolException.new("Invalid flags in #{self.class} packet header")
+      end
     end
 
     # Returns a human readable string
@@ -297,6 +280,16 @@ module MQTT
 
     # Class representing an MQTT Publish message
     class Publish < MQTT::Packet
+
+      # Duplicate delivery flag
+      attr_accessor :duplicate
+
+      # Retain flag
+      attr_accessor :retain
+
+      # Quality of Service level (0, 1, 2)
+      attr_accessor :qos
+
       # The topic name to publish to
       attr_accessor :topic
 
@@ -305,13 +298,54 @@ module MQTT
 
       # Default attribute values
       ATTR_DEFAULTS = {
-          :topic => nil,
-          :payload => ''
+        :topic => nil,
+        :payload => ''
       }
 
       # Create a new Publish packet
       def initialize(args={})
         super(ATTR_DEFAULTS.merge(args))
+      end
+
+      def duplicate
+        @flags[3]
+      end
+
+      # Set the DUP flag (true/false)
+      def duplicate=(arg)
+        if arg.kind_of?(Integer)
+          @flags[3] = (arg == 0x1)
+        else
+          @flags[3] = arg
+        end
+      end
+
+      def retain
+        @flags[0]
+      end
+
+      # Set the retain flag (true/false)
+      def retain=(arg)
+        if arg.kind_of?(Integer)
+          @flags[0] = (arg == 0x1)
+        else
+          @flags[0] = arg
+        end
+      end
+
+      def qos
+        (@flags[1] ? 0x01 : 0x00) | (@flags[2] ? 0x02 : 0x00)
+      end
+
+      # Set the Quality of Service level (0/1/2)
+      def qos=(arg)
+        @qos = arg.to_i
+        if @qos < 0 or @qos > 2
+          raise "Invalid QoS value: #{@qos}"
+        else
+          @flags[1] = (arg & 0x01 == 0x01)
+          @flags[2] = (arg & 0x02 == 0x02)
+        end
       end
 
       # Get serialisation of packet's body
@@ -334,6 +368,12 @@ module MQTT
         @payload = buffer
       end
 
+      def validate_flags
+        if qos == 3
+          raise ProtocolException.new("Invalid packet: QoS value of 3 is not allowed")
+        end
+      end
+
       # Returns a human readable string, summarising the properties of the packet
       def inspect
         "\#<#{self.class}: " +
@@ -346,6 +386,7 @@ module MQTT
       end
 
       protected
+
       def inspect_payload
         str = payload.to_s
         if str.bytesize < 16 and str =~ /^[ -~]*$/
@@ -615,7 +656,7 @@ module MQTT
 
       # Default attribute values
       ATTR_DEFAULTS = {
-        :qos => 1,
+        :flags => [false, true, false, false],
       }
 
       # Create a new Pubrel packet
@@ -634,6 +675,12 @@ module MQTT
         @id = shift_short(buffer)
         unless buffer.empty?
           raise ProtocolException.new("Extra bytes at end of Publish Release packet")
+        end
+      end
+
+      def validate_flags
+        if @flags != [false, true, false, false]
+          raise ProtocolException.new("Invalid flags in PUBREL packet header")
         end
       end
 
@@ -673,7 +720,7 @@ module MQTT
       # Default attribute values
       ATTR_DEFAULTS = {
         :topics => [],
-        :qos => 1,
+        :flags => [false, true, false, false],
       }
 
       # Create a new Subscribe packet
@@ -748,6 +795,12 @@ module MQTT
         end
       end
 
+      def validate_flags
+        if @flags != [false, true, false, false]
+          raise ProtocolException.new("Invalid flags in SUBSCRIBE packet header")
+        end
+      end
+
       # Returns a human readable string, summarising the properties of the packet
       def inspect
         _str = "\#<#{self.class}: 0x%2.2X, %s>" % [
@@ -817,7 +870,7 @@ module MQTT
       # Default attribute values
       ATTR_DEFAULTS = {
         :topics => [],
-        :qos => 1,
+        :flags => [false, true, false, false],
       }
 
       # Create a new Unsubscribe packet
@@ -850,6 +903,12 @@ module MQTT
         @id = shift_short(buffer)
         while(buffer.bytesize>0)
           @topics << shift_string(buffer)
+        end
+      end
+
+      def validate_flags
+        if @flags != [false, true, false, false]
+          raise ProtocolException.new("Invalid flags in UNSUBSCRIBE packet header")
         end
       end
 

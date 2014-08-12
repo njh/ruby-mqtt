@@ -9,82 +9,29 @@ require 'mqtt'
 describe MQTT::Packet do
 
   describe "when creating a new packet" do
-    it "should allow you to set the packet dup flag as a hash parameter" do
-      packet = MQTT::Packet.new( :duplicate => true )
-      packet.duplicate.should be_true
-    end
-
-    it "should allow you to set the packet QOS level as a hash parameter" do
-      packet = MQTT::Packet.new( :qos => 2 )
-      packet.qos.should == 2
-    end
-
-    it "should allow you to set the packet retain flag as a hash parameter" do
-      packet = MQTT::Packet.new( :retain => true )
-      packet.retain.should be_true
+    it "should allow you to set the packet flags as a hash parameter" do
+      packet = MQTT::Packet.new( :flags => [true, false, true, false] )
+      packet.flags.should == [true, false, true, false]
     end
 
     it "should have a custom inspect method" do
       packet = MQTT::Packet.new
       packet.inspect.should == '#<MQTT::Packet>'
     end
-
-    it "should throw an exception the QoS is greater than 2" do
-      expect {
-        packet = MQTT::Packet.new( :qos => 3 )
-      }.to raise_error(
-        'Invalid QoS value: 3'
-      )
-    end
-
-    it "should throw an exception the QoS is less than 0" do
-      expect {
-        packet = MQTT::Packet.new( :qos => -1 )
-      }.to raise_error(
-        'Invalid QoS value: -1'
-      )
-    end
   end
 
   describe "when setting packet parameters" do
-    let(:packet) {
-      MQTT::Packet.new(
-        :duplicate => false,
-        :qos => 0,
-        :retain => false
-      )
-    }
 
     it "should have a type_id method to get the integer ID of the packet type" do
       packet = MQTT::Packet::Pingreq.new
       packet.type_id.should == 12
     end
-
-    it "should let you change the dup flag of a packet" do
-      packet.duplicate = true
-      packet.duplicate.should be_true
-    end
-
-    it "should let you change the dup flag of a packet using an integer" do
-      packet.duplicate = 1
-      packet.duplicate.should be_true
-    end
-
-    it "should let you change the retain flag of a packet" do
-      packet.retain = true
-      packet.retain.should be_true
-    end
-
-    it "should let you change the retain flag of a packet using an integer" do
-      packet.retain = 1
-      packet.retain.should be_true
-    end
   end
 
   it "should let you attributes using the update_attributes method" do
-    packet = MQTT::Packet.new(:qos => 1)
-    packet.update_attributes(:qos => 2)
-    packet.qos.should == 2
+    packet = MQTT::Packet.new(:flags => [false, false, false, true])
+    packet.update_attributes(:flags => [false, false, true, true])
+    packet.flags.should == [false, false, true, true]
   end
 
   describe "protected methods" do
@@ -128,6 +75,69 @@ describe MQTT::Packet do
 end
 
 describe MQTT::Packet::Publish do
+  describe "when creating a packet" do
+    it "should allow you to set the packet QOS level as a hash parameter" do
+      packet = MQTT::Packet::Publish.new( :qos => 2 )
+      packet.qos.should == 2
+    end
+
+    it "should allow you to set the packet retain flag as a hash parameter" do
+      packet = MQTT::Packet::Publish.new( :retain => true )
+      packet.retain.should be_true
+    end
+
+    it "should throw an exception the QoS is greater than 2" do
+      expect {
+        packet = MQTT::Packet::Publish.new( :qos => 3 )
+      }.to raise_error(
+        'Invalid QoS value: 3'
+      )
+    end
+
+    it "should throw an exception the QoS is less than 0" do
+      expect {
+        packet = MQTT::Packet::Publish.new( :qos => -1 )
+      }.to raise_error(
+        'Invalid QoS value: -1'
+      )
+    end
+  end
+
+  describe "when setting attributes on a packet" do
+    let(:packet) {
+      MQTT::Packet::Publish.new(
+        :duplicate => false,
+        :qos => 0,
+        :retain => false
+      )
+    }
+
+    it "should let you change the dup flag of a packet" do
+      packet.duplicate = true
+      packet.duplicate.should be_true
+    end
+
+    it "should let you change the dup flag of a packet using an integer" do
+      packet.duplicate = 1
+      packet.duplicate.should be_true
+    end
+
+    it "should let you change the QoS value of a packet" do
+      packet.qos = 1
+      packet.qos.should == 1
+    end
+
+    it "should let you change the retain flag of a packet" do
+      packet.retain = true
+      packet.retain.should be_true
+    end
+
+    it "should let you change the retain flag of a packet using an integer" do
+      packet.retain = 1
+      packet.retain.should be_true
+    end
+  end
+
   describe "when serialising a packet" do
     it "should output the correct bytes for a packet with default QOS and no flags" do
       packet = MQTT::Packet::Publish.new( :topic => 'test', :payload => 'hello world' )
@@ -273,7 +283,8 @@ describe MQTT::Packet::Publish do
       expect {
         packet = MQTT::Packet.parse( "\x36\x12\x00\x03a/b\x00\x05hello world" )
       }.to raise_error(
-        'Invalid QoS value: 3'
+        MQTT::ProtocolException,
+        'Invalid packet: QoS value of 3 is not allowed'
       )
     end
   end
@@ -561,8 +572,8 @@ describe MQTT::Packet::Connect do
       packet.class.should == MQTT::Packet::Connect
     end
 
-    it "should set the QOS of the packet correctly" do
-      packet.qos.should == 0
+    it "should set the fixed header flags of the packet correctly" do
+      packet.flags.should == [false, false, false, false]
     end
 
     it "should set the Protocol Name of the packet correctly" do
@@ -611,8 +622,8 @@ describe MQTT::Packet::Connect do
       packet.class.should == MQTT::Packet::Connect
     end
 
-    it "should set the QOS of the packet correctly" do
-      packet.qos.should == 0
+    it "should set the fixed header flags of the packet correctly" do
+      packet.flags.should == [false, false, false, false]
     end
 
     it "should set the Protocol Name of the packet correctly" do
@@ -673,8 +684,8 @@ describe MQTT::Packet::Connect do
       packet.class.should == MQTT::Packet::Connect
     end
 
-    it "should set the QOS of the packet correctly" do
-      packet.qos.should == 0
+    it "should set the fixed header flags of the packet correctly" do
+      packet.flags.should == [false, false, false, false]
     end
 
     it "should set the Protocol Name of the packet correctly" do
@@ -734,8 +745,8 @@ describe MQTT::Packet::Connect do
       packet.class.should == MQTT::Packet::Connect
     end
 
-    it "should set the QOS of the packet correctly" do
-      packet.qos.should == 0
+    it "should set the fixed header flags of the packet correctly" do
+      packet.flags.should == [false, false, false, false]
     end
 
     it "should set the Protocol Name of the packet correctly" do
@@ -840,8 +851,8 @@ describe MQTT::Packet::Connect do
       packet.class.should == MQTT::Packet::Connect
     end
 
-    it "should set the QOS of the packet correctly" do
-      packet.qos.should == 0
+    it "should set the fixed header flags of the packet correctly" do
+      packet.flags.should == [false, false, false, false]
     end
 
     it "should set the Protocol Name of the packet correctly" do
@@ -956,8 +967,8 @@ describe MQTT::Packet::Connack do
       packet.class.should == MQTT::Packet::Connack
     end
 
-    it "should set the QOS of the packet correctly" do
-      packet.qos.should == 0
+    it "should set the fixed header flags of the packet correctly" do
+      packet.flags.should == [false, false, false, false]
     end
 
     it "should set the return code of the packet correctly" do
@@ -1309,8 +1320,8 @@ describe MQTT::Packet::Subscribe do
       packet.class.should == MQTT::Packet::Subscribe
     end
 
-    it "should set the QOS level correctly" do
-      packet.qos.should == 1
+    it "should set the fixed header flags of the packet correctly" do
+      packet.flags.should == [false, true, false, false]
     end
 
     it "should set the Message ID correctly" do
@@ -1329,8 +1340,8 @@ describe MQTT::Packet::Subscribe do
       packet.class.should == MQTT::Packet::Subscribe
     end
 
-    it "should set the QOS level correctly" do
-      packet.qos.should == 1
+    it "should set the fixed header flags of the packet correctly" do
+      packet.flags.should == [false, true, false, false]
     end
 
     it "should set the Message ID correctly" do
@@ -1457,8 +1468,8 @@ describe MQTT::Packet::Unsubscribe do
       packet.class.should == MQTT::Packet::Unsubscribe
     end
 
-    it "should set the QOS level correctly" do
-      packet.qos.should == 1
+    it "should set the fixed header flags of the packet correctly" do
+      packet.flags.should == [false, true, false, false]
     end
 
     it "should set the topic name correctly" do
