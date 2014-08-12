@@ -6,7 +6,7 @@ module MQTT
   # Performs binary encoding and decoding of headers
   class MQTT::Packet
     # The version number of the MQTT protocol to use (default 3.1.0)
-    attr_reader :version
+    attr_accessor :version
 
     # Identifier to link related control packets together
     attr_accessor :id
@@ -657,7 +657,7 @@ module MQTT
     # Class representing an MQTT Client Subscribe packet
     class Subscribe < MQTT::Packet
       # One or more topic names to subscribe to
-      attr_reader :topics
+      attr_accessor :topics
 
       # Create a new Subscribe packet
       def initialize(args={})
@@ -745,7 +745,7 @@ module MQTT
     # Class representing an MQTT Subscribe Acknowledgment packet
     class Suback < MQTT::Packet
       # The QoS level that was granted for the subscribe request
-      attr_reader :granted_qos
+      attr_accessor :granted_qos
 
       # Create a new Subscribe Acknowledgment packet
       def initialize(args={})
@@ -793,7 +793,7 @@ module MQTT
     # Class representing an MQTT Client Unsubscribe packet
     class Unsubscribe < MQTT::Packet
       # One or more topics to unsubscribe from
-      attr_reader :topics
+      attr_accessor :topics
 
       # Create a new Unsubscribe packet
       def initialize(args={})
