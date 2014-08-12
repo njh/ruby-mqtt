@@ -123,7 +123,10 @@ module MQTT
 
     # Create a new empty packet
     def initialize(args={})
-      update_attributes(ATTR_DEFAULTS.merge(args))
+      # We must set flags before the other values
+      attr = ATTR_DEFAULTS.merge(args)
+      @flags = attr.delete(:flags).dup
+      update_attributes(attr)
     end
 
     # Set packet attributes from a hash of attribute names and values
