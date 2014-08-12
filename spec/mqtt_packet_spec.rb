@@ -1174,12 +1174,12 @@ describe MQTT::Packet::Pubrel do
   describe "when serialising a packet" do
     it "should output the correct bytes for a packet with no flags" do
       packet = MQTT::Packet::Pubrel.new( :id => 0x1234 )
-      packet.to_s.should == "\x60\x02\x12\x34"
+      packet.to_s.should == "\x62\x02\x12\x34"
     end
   end
 
   describe "when parsing a packet" do
-    let(:packet) { MQTT::Packet.parse( "\x60\x02\x12\x34" ) }
+    let(:packet) { MQTT::Packet.parse( "\x62\x02\x12\x34" ) }
 
     it "should correctly create the right type of packet object" do
       packet.class.should == MQTT::Packet::Pubrel
@@ -1193,7 +1193,7 @@ describe MQTT::Packet::Pubrel do
   describe "when parsing packet with extra bytes on the end" do
     it "should throw an exception" do
       expect {
-        packet = MQTT::Packet.parse( "\x60\x03\x12\x34\x00" )
+        packet = MQTT::Packet.parse( "\x62\x03\x12\x34\x00" )
       }.to raise_error(
         MQTT::ProtocolException,
         "Extra bytes at end of Publish Release packet"

@@ -612,6 +612,17 @@ module MQTT
 
     # Class representing an MQTT Publish Release packet
     class Pubrel < MQTT::Packet
+
+      # Default attribute values
+      ATTR_DEFAULTS = {
+        :qos => 1,
+      }
+
+      # Create a new Pubrel packet
+      def initialize(args={})
+        super(ATTR_DEFAULTS.merge(args))
+      end
+
       # Get serialisation of packet's body
       def encode_body
         encode_short(@id)
@@ -659,11 +670,15 @@ module MQTT
       # One or more topic names to subscribe to
       attr_accessor :topics
 
+      # Default attribute values
+      ATTR_DEFAULTS = {
+        :topics => [],
+        :qos => 1,
+      }
+
       # Create a new Subscribe packet
       def initialize(args={})
-        super(args)
-        @topics ||= []
-        @qos = 1 # Force a QOS of 1
+        super(ATTR_DEFAULTS.merge(args))
       end
 
       # Set one or more topics for the Subscrible packet
@@ -747,10 +762,14 @@ module MQTT
       # The QoS level that was granted for the subscribe request
       attr_accessor :granted_qos
 
+      # Default attribute values
+      ATTR_DEFAULTS = {
+        :granted_qos => [],
+      }
+
       # Create a new Subscribe Acknowledgment packet
       def initialize(args={})
-        super(args)
-        @granted_qos ||= []
+        super(ATTR_DEFAULTS.merge(args))
       end
 
       # Set the granted QOS value for each of the topics that were subscribed to
@@ -795,11 +814,15 @@ module MQTT
       # One or more topics to unsubscribe from
       attr_accessor :topics
 
+      # Default attribute values
+      ATTR_DEFAULTS = {
+        :topics => [],
+        :qos => 1,
+      }
+
       # Create a new Unsubscribe packet
       def initialize(args={})
-        super(args)
-        @topics ||= []
-        @qos = 1 # Force a QOS of 1
+        super(ATTR_DEFAULTS.merge(args))
       end
 
       # Set one or more topics to unsubscribe from
