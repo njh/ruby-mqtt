@@ -558,6 +558,9 @@ module MQTT
 
     # Class representing an MQTT Connect Acknowledgment Packet
     class Connack < MQTT::Packet
+      # Session Present flag
+      attr_accessor :session_present
+
       # The return code (defaults to 0 for connection accepted)
       attr_accessor :return_code
 
@@ -566,7 +569,23 @@ module MQTT
 
       # Create a new Client Connect packet
       def initialize(args={})
+        # We must set flags before other attributes
+        @connack_flags = [false, false, false, false, false, false, false, false]
         super(ATTR_DEFAULTS.merge(args))
+      end
+
+      # Get the Session Present flag
+      def session_present
+        @connack_flags[0]
+      end
+
+      # Set the Session Present flag
+      def session_present=(arg)
+        if arg.kind_of?(Integer)
+          @connack_flags[0] = (arg == 0x1)
+        else
+          @connack_flags[0] = arg
+        end
       end
 
       # Get a string message corresponding to a return code
@@ -592,15 +611,18 @@ module MQTT
       # Get serialisation of packet's body
       def encode_body
         body = ''
-        body += encode_bytes(0) # Unused
-        body += encode_bytes(@return_code.to_i) # Return Code
+        body += encode_bits(@connack_flags)
+        body += encode_bytes(@return_code.to_i)
         return body
       end
 
       # Parse the body (variable header and payload) of a Connect Acknowledgment packet
       def parse_body(buffer)
         super(buffer)
-        _unused = shift_byte(buffer)
+        @connack_flags = shift_bits(buffer)
+        unless @connack_flags[1,7] == [false, false, false, false, false, false, false]
+          raise ProtocolException.new("Invalid flags in Connack variable header")
+        end
         @return_code = shift_byte(buffer)
         unless buffer.empty?
           raise ProtocolException.new("Extra bytes at end of Connect Acknowledgment packet")

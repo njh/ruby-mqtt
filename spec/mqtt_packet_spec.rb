@@ -962,10 +962,35 @@ describe MQTT::Packet::Connect do
 end
 
 describe MQTT::Packet::Connack do
+
+  describe "when setting attributes on a packet" do
+    let(:packet) {  MQTT::Packet::Connack.new }
+
+    it "should let you change the session present flag of a packet" do
+      packet.session_present = true
+      packet.session_present.should be_true
+    end
+
+    it "should let you change the session present flag of a packet using an integer" do
+      packet.session_present = 1
+      packet.session_present.should be_true
+    end
+
+    it "should let you change the return code of a packet" do
+      packet.return_code = 3
+      packet.return_code.should == 3
+    end
+  end
+
   describe "when serialising a packet" do
-    it "should output the correct bytes for a sucessful connection acknowledgement packet" do
-      packet = MQTT::Packet::Connack.new( :return_code => 0x00 )
+    it "should output the correct bytes for a sucessful connection acknowledgement packet without Session Present set" do
+      packet = MQTT::Packet::Connack.new( :return_code => 0x00, :session_present => false )
       packet.to_s.should == "\x20\x02\x00\x00"
+    end
+
+    it "should output the correct bytes for a sucessful connection acknowledgement packet with Session Present set" do
+      packet = MQTT::Packet::Connack.new( :return_code => 0x00, :session_present => true )
+      packet.to_s.should == "\x20\x02\x01\x00"
     end
   end
 
@@ -980,6 +1005,36 @@ describe MQTT::Packet::Connack do
 
     it "should set the fixed header flags of the packet correctly" do
       packet.flags.should == [false, false, false, false]
+    end
+
+    it "should set the Session Pression flag of the packet correctly" do
+      packet.session_present.should == false
+    end
+
+    it "should set the return code of the packet correctly" do
+      packet.return_code.should == 0x00
+    end
+
+    it "should set the return message of the packet correctly" do
+      packet.return_msg.should match(/Connection Accepted/i)
+    end
+  end
+
+  describe "when parsing a successful Connection Accepted packet with Session Present set" do
+    let(:packet) do
+      MQTT::Packet.parse( "\x20\x02\x01\x00" )
+    end
+
+    it "should correctly create the right type of packet object" do
+      packet.class.should == MQTT::Packet::Connack
+    end
+
+    it "should set the fixed header flags of the packet correctly" do
+      packet.flags.should == [false, false, false, false]
+    end
+
+    it "should set the Session Pression flag of the packet correctly" do
+      packet.session_present.should == true
     end
 
     it "should set the return code of the packet correctly" do
@@ -1092,6 +1147,17 @@ describe MQTT::Packet::Connack do
 
     it "should set the return message of the packet correctly" do
       packet.return_msg.should match(/Connection refused: error code 16/i)
+    end
+  end
+
+  describe "when parsing packet with invalid connack flags set" do
+    it "should throw an exception" do
+      expect {
+        packet = MQTT::Packet.parse( "\x20\x02\xff\x05" )
+      }.to raise_error(
+        MQTT::ProtocolException,
+        "Invalid flags in Connack variable header"
+      )
     end
   end
 
