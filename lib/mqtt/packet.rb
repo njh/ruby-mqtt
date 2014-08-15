@@ -25,7 +25,6 @@ module MQTT
     ATTR_DEFAULTS = {
       :version => '3.1.0',
       :id => 0,
-      :flags => [false, false, false, false],
       :body_length => nil
     }
 
@@ -119,9 +118,8 @@ module MQTT
     # Create a new empty packet
     def initialize(args={})
       # We must set flags before the other values
-      attr = ATTR_DEFAULTS.merge(args)
-      @flags = attr.delete(:flags).dup
-      update_attributes(attr)
+      @flags = [false, false, false, false]
+      update_attributes(ATTR_DEFAULTS.merge(args))
     end
 
     # Set packet attributes from a hash of attribute names and values
