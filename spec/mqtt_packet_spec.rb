@@ -18,9 +18,6 @@ describe MQTT::Packet do
       packet = MQTT::Packet.new
       packet.inspect.should == '#<MQTT::Packet>'
     end
-  end
-
-  describe "when setting packet parameters" do
 
     it "should have a type_id method to get the integer ID of the packet type" do
       packet = MQTT::Packet::Pingreq.new
@@ -28,7 +25,7 @@ describe MQTT::Packet do
     end
   end
 
-  it "should let you attributes using the update_attributes method" do
+  it "should let you change attributes using the update_attributes method" do
     packet = MQTT::Packet.new(:flags => [false, false, false, true])
     packet.update_attributes(:flags => [false, false, true, true])
     packet.flags.should == [false, false, true, true]
