@@ -940,6 +940,19 @@ describe MQTT::Packet::Connect do
     end
   end
 
+  describe "when parsing packet with invalid fixed header flags" do
+    it "should throw a protocol exception" do
+      expect {
+        MQTT::Packet.parse(
+          "\x13\x16\x00\x06MQIsdp\x03\x00\x00\x0a\x00\x08myclient"
+        )
+      }.to raise_error(
+        MQTT::ProtocolException,
+        "Invalid flags in CONNECT packet header"
+      )
+    end
+  end
+
   describe "when calling the inspect method" do
     it "should output correct string for the default options" do
       packet = MQTT::Packet::Connect.new
@@ -1147,7 +1160,7 @@ describe MQTT::Packet::Connack do
     end
   end
 
-  describe "when parsing packet with invalid connack flags set" do
+  describe "when parsing packet with invalid Connack flags set" do
     it "should throw an exception" do
       expect {
         packet = MQTT::Packet.parse( "\x20\x02\xff\x05" )
@@ -1165,6 +1178,17 @@ describe MQTT::Packet::Connack do
       }.to raise_error(
         MQTT::ProtocolException,
         "Extra bytes at end of Connect Acknowledgment packet"
+      )
+    end
+  end
+
+  describe "when parsing packet with invalid fixed header flags" do
+    it "should throw a protocol exception" do
+      expect {
+        MQTT::Packet.parse( "\x23\x02\x00\x00" )
+      }.to raise_error(
+        MQTT::ProtocolException,
+        "Invalid flags in CONNACK packet header"
       )
     end
   end
@@ -1212,6 +1236,17 @@ describe MQTT::Packet::Puback do
     end
   end
 
+  describe "when parsing packet with invalid fixed header flags" do
+    it "should throw a protocol exception" do
+      expect {
+        MQTT::Packet.parse( "\x43\x02\x12\x34" )
+      }.to raise_error(
+        MQTT::ProtocolException,
+        "Invalid flags in PUBACK packet header"
+      )
+    end
+  end
+
   it "should output the right string when calling inspect" do
     packet = MQTT::Packet::Puback.new( :id => 0x1234 )
     packet.inspect.should == "#<MQTT::Packet::Puback: 0x1234>"
@@ -1245,6 +1280,17 @@ describe MQTT::Packet::Pubrec do
       }.to raise_error(
         MQTT::ProtocolException,
         "Extra bytes at end of Publish Received packet"
+      )
+    end
+  end
+
+  describe "when parsing packet with invalid fixed header flags" do
+    it "should throw a protocol exception" do
+      expect {
+        MQTT::Packet.parse( "\x53\x02\x12\x34" )
+      }.to raise_error(
+        MQTT::ProtocolException,
+        "Invalid flags in PUBREC packet header"
       )
     end
   end
@@ -1286,6 +1332,17 @@ describe MQTT::Packet::Pubrel do
     end
   end
 
+  describe "when parsing packet with invalid fixed header flags" do
+    it "should throw a protocol exception" do
+      expect {
+        MQTT::Packet.parse( "\x60\x02\x12\x34" )
+      }.to raise_error(
+        MQTT::ProtocolException,
+        "Invalid flags in PUBREL packet header"
+      )
+    end
+  end
+
   it "should output the right string when calling inspect" do
     packet = MQTT::Packet::Pubrel.new( :id => 0x1234 )
     packet.inspect.should == "#<MQTT::Packet::Pubrel: 0x1234>"
@@ -1319,6 +1376,17 @@ describe MQTT::Packet::Pubcomp do
       }.to raise_error(
         MQTT::ProtocolException,
         "Extra bytes at end of Publish Complete packet"
+      )
+    end
+  end
+
+  describe "when parsing packet with invalid fixed header flags" do
+    it "should throw a protocol exception" do
+      expect {
+        MQTT::Packet.parse( "\x72\x02\x12\x34" )
+      }.to raise_error(
+        MQTT::ProtocolException,
+        "Invalid flags in PUBCOMP packet header"
       )
     end
   end
@@ -1427,6 +1495,17 @@ describe MQTT::Packet::Subscribe do
     end
   end
 
+  describe "when parsing packet with invalid fixed header flags" do
+    it "should throw a protocol exception" do
+      expect {
+        MQTT::Packet.parse( "\x80\x08\x00\x01\x00\x03a/b\x00" )
+      }.to raise_error(
+        MQTT::ProtocolException,
+        "Invalid flags in SUBSCRIBE packet header"
+      )
+    end
+  end
+
   describe "when calling the inspect method" do
     it "should output correct string for a single topic" do
       packet = MQTT::Packet::Subscribe.new(:topics => 'test')
@@ -1501,6 +1580,17 @@ describe MQTT::Packet::Suback do
     end
   end
 
+  describe "when parsing packet with invalid fixed header flags" do
+    it "should throw a protocol exception" do
+      expect {
+        MQTT::Packet.parse( "\x92\x03\x12\x34\x00" )
+      }.to raise_error(
+        MQTT::ProtocolException,
+        "Invalid flags in SUBACK packet header"
+      )
+    end
+  end
+
   describe "when calling the inspect method" do
     it "should output correct string for a single granted qos" do
       packet = MQTT::Packet::Suback.new(:id => 0x1234, :granted_qos => 0)
@@ -1551,6 +1641,17 @@ describe MQTT::Packet::Unsubscribe do
     end
   end
 
+  describe "when parsing packet with invalid fixed header flags" do
+    it "should throw a protocol exception" do
+      expect {
+        MQTT::Packet.parse( "\xa0\x07\x00\x05\x00\x03a/b" )
+      }.to raise_error(
+        MQTT::ProtocolException,
+        "Invalid flags in UNSUBSCRIBE packet header"
+      )
+    end
+  end
+
   describe "when calling the inspect method" do
     it "should output correct string for a single topic" do
       packet = MQTT::Packet::Unsubscribe.new(:topics => 'test')
@@ -1597,6 +1698,17 @@ describe MQTT::Packet::Unsuback do
     end
   end
 
+  describe "when parsing packet with invalid fixed header flags" do
+    it "should throw a protocol exception" do
+      expect {
+        MQTT::Packet.parse( "\xB2\x02\x12\x34" )
+      }.to raise_error(
+        MQTT::ProtocolException,
+        "Invalid flags in UNSUBACK packet header"
+      )
+    end
+  end
+
   it "should output the right string when calling inspect" do
     packet = MQTT::Packet::Unsuback.new( :id => 0x1234 )
     packet.inspect.should == "#<MQTT::Packet::Unsuback: 0x1234>"
@@ -1622,6 +1734,17 @@ describe MQTT::Packet::Pingreq do
         MQTT::Packet.parse( "\xC0\x05hello" )
       }.to raise_error(
         'Extra bytes at end of Ping Request packet'
+      )
+    end
+  end
+
+  describe "when parsing packet with invalid fixed header flags" do
+    it "should throw a protocol exception" do
+      expect {
+        MQTT::Packet.parse( "\xC2\x00" )
+      }.to raise_error(
+        MQTT::ProtocolException,
+        "Invalid flags in PINGREQ packet header"
       )
     end
   end
@@ -1655,6 +1778,17 @@ describe MQTT::Packet::Pingresp do
     end
   end
 
+  describe "when parsing packet with invalid fixed header flags" do
+    it "should throw a protocol exception" do
+      expect {
+        MQTT::Packet.parse( "\xD2\x00" )
+      }.to raise_error(
+        MQTT::ProtocolException,
+        "Invalid flags in PINGRESP packet header"
+      )
+    end
+  end
+
   it "should output the right string when calling inspect" do
     packet = MQTT::Packet::Pingresp.new
     packet.inspect.should == "#<MQTT::Packet::Pingresp>"
@@ -1681,6 +1815,17 @@ describe MQTT::Packet::Disconnect do
         MQTT::Packet.parse( "\xE0\x05hello" )
       }.to raise_error(
         'Extra bytes at end of Disconnect packet'
+      )
+    end
+  end
+
+  describe "when parsing packet with invalid fixed header flags" do
+    it "should throw a protocol exception" do
+      expect {
+        MQTT::Packet.parse( "\xE2\x00" )
+      }.to raise_error(
+        MQTT::ProtocolException,
+        "Invalid flags in DISCONNECT packet header"
       )
     end
   end

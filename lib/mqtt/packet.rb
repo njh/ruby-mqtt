@@ -142,6 +142,10 @@ module MQTT
       return index
     end
 
+    def type_name
+      self.class.name.split('::').last.upcase
+    end
+
     # Set the protocol version number
     def version=(arg)
       @version = arg.to_s
@@ -202,7 +206,7 @@ module MQTT
 
     def validate_flags
       if flags != [false, false, false, false]
-        raise ProtocolException.new("Invalid flags in #{self.class} packet header")
+        raise ProtocolException.new("Invalid flags in #{type_name} packet header")
       end
     end
 
