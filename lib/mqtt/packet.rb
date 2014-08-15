@@ -109,13 +109,8 @@ module MQTT
         raise ProtocolException.new("Invalid packet type identifier: #{type_id}")
       end
 
-      # FIXME: must be better way of doing this
-      flags = [
-        (byte & 0x01 == 0x01),
-        (byte & 0x02 == 0x02),
-        (byte & 0x04 == 0x04),
-        (byte & 0x08 == 0x08),
-      ]
+      # Convert the last 4 bits of byte into array of true/false
+      flags = (0..3).map { |i| byte & (2 ** i) != 0 }
 
       # Create a new packet object
       packet_class.new(:flags => flags)
