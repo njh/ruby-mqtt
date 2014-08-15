@@ -225,6 +225,11 @@ module MQTT
       bytes.pack('C*')
     end
 
+    # Encode an array of bits and return them
+    def encode_bits(bits)
+      [bits.map{|b| b ? '1' : '0'}.join].pack('b*')
+    end
+
     # Encode a 16-bit unsigned integer and return it
     def encode_short(val)
       [val.to_i].pack('n')
@@ -249,6 +254,11 @@ module MQTT
     # Remove one byte from the front of the string
     def shift_byte(buffer)
       buffer.slice!(0...1).unpack('C').first
+    end
+
+    # Remove 8 bits from the front of buffer
+    def shift_bits(buffer)
+      buffer.slice!(0...1).unpack('b8').first.split('').map {|b| b == '1'}
     end
 
     # Remove n bytes from the front of buffer

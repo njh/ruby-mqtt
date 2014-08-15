@@ -42,6 +42,11 @@ describe MQTT::Packet do
       data.should == 'Hello'
     end
 
+    it "should provide a encode_bits method to encode an array of bits to a string" do
+      data = packet.send(:encode_bits, [false, true, true, false, true, false, true, false])
+      data.should == 'V'
+    end
+
     it "should provide a add_short method to get a big-endian unsigned 16-bit integer" do
       data = packet.send(:encode_short, 1024)
       data.should == "\x04\x00"
@@ -63,6 +68,12 @@ describe MQTT::Packet do
     it "should provide a shift_byte method to get one byte as integers" do
       buffer = "\x01blahblah"
       packet.send(:shift_byte,buffer).should == 1
+      buffer.should == 'blahblah'
+    end
+
+    it "should provide a shift_byte method to get one byte as integers" do
+      buffer = "Yblahblah"
+      packet.send(:shift_bits, buffer).should == [true, false, false, true, true, false, true, false]
       buffer.should == 'blahblah'
     end
 
