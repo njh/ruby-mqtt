@@ -26,121 +26,121 @@ describe MQTT::Client do
   describe "initializing a client" do
     it "with no arguments, it should use the defaults" do
       client = MQTT::Client.new
-      client.host.should == nil
-      client.port.should == 1883
-      client.version.should == '3.1.0'
-      client.keep_alive.should == 15
+      expect(client.host).to eq(nil)
+      expect(client.port).to eq(1883)
+      expect(client.version).to eq('3.1.0')
+      expect(client.keep_alive).to eq(15)
     end
 
     it "with a single string argument, it should use it has the host" do
       client = MQTT::Client.new('otherhost.mqtt.org')
-      client.host.should == 'otherhost.mqtt.org'
-      client.port.should == 1883
-      client.keep_alive.should == 15
+      expect(client.host).to eq('otherhost.mqtt.org')
+      expect(client.port).to eq(1883)
+      expect(client.keep_alive).to eq(15)
     end
 
     it "with two arguments, it should use it as the host and port" do
       client = MQTT::Client.new('otherhost.mqtt.org', 1000)
-      client.host.should == 'otherhost.mqtt.org'
-      client.port.should == 1000
-      client.keep_alive.should == 15
+      expect(client.host).to eq('otherhost.mqtt.org')
+      expect(client.port).to eq(1000)
+      expect(client.keep_alive).to eq(15)
     end
 
     it "with names arguments, it should use those as arguments" do
       client = MQTT::Client.new(:host => 'otherhost.mqtt.org', :port => 1000)
-      client.host.should == 'otherhost.mqtt.org'
-      client.port.should == 1000
-      client.keep_alive.should == 15
+      expect(client.host).to eq('otherhost.mqtt.org')
+      expect(client.port).to eq(1000)
+      expect(client.keep_alive).to eq(15)
     end
 
     it "with a hash, it should use those as arguments" do
       client = MQTT::Client.new({:host => 'otherhost.mqtt.org', :port => 1000})
-      client.host.should == 'otherhost.mqtt.org'
-      client.port.should == 1000
-      client.keep_alive.should == 15
+      expect(client.host).to eq('otherhost.mqtt.org')
+      expect(client.port).to eq(1000)
+      expect(client.keep_alive).to eq(15)
     end
 
     it "with a hash containing just a keep alive setting" do
       client = MQTT::Client.new(:host => 'localhost', :keep_alive => 60)
-      client.host.should == 'localhost'
-      client.port.should == 1883
-      client.keep_alive.should == 60
+      expect(client.host).to eq('localhost')
+      expect(client.port).to eq(1883)
+      expect(client.keep_alive).to eq(60)
     end
 
     it "with a combination of a host name and a hash of settings" do
       client = MQTT::Client.new('localhost', :keep_alive => 65)
-      client.host.should == 'localhost'
-      client.port.should == 1883
-      client.keep_alive.should == 65
+      expect(client.host).to eq('localhost')
+      expect(client.port).to eq(1883)
+      expect(client.keep_alive).to eq(65)
     end
 
     it "with a combination of a host name, port and a hash of settings" do
       client = MQTT::Client.new('localhost', 1888, :keep_alive => 65)
-      client.host.should == 'localhost'
-      client.port.should == 1888
-      client.keep_alive.should == 65
+      expect(client.host).to eq('localhost')
+      expect(client.port).to eq(1888)
+      expect(client.keep_alive).to eq(65)
     end
 
     it "with a mqtt:// URI containing just a hostname" do
       client = MQTT::Client.new(URI.parse('mqtt://mqtt.example.com'))
-      client.host.should == 'mqtt.example.com'
-      client.port.should == 1883
-      client.ssl.should be_false
+      expect(client.host).to eq('mqtt.example.com')
+      expect(client.port).to eq(1883)
+      expect(client.ssl).to be_falsey
     end
 
     it "with a mqtts:// URI containing just a hostname" do
       client = MQTT::Client.new(URI.parse('mqtts://mqtt.example.com'))
-      client.host.should == 'mqtt.example.com'
-      client.port.should == 8883
-      client.ssl.should be_true
+      expect(client.host).to eq('mqtt.example.com')
+      expect(client.port).to eq(8883)
+      expect(client.ssl).to be_truthy
     end
 
     it "with a mqtt:// URI containing a custom port number" do
       client = MQTT::Client.new(URI.parse('mqtt://mqtt.example.com:1234/'))
-      client.host.should == 'mqtt.example.com'
-      client.port.should == 1234
-      client.ssl.should be_false
+      expect(client.host).to eq('mqtt.example.com')
+      expect(client.port).to eq(1234)
+      expect(client.ssl).to be_falsey
     end
 
     it "with a mqtts:// URI containing a custom port number" do
       client = MQTT::Client.new(URI.parse('mqtts://mqtt.example.com:1234/'))
-      client.host.should == 'mqtt.example.com'
-      client.port.should == 1234
-      client.ssl.should be_true
+      expect(client.host).to eq('mqtt.example.com')
+      expect(client.port).to eq(1234)
+      expect(client.ssl).to be_truthy
     end
 
     it "with a URI containing a username and password" do
       client = MQTT::Client.new(URI.parse('mqtt://auser:bpass@mqtt.example.com'))
-      client.host.should == 'mqtt.example.com'
-      client.port.should == 1883
-      client.username.should == 'auser'
-      client.password.should == 'bpass'
+      expect(client.host).to eq('mqtt.example.com')
+      expect(client.port).to eq(1883)
+      expect(client.username).to eq('auser')
+      expect(client.password).to eq('bpass')
     end
 
     it "with a URI as a string" do
       client = MQTT::Client.new('mqtt://mqtt.example.com')
-      client.host.should == 'mqtt.example.com'
-      client.port.should == 1883
+      expect(client.host).to eq('mqtt.example.com')
+      expect(client.port).to eq(1883)
     end
 
     it "with a URI as a string including port" do
       client = MQTT::Client.new('mqtt://user:pass@m10.cloudmqtt.com:13858', nil)
-      client.host.should == 'm10.cloudmqtt.com'
-      client.port.should == 13858
+      expect(client.host).to eq('m10.cloudmqtt.com')
+      expect(client.port).to eq(13858)
     end
 
     it "with a URI and a hash of settings" do
       client = MQTT::Client.new('mqtt://mqtt.example.com', :keep_alive => 65)
-      client.host.should == 'mqtt.example.com'
-      client.port.should == 1883
-      client.keep_alive.should == 65
+      expect(client.host).to eq('mqtt.example.com')
+      expect(client.port).to eq(1883)
+      expect(client.keep_alive).to eq(65)
     end
 
     it "with no arguments uses the MQTT_SERVER environment variable as connect URI" do
       ENV['MQTT_SERVER'] = 'mqtt://mqtt.example.com:1234'
       client = MQTT::Client.new
-      client.host.should == 'mqtt.example.com'
-      client.port.should == 1234
+      expect(client.host).to eq('mqtt.example.com')
+      expect(client.port).to eq(1234)
     end
 
     it "with an unsupported URI scheme" do
@@ -162,67 +162,67 @@ describe MQTT::Client do
 
   describe "setting a client certificate file path" do
     it "should add a certificate to the SSL context" do
-      client.ssl_context.cert.should be_nil
+      expect(client.ssl_context.cert).to be_nil
       client.cert_file = fixture_path('client.pem')
-      client.ssl_context.cert.should be_a(OpenSSL::X509::Certificate)
+      expect(client.ssl_context.cert).to be_a(OpenSSL::X509::Certificate)
     end
   end
 
   describe "setting a client private key file path" do
     it "should add a certificate to the SSL context" do
-      client.ssl_context.key.should be_nil
+      expect(client.ssl_context.key).to be_nil
       client.key_file = fixture_path('client.key')
-      client.ssl_context.key.should be_a(OpenSSL::PKey::RSA)
+      expect(client.ssl_context.key).to be_a(OpenSSL::PKey::RSA)
     end
   end
 
   describe "setting a Certificate Authority file path" do
     it "should add a CA file path to the SSL context" do
-      client.ssl_context.ca_file.should be_nil
+      expect(client.ssl_context.ca_file).to be_nil
       client.ca_file = fixture_path('root-ca.pem')
-      client.ssl_context.ca_file.should == fixture_path('root-ca.pem')
+      expect(client.ssl_context.ca_file).to eq(fixture_path('root-ca.pem'))
     end
 
     it "should enable peer verification" do
       client.ca_file = fixture_path('root-ca.pem')
-      client.ssl_context.verify_mode.should == OpenSSL::SSL::VERIFY_PEER
+      expect(client.ssl_context.verify_mode).to eq(OpenSSL::SSL::VERIFY_PEER)
     end
   end
 
   describe "legacy attribute names" do
     it "should allow getting and setting the host name using the remote_host method" do
       client.remote_host = 'remote-host.example.com'
-      client.host.should == 'remote-host.example.com'
-      client.remote_host.should == 'remote-host.example.com'
+      expect(client.host).to eq('remote-host.example.com')
+      expect(client.remote_host).to eq('remote-host.example.com')
     end
 
     it "should allow getting and setting the port using the remote_port method" do
       client.remote_port = 9999
-      client.port.should == 9999
-      client.remote_port.should == 9999
+      expect(client.port).to eq(9999)
+      expect(client.remote_port).to eq(9999)
     end
   end
 
   describe "when calling the 'connect' method on a client" do
     before(:each) do
-      TCPSocket.stub(:new).and_return(socket)
-      Thread.stub(:new)
-      client.stub(:receive_connack)
+      allow(TCPSocket).to receive(:new).and_return(socket)
+      allow(Thread).to receive(:new)
+      allow(client).to receive(:receive_connack)
     end
 
     it "should create a TCP Socket if not connected" do
-      TCPSocket.should_receive(:new).once.and_return(socket)
+      expect(TCPSocket).to receive(:new).once.and_return(socket)
       client.connect('myclient')
     end
 
     it "should not create a new TCP Socket if connected" do
-      client.stub(:connected?).and_return(true)
-      TCPSocket.should_receive(:new).never
+      allow(client).to receive(:connected?).and_return(true)
+      expect(TCPSocket).to receive(:new).never
       client.connect('myclient')
     end
 
     it "should start the reader thread if not connected" do
-      Thread.should_receive(:new).once
+      expect(Thread).to receive(:new).once
       client.connect('myclient')
     end
 
@@ -230,7 +230,7 @@ describe MQTT::Client do
       it "should write a valid CONNECT packet to the socket if not connected" do
         client.version = '3.1.0'
         client.connect('myclient')
-        socket.string.should == "\020\026\x00\x06MQIsdp\x03\x02\x00\x0f\x00\x08myclient"
+        expect(socket.string).to eq("\020\026\x00\x06MQIsdp\x03\x02\x00\x0f\x00\x08myclient")
       end
     end
 
@@ -238,12 +238,12 @@ describe MQTT::Client do
       it "should write a valid CONNECT packet to the socket if not connected" do
         client.version = '3.1.1'
         client.connect('myclient')
-        socket.string.should == "\020\024\x00\x04MQTT\x04\x02\x00\x0f\x00\x08myclient"
+        expect(socket.string).to eq("\020\024\x00\x04MQTT\x04\x02\x00\x0f\x00\x08myclient")
       end
     end
 
     it "should try and read an acknowledgement packet to the socket if not connected" do
-      client.should_receive(:receive_connack).once
+      expect(client).to receive(:receive_connack).once
       client.connect('myclient')
     end
 
@@ -257,12 +257,12 @@ describe MQTT::Client do
     end
 
     it "should disconnect after connecting, if a block is given" do
-      client.should_receive(:disconnect).once
+      expect(client).to receive(:disconnect).once
       client.connect('myclient') { nil }
     end
 
     it "should not disconnect after connecting, if no block is given" do
-      client.should_receive(:disconnect).never
+      expect(client).to receive(:disconnect).never
       client.connect('myclient')
     end
 
@@ -270,13 +270,14 @@ describe MQTT::Client do
       client.username = 'username'
       client.password = 'password'
       client.connect('myclient')
-      socket.string.should ==
+      expect(socket.string).to eq(
         "\x10\x2A"+
         "\x00\x06MQIsdp"+
         "\x03\xC2\x00\x0f"+
         "\x00\x08myclient"+
         "\x00\x08username"+
         "\x00\x08password"
+      )
     end
 
     context "no client id is given" do
@@ -296,7 +297,7 @@ describe MQTT::Client do
           client.client_id = nil
           client.clean_session = true
           client.connect
-          client.client_id.should match(/^\w+$/)
+          expect(client.client_id).to match(/^\w+$/)
         end
       end
 
@@ -306,8 +307,8 @@ describe MQTT::Client do
           client.client_id = nil
           client.clean_session = true
           client.connect
-          client.client_id.should be_nil
-          socket.string.should == "\020\014\x00\x04MQTT\x04\x02\x00\x0f\x00\x00"
+          expect(client.client_id).to be_nil
+          expect(socket.string).to eq("\020\014\x00\x04MQTT\x04\x02\x00\x0f\x00\x00")
         end
       end
     end
@@ -324,30 +325,30 @@ describe MQTT::Client do
       }
 
       it "should use ssl if it enabled using the :ssl => true parameter" do
-        OpenSSL::SSL::SSLSocket.should_receive(:new).and_return(ssl_socket)
-        ssl_socket.should_receive(:connect)
+        expect(OpenSSL::SSL::SSLSocket).to receive(:new).and_return(ssl_socket)
+        expect(ssl_socket).to receive(:connect)
 
         client = MQTT::Client.new('mqtt.example.com', :ssl => true)
-        client.stub(:receive_connack)
+        allow(client).to receive(:receive_connack)
         client.connect
       end
 
       it "should use ssl if it enabled using the mqtts:// scheme" do
-        OpenSSL::SSL::SSLSocket.should_receive(:new).and_return(ssl_socket)
-        ssl_socket.should_receive(:connect)
+        expect(OpenSSL::SSL::SSLSocket).to receive(:new).and_return(ssl_socket)
+        expect(ssl_socket).to receive(:connect)
 
         client = MQTT::Client.new('mqtts://mqtt.example.com')
-        client.stub(:receive_connack)
+        allow(client).to receive(:receive_connack)
         client.connect
       end
 
       it "should use set the SSL version, if the :ssl parameter is a symbol" do
-        OpenSSL::SSL::SSLSocket.should_receive(:new).and_return(ssl_socket)
-        ssl_socket.should_receive(:connect)
+        expect(OpenSSL::SSL::SSLSocket).to receive(:new).and_return(ssl_socket)
+        expect(ssl_socket).to receive(:connect)
 
         client = MQTT::Client.new('mqtt.example.com', :ssl => :TLSv1)
-        client.ssl_context.should_receive('ssl_version=').with(:TLSv1)
-        client.stub(:receive_connack)
+        expect(client.ssl_context).to receive('ssl_version=').with(:TLSv1)
+        allow(client).to receive(:receive_connack)
         client.connect
       end
     end
@@ -358,29 +359,30 @@ describe MQTT::Client do
       end
 
       it "should have set the Will's topic" do
-        client.will_topic.should == 'topic'
+        expect(client.will_topic).to eq('topic')
       end
 
       it "should have set the Will's payload" do
-        client.will_payload.should == 'hello'
+        expect(client.will_payload).to eq('hello')
       end
 
       it "should have set the Will's retain flag to true" do
-        client.will_retain.should be_false
+        expect(client.will_retain).to be_falsey
       end
 
       it "should have set the Will's retain QOS value to 1" do
-        client.will_qos.should == 1
+        expect(client.will_qos).to eq(1)
       end
 
       it "should include the will in the CONNECT message" do
         client.connect('myclient')
-        socket.string.should ==
+        expect(socket.string).to eq(
           "\x10\x24"+
           "\x00\x06MQIsdp"+
           "\x03\x0e\x00\x0f"+
           "\x00\x08myclient"+
           "\x00\x05topic\x00\x05hello"
+        )
       end
     end
 
@@ -405,14 +407,14 @@ describe MQTT::Client do
       client = double("MQTT::Client")
       allow(client).to receive(:connect)
       allow(MQTT::Client).to receive(:new).once.and_return(client)
-      MQTT::Client.connect.should == client
+      expect(MQTT::Client.connect).to eq(client)
     end
   end
 
   describe "when calling the 'receive_connack' method" do
     before(:each) do
       client.instance_variable_set('@socket', socket)
-      IO.stub(:select).and_return([[socket], [], []])
+      allow(IO).to receive(:select).and_return([[socket], [], []])
     end
 
     it "should not throw an exception for a successful CONNACK packet" do
@@ -460,25 +462,25 @@ describe MQTT::Client do
     end
 
     it "should not do anything if the socket is already disconnected" do
-      client.stub(:connected?).and_return(false)
+      allow(client).to receive(:connected?).and_return(false)
       client.disconnect(true)
-      socket.string.should == ""
+      expect(socket.string).to eq("")
     end
 
     it "should write a valid DISCONNECT packet to the socket if connected and the send_msg=true an" do
-      client.stub(:connected?).and_return(true)
+      allow(client).to receive(:connected?).and_return(true)
       client.disconnect(true)
-      socket.string.should == "\xE0\x00"
+      expect(socket.string).to eq("\xE0\x00")
     end
 
     it "should not write anything to the socket if the send_msg=false" do
-      client.stub(:connected?).and_return(true)
+      allow(client).to receive(:connected?).and_return(true)
       client.disconnect(false)
-      socket.string.should be_empty
+      expect(socket.string).to be_empty
     end
 
     it "should call the close method on the socket" do
-      socket.should_receive(:close)
+      expect(socket).to receive(:close)
       client.disconnect
     end
   end
@@ -490,13 +492,13 @@ describe MQTT::Client do
 
     it "should write a valid PINGREQ packet to the socket" do
       client.ping
-      socket.string.should == "\xC0\x00"
+      expect(socket.string).to eq("\xC0\x00")
     end
 
     it "should update the time a ping was last sent" do
       client.instance_variable_set('@last_pingreq', 0)
       client.ping
-      client.instance_variable_get('@last_pingreq').should_not == 0
+      expect(client.instance_variable_get('@last_pingreq')).not_to eq(0)
     end
   end
 
@@ -507,27 +509,27 @@ describe MQTT::Client do
 
     it "should write a valid PUBLISH packet to the socket without the retain flag" do
       client.publish('topic','payload', false, 0)
-      socket.string.should == "\x30\x0e\x00\x05topicpayload"
+      expect(socket.string).to eq("\x30\x0e\x00\x05topicpayload")
     end
 
     it "should write a valid PUBLISH packet to the socket with the retain flag set" do
       client.publish('topic','payload', true, 0)
-      socket.string.should == "\x31\x0e\x00\x05topicpayload"
+      expect(socket.string).to eq("\x31\x0e\x00\x05topicpayload")
     end
 
     it "should write a valid PUBLISH packet to the socket with the QOS set to 1" do
       client.publish('topic','payload', false, 1)
-      socket.string.should == "\x32\x10\x00\x05topic\x00\x01payload"
+      expect(socket.string).to eq("\x32\x10\x00\x05topic\x00\x01payload")
     end
 
     it "should write a valid PUBLISH packet to the socket with the QOS set to 2" do
       client.publish('topic','payload', false, 2)
-      socket.string.should == "\x34\x10\x00\x05topic\x00\x01payload"
+      expect(socket.string).to eq("\x34\x10\x00\x05topic\x00\x01payload")
     end
 
     it "should write a valid PUBLISH packet with no payload" do
       client.publish('test')
-      socket.string.should == "\x30\x06\x00\x04test"
+      expect(socket.string).to eq("\x30\x06\x00\x04test")
     end
 
     it "should throw an ArgumentError exception, if the topic is nil" do
@@ -556,50 +558,50 @@ describe MQTT::Client do
 
     it "should write a valid SUBSCRIBE packet to the socket if given a single topic String" do
       client.subscribe('a/b')
-      socket.string.should == "\x82\x08\x00\x01\x00\x03a/b\x00"
+      expect(socket.string).to eq("\x82\x08\x00\x01\x00\x03a/b\x00")
     end
 
     it "should write a valid SUBSCRIBE packet to the socket if given a two topic Strings in an Array" do
       client.subscribe('a/b','c/d')
-      socket.string.should == "\x82\x0e\x00\x01\x00\x03a/b\x00\x00\x03c/d\x00"
+      expect(socket.string).to eq("\x82\x0e\x00\x01\x00\x03a/b\x00\x00\x03c/d\x00")
     end
 
     it "should write a valid SUBSCRIBE packet to the socket if given a two topic Strings with QoS in an Array" do
       client.subscribe(['a/b',0],['c/d',1])
-      socket.string.should == "\x82\x0e\x00\x01\x00\x03a/b\x00\x00\x03c/d\x01"
+      expect(socket.string).to eq("\x82\x0e\x00\x01\x00\x03a/b\x00\x00\x03c/d\x01")
     end
 
     it "should write a valid SUBSCRIBE packet to the socket if given a two topic Strings with QoS in a Hash" do
       client.subscribe('a/b' => 0,'c/d' => 1)
-      socket.string.should == "\x82\x0e\x00\x01\x00\x03a/b\x00\x00\x03c/d\x01"
+      expect(socket.string).to eq("\x82\x0e\x00\x01\x00\x03a/b\x00\x00\x03c/d\x01")
     end
   end
 
   describe "when calling the 'queue_length' method" do
     it "should return 0 if there are no incoming messages waiting" do
-      client.queue_length.should == 0
+      expect(client.queue_length).to eq(0)
     end
 
     it "should return 1 if there is one incoming message waiting" do
       inject_packet(:topic => 'topic0', :payload => 'payload0', :qos => 0)
-      client.queue_length.should == 1
+      expect(client.queue_length).to eq(1)
     end
 
     it "should return 2 if there are two incoming message waiting" do
       inject_packet(:topic => 'topic0', :payload => 'payload0', :qos => 0)
       inject_packet(:topic => 'topic0', :payload => 'payload1', :qos => 0)
-      client.queue_length.should == 2
+      expect(client.queue_length).to eq(2)
     end
   end
 
   describe "when calling the 'queue_emtpy?' method" do
     it "should return return true if there no incoming messages waiting" do
-      client.queue_empty?.should be_true
+      expect(client.queue_empty?).to be_truthy
     end
 
     it "should return return false if there is an incoming messages waiting" do
       inject_packet(:topic => 'topic0', :payload => 'payload0', :qos => 0)
-      client.queue_empty?.should be_false
+      expect(client.queue_empty?).to be_falsey
     end
   end
 
@@ -611,16 +613,16 @@ describe MQTT::Client do
     it "should successfull receive a valid PUBLISH packet with a QoS 0" do
       inject_packet(:topic => 'topic0', :payload => 'payload0', :qos => 0)
       topic,payload = client.get
-      topic.should == 'topic0'
-      payload.should == 'payload0'
+      expect(topic).to eq('topic0')
+      expect(payload).to eq('payload0')
     end
 
     it "should successfull receive a valid PUBLISH packet with a QoS 1" do
       inject_packet(:topic => 'topic1', :payload => 'payload1', :qos => 1)
       topic,payload = client.get
-      topic.should == 'topic1'
-      payload.should == 'payload1'
-      client.queue_empty?.should be_true
+      expect(topic).to eq('topic1')
+      expect(payload).to eq('payload1')
+      expect(client.queue_empty?).to be_truthy
     end
 
     context "with a block" do
@@ -632,8 +634,8 @@ describe MQTT::Client do
           payloads << payload
           break if payloads.size > 1
         end
-        payloads.size.should == 2
-        payloads.should == ['payload0', 'payload1']
+        expect(payloads.size).to eq(2)
+        expect(payloads).to eq(['payload0', 'payload1'])
       end
     end
   end
@@ -646,20 +648,20 @@ describe MQTT::Client do
     it "should successfull receive a valid PUBLISH packet with a QoS 0" do
       inject_packet(:topic => 'topic0', :payload => 'payload0', :qos => 0)
       packet = client.get_packet
-      packet.class.should == MQTT::Packet::Publish
-      packet.qos.should == 0
-      packet.topic.should == 'topic0'
-      packet.payload.should == 'payload0'
+      expect(packet.class).to eq(MQTT::Packet::Publish)
+      expect(packet.qos).to eq(0)
+      expect(packet.topic).to eq('topic0')
+      expect(packet.payload).to eq('payload0')
     end
 
     it "should successfull receive a valid PUBLISH packet with a QoS 1" do
       inject_packet(:topic => 'topic1', :payload => 'payload1', :qos => 1)
       packet = client.get_packet
-      packet.class.should == MQTT::Packet::Publish
-      packet.qos.should == 1
-      packet.topic.should == 'topic1'
-      packet.payload.should == 'payload1'
-      client.queue_empty?.should be_true
+      expect(packet.class).to eq(MQTT::Packet::Publish)
+      expect(packet.qos).to eq(1)
+      expect(packet.topic).to eq('topic1')
+      expect(packet.payload).to eq('payload1')
+      expect(client.queue_empty?).to be_truthy
     end
 
     context "with a block" do
@@ -671,8 +673,8 @@ describe MQTT::Client do
           packets << packet
           break if packets.size > 1
         end
-        packets.size.should == 2
-        packets.map{|p| p.payload}.should == ['payload0', 'payload1']
+        expect(packets.size).to eq(2)
+        expect(packets.map{|p| p.payload}).to eq(['payload0', 'payload1'])
       end
     end
   end
@@ -684,59 +686,59 @@ describe MQTT::Client do
 
     it "should write a valid UNSUBSCRIBE packet to the socket if given a single topic String" do
       client.unsubscribe('a/b')
-      socket.string.should == "\xa2\x07\x00\x01\x00\x03a/b"
+      expect(socket.string).to eq("\xa2\x07\x00\x01\x00\x03a/b")
     end
 
     it "should write a valid UNSUBSCRIBE packet to the socket if given a two topic Strings" do
       client.unsubscribe('a/b','c/d')
-      socket.string.should == "\xa2\x0c\x00\x01\x00\x03a/b\x00\x03c/d"
+      expect(socket.string).to eq("\xa2\x0c\x00\x01\x00\x03a/b\x00\x03c/d")
     end
 
     it "should write a valid UNSUBSCRIBE packet to the socket if given an array of Strings" do
       client.unsubscribe(['a/b','c/d'])
-      socket.string.should == "\xa2\x0c\x00\x01\x00\x03a/b\x00\x03c/d"
+      expect(socket.string).to eq("\xa2\x0c\x00\x01\x00\x03a/b\x00\x03c/d")
     end
   end
 
   describe "when calling the 'receive_packet' method" do
     before(:each) do
       client.instance_variable_set('@socket', socket)
-      IO.stub(:select).and_return([[socket], [], []])
+      allow(IO).to receive(:select).and_return([[socket], [], []])
       @read_queue = client.instance_variable_get('@read_queue')
       @parent_thread = Thread.current[:parent] = double('Parent Thread')
-      @parent_thread.stub(:raise)
+      allow(@parent_thread).to receive(:raise)
     end
 
     it "should put PUBLISH messages on to the read queue" do
       socket.write("\x30\x0e\x00\x05topicpayload")
       socket.rewind
       client.send(:receive_packet)
-      @read_queue.size.should == 1
+      expect(@read_queue.size).to eq(1)
     end
 
     it "should not put other messages on to the read queue" do
       socket.write("\x20\x02\x00\x00")
       socket.rewind
       client.send(:receive_packet)
-      @read_queue.size.should == 0
+      expect(@read_queue.size).to eq(0)
     end
 
     it "should send a ping packet if one is due" do
-      IO.should_receive(:select).and_return(nil)
+      expect(IO).to receive(:select).and_return(nil)
       client.instance_variable_set('@last_pingreq', Time.at(0))
-      client.should_receive(:ping).once
+      expect(client).to receive(:ping).once
       client.send(:receive_packet)
     end
 
     it "should close the socket if there is an exception" do
-      socket.should_receive(:close).once
-      MQTT::Packet.stub(:read).and_raise(MQTT::Exception)
+      expect(socket).to receive(:close).once
+      allow(MQTT::Packet).to receive(:read).and_raise(MQTT::Exception)
       client.send(:receive_packet)
     end
 
     it "should pass exceptions up to parent thread" do
-      @parent_thread.should_receive(:raise).once
-      MQTT::Packet.stub(:read).and_raise(MQTT::Exception)
+      expect(@parent_thread).to receive(:raise).once
+      allow(MQTT::Packet).to receive(:read).and_raise(MQTT::Exception)
       client.send(:receive_packet)
     end
   end
@@ -746,15 +748,15 @@ describe MQTT::Client do
       let(:client_id) { MQTT::Client.generate_client_id }
 
       it "should be less or equal to 23 characters long" do
-        client_id.length.should <= 23
+        expect(client_id.length).to be <= 23
       end
 
       it "should have a prefix of ruby_" do
-        client_id.should match(/^ruby_/)
+        expect(client_id).to match(/^ruby_/)
       end
 
       it "should end in 16 characters of lowercase letters and numbers" do
-        client_id.should match(/_[a-z0-9]{16}$/)
+        expect(client_id).to match(/_[a-z0-9]{16}$/)
       end
     end
 
@@ -762,15 +764,15 @@ describe MQTT::Client do
       let(:client_id) { MQTT::Client.generate_client_id('test_') }
 
       it "should be less or equal to 23 characters long" do
-        client_id.length.should <= 23
+        expect(client_id.length).to be <= 23
       end
 
       it "should have a prefix of test_" do
-        client_id.should match(/^test_/)
+        expect(client_id).to match(/^test_/)
       end
 
       it "should end in 16 characters of lowercase letters and numbers" do
-        client_id.should match(/_[a-z0-9]{16}$/)
+        expect(client_id).to match(/_[a-z0-9]{16}$/)
       end
     end
   end
