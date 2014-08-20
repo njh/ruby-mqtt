@@ -38,6 +38,7 @@ Limitations
 -----------
 
  * Only QOS 0 currently supported
+ * Automatic re-connects to the server are not supported
 
 
 Resources
