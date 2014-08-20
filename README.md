@@ -43,9 +43,11 @@ Limitations
 Resources
 ---------
 
+* API Documentation: http://rubydoc.info/gems/mqtt/frames
+* Protocol Specification v3.1.1: http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/mqtt-v3.1.1.html
+* Protocol Specification v3.1: http://public.dhe.ibm.com/software/dw/webservices/ws-mqtt/mqtt-v3r1.html
 * MQTT Homepage: http://www.mqtt.org/
 * GitHub Project: http://github.com/njh/ruby-mqtt
-* API Documentation: http://rubydoc.info/gems/mqtt/frames
 
 
 License
