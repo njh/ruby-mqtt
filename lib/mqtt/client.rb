@@ -101,7 +101,7 @@ class MQTT::Client
 
   # Generate a random client identifier
   # (using the characters 0-9 and a-z)
-  def self.generate_client_id(prefix='ruby_', length=16)
+  def self.generate_client_id(prefix='ruby', length=16)
     str = prefix.dup
     length.times do
       num = rand(36)

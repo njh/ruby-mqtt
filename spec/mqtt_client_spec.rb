@@ -751,28 +751,28 @@ describe MQTT::Client do
         expect(client_id.length).to be <= 23
       end
 
-      it "should have a prefix of ruby_" do
-        expect(client_id).to match(/^ruby_/)
+      it "should have a prefix of ruby" do
+        expect(client_id).to match(/^ruby/)
       end
 
       it "should end in 16 characters of lowercase letters and numbers" do
-        expect(client_id).to match(/_[a-z0-9]{16}$/)
+        expect(client_id).to match(/^ruby[a-z0-9]{16}$/)
       end
     end
 
     context "with an alternative prefix" do
-      let(:client_id) { MQTT::Client.generate_client_id('test_') }
+      let(:client_id) { MQTT::Client.generate_client_id('test') }
 
       it "should be less or equal to 23 characters long" do
         expect(client_id.length).to be <= 23
       end
 
-      it "should have a prefix of test_" do
-        expect(client_id).to match(/^test_/)
+      it "should have a prefix of test" do
+        expect(client_id).to match(/^test/)
       end
 
       it "should end in 16 characters of lowercase letters and numbers" do
-        expect(client_id).to match(/_[a-z0-9]{16}$/)
+        expect(client_id).to match(/^test[a-z0-9]{16}$/)
       end
     end
   end
