@@ -3,19 +3,32 @@
 ruby-mqtt
 =========
 
-Pure Ruby gem that implements the MQTT protocol, a lightweight protocol for publish/subscribe messaging.
+Pure Ruby gem that implements the [MQTT] protocol, a lightweight protocol for publish/subscribe messaging.
 
 
-Installing
-----------
+Table of Contents
+-----------------
+* [Installation](#installation)
+* [Quick Start](#quick-start)
+* [Resources](#resources)
+* [License](#license)
+* [Contact](#contact)
 
-You may get the latest stable version from Rubygems:
+
+Installation
+------------
+
+You may get the latest stable version from [Rubygems]:
 
     $ gem install mqtt
 
+Alternatively, to use a development snapshot from GitHub using [Bundler]:
 
-Synopsis
---------
+    gem 'mqtt', :git => 'https://github.com/njh/ruby-mqtt.git'
+
+
+Quick Start
+-----------
 
     require 'rubygems'
     require 'mqtt'
@@ -64,3 +77,9 @@ Contact
 * Author:    Nicholas J Humfrey
 * Email:     njh@aelius.com
 * Home Page: http://www.aelius.com/njh/
+
+
+
+[MQTT]:           http://www.mqtt.org/
+[Rubygems]:       http://rubygems.org/
+[Bundler]:        http://bundler.io/
