@@ -31,16 +31,16 @@ class MQTT::Client
   # @see OpenSSL::SSL::SSLContext::METHODS
   attr_accessor :ssl
 
-  # Time (in seconds) between pings to remote server
+  # Time (in seconds) between pings to remote server (default is 15 seconds)
   attr_accessor :keep_alive
 
-  # Set the 'Clean Session' flag when connecting?
+  # Set the 'Clean Session' flag when connecting? (default is true)
   attr_accessor :clean_session
 
   # Client Identifier
   attr_accessor :client_id
 
-  # Number of seconds to wait for acknowledgement packets
+  # Number of seconds to wait for acknowledgement packets (default is 5 seconds)
   attr_accessor :ack_timeout
 
   # Username to authenticate to the server with
