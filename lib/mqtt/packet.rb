@@ -844,12 +844,16 @@ module MQTT
 
     # Class representing an MQTT Subscribe Acknowledgment packet
     class Suback < MQTT::Packet
-      # The QoS level that was granted for the subscribe request
-      attr_accessor :granted_qos
+      # An array of return codes, ordered by the topics that were subscribed to
+      attr_accessor :return_codes
+
+      # OLD deprecated message_id attribute
+      alias_method :granted_qos, :return_codes
+      alias_method :granted_qos=, :return_codes=
 
       # Default attribute values
       ATTR_DEFAULTS = {
-        :granted_qos => [],
+        :return_codes => [],
       }
 
       # Create a new Subscribe Acknowledgment packet
@@ -859,23 +863,23 @@ module MQTT
 
       # Set the granted QOS value for each of the topics that were subscribed to
       # Can either be an integer or an array or integers.
-      def granted_qos=(value)
+      def return_codes=(value)
         if value.is_a?(Array)
-          @granted_qos = value
+          @return_codes = value
         elsif value.is_a?(Integer)
-          @granted_qos = [value]
+          @return_codes = [value]
         else
-          raise "granted QOS should be an integer or an array of QOS levels"
+          raise "return_codes should be an integer or an array of return codes"
         end
       end
 
       # Get serialisation of packet's body
       def encode_body
-        if @granted_qos.empty?
+        if @return_codes.empty?
           raise "no granted QOS given when serialising packet"
         end
         body = encode_short(@id)
-        granted_qos.each { |qos| body += encode_bytes(qos) }
+        return_codes.each { |qos| body += encode_bytes(qos) }
         return body
       end
 
@@ -884,13 +888,13 @@ module MQTT
         super(buffer)
         @id = shift_short(buffer)
         while(buffer.bytesize>0)
-          @granted_qos << shift_byte(buffer)
+          @return_codes << shift_byte(buffer)
         end
       end
 
       # Returns a human readable string, summarising the properties of the packet
       def inspect
-        "\#<#{self.class}: 0x%2.2X, qos=%s>" % [id, granted_qos.join(',')]
+        "\#<#{self.class}: 0x%2.2X, rc=%s>" % [id, return_codes.map{|rc| "0x%2.2X" % rc}.join(',')]
       end
     end
 

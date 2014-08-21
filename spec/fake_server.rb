@@ -98,7 +98,7 @@ class MQTT::FakeServer
         when MQTT::Packet::Subscribe
           client.write MQTT::Packet::Suback.new(
             :id => packet.id,
-            :granted_qos => 0
+            :return_codes => 0
           )
           topic = packet.topics[0][0]
           client.write MQTT::Packet::Publish.new(
