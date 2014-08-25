@@ -764,7 +764,7 @@ module MQTT
 
     # Class representing an MQTT Client Subscribe packet
     class Subscribe < MQTT::Packet
-      # One or more topic names to subscribe to
+      # One or more topic filters to subscribe to
       attr_accessor :topics
 
       # Default attribute values
@@ -778,7 +778,7 @@ module MQTT
         super(ATTR_DEFAULTS.merge(args))
       end
 
-      # Set one or more topics for the Subscrible packet
+      # Set one or more topic filters for the Subscribe packet
       # The topics parameter should be one of the following:
       # * String: subscribe to one topic with QOS 0
       # * Array: subscribe to multiple topics with QOS 0
@@ -929,7 +929,7 @@ module MQTT
 
     # Class representing an MQTT Client Unsubscribe packet
     class Unsubscribe < MQTT::Packet
-      # One or more topics to unsubscribe from
+      # One or more topic paths to unsubscribe from
       attr_accessor :topics
 
       # Default attribute values
@@ -943,7 +943,7 @@ module MQTT
         super(ATTR_DEFAULTS.merge(args))
       end
 
-      # Set one or more topics to unsubscribe from
+      # Set one or more topic paths to unsubscribe from
       def topics=(value)
         if value.is_a?(Array)
           @topics = value
