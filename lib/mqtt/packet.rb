@@ -386,6 +386,9 @@ module MQTT
         if qos == 3
           raise ProtocolException.new("Invalid packet: QoS value of 3 is not allowed")
         end
+        if qos == 0 and duplicate
+          raise ProtocolException.new("Invalid packet: DUP cannot be set for QoS 0")
+        end
       end
 
       # Returns a human readable string, summarising the properties of the packet

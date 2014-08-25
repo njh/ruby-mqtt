@@ -298,13 +298,24 @@ describe MQTT::Packet::Publish do
     end
   end
 
-  describe "when parsing a packet with a invalid QoS value" do
+  describe "when parsing a packet with a QoS value of 3" do
     it "should throw an exception" do
       expect {
         packet = MQTT::Packet.parse( "\x36\x12\x00\x03a/b\x00\x05hello world" )
       }.to raise_error(
         MQTT::ProtocolException,
         'Invalid packet: QoS value of 3 is not allowed'
+      )
+    end
+  end
+
+  describe "when parsing a packet with QoS value of 0 and DUP set" do
+    it "should throw an exception" do
+      expect {
+        packet = MQTT::Packet.parse( "\x38\x10\x00\x03a/bhello world" )
+      }.to raise_error(
+        MQTT::ProtocolException,
+        'Invalid packet: DUP cannot be set for QoS 0'
       )
     end
   end
