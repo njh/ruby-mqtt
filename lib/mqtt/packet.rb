@@ -204,6 +204,8 @@ module MQTT
       header.pack('C*') + body
     end
 
+    # Check that fixed header flags are valid for types that don't use the flags
+    # @private
     def validate_flags
       if flags != [false, false, false, false]
         raise ProtocolException.new("Invalid flags in #{type_name} packet header")
@@ -378,6 +380,8 @@ module MQTT
         @payload = buffer
       end
 
+      # Check that fixed header flags are valid for this packet type
+      # @private
       def validate_flags
         if qos == 3
           raise ProtocolException.new("Invalid packet: QoS value of 3 is not allowed")
@@ -719,6 +723,8 @@ module MQTT
         end
       end
 
+      # Check that fixed header flags are valid for this packet type
+      # @private
       def validate_flags
         if @flags != [false, true, false, false]
           raise ProtocolException.new("Invalid flags in PUBREL packet header")
@@ -836,6 +842,8 @@ module MQTT
         end
       end
 
+      # Check that fixed header flags are valid for this packet type
+      # @private
       def validate_flags
         if @flags != [false, true, false, false]
           raise ProtocolException.new("Invalid flags in SUBSCRIBE packet header")
@@ -960,6 +968,8 @@ module MQTT
         end
       end
 
+      # Check that fixed header flags are valid for this packet type
+      # @private
       def validate_flags
         if @flags != [false, true, false, false]
           raise ProtocolException.new("Invalid flags in UNSUBSCRIBE packet header")
