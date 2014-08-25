@@ -11,10 +11,6 @@ module MQTT
     # Identifier to link related control packets together
     attr_accessor :id
 
-    # OLD deprecated message_id attribute
-    alias_method :message_id, :id
-    alias_method :message_id=, :id=
-
     # Array of 4 bits in the fixed header
     attr_accessor :flags
 
@@ -415,10 +411,6 @@ module MQTT
       # The version number of the protocol
       attr_accessor :protocol_level
 
-      # OLD deprecated protocol_version attribute
-      alias_method :protocol_version, :protocol_level
-      alias_method :protocol_version=, :protocol_level=
-
       # The client identifier string
       attr_accessor :client_id
 
@@ -557,6 +549,19 @@ module MQTT
         str += ", username='#{username}'" unless username.nil?
         str += ", password=..." unless password.nil?
         str += ">"
+      end
+
+      # ---- Deprecated attributes and methods  ---- #
+      public
+
+      # @deprecated Please use {#protocol_level} instead
+      def protocol_version
+        protocol_level
+      end
+
+      # @deprecated Please use {#protocol_level=} instead
+      def protocol_version=(args)
+        self.protocol_level = args
       end
     end
 
@@ -847,10 +852,6 @@ module MQTT
       # An array of return codes, ordered by the topics that were subscribed to
       attr_accessor :return_codes
 
-      # OLD deprecated message_id attribute
-      alias_method :granted_qos, :return_codes
-      alias_method :granted_qos=, :return_codes=
-
       # Default attribute values
       ATTR_DEFAULTS = {
         :return_codes => [],
@@ -895,6 +896,19 @@ module MQTT
       # Returns a human readable string, summarising the properties of the packet
       def inspect
         "\#<#{self.class}: 0x%2.2X, rc=%s>" % [id, return_codes.map{|rc| "0x%2.2X" % rc}.join(',')]
+      end
+
+      # ---- Deprecated attributes and methods  ---- #
+      public
+
+      # @deprecated Please use {#return_codes} instead
+      def granted_qos
+        return_codes
+      end
+
+      # @deprecated Please use {#return_codes=} instead
+      def granted_qos=(args)
+        self.return_codes = args
       end
     end
 
@@ -1030,6 +1044,20 @@ module MQTT
           raise ProtocolException.new("Extra bytes at end of Disconnect packet")
         end
       end
+    end
+
+
+    # ---- Deprecated attributes and methods  ---- #
+    public
+
+    # @deprecated Please use {#id} instead
+    def message_id
+      id
+    end
+
+    # @deprecated Please use {#id=} instead
+    def message_id=(args)
+      self.id = args
     end
   end
 

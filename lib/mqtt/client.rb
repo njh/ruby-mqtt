@@ -7,16 +7,8 @@ class MQTT::Client
   # Hostname of the remote server
   attr_accessor :host
 
-  # OLD deprecated remote_host attribute
-  alias_method :remote_host, :host
-  alias_method :remote_host=, :host=
-
   # Port number of the remote server
   attr_accessor :port
-
-  # OLD deprecated remote_host attribute
-  alias_method :remote_port, :port
-  alias_method :remote_port=, :port=
 
   # The version number of the MQTT protocol to use (default 3.1.0)
   attr_accessor :version
@@ -530,6 +522,30 @@ private
       :password => uri.password,
       :ssl => ssl
     }
+  end
+
+
+  # ---- Deprecated attributes and methods  ---- #
+  public
+
+  # @deprecated Please use {#host} instead
+  def remote_host
+    host
+  end
+
+  # @deprecated Please use {#host=} instead
+  def remote_host=(args)
+    self.host = args
+  end
+
+  # @deprecated Please use {#port} instead
+  def remote_port
+    port
+  end
+
+  # @deprecated Please use {#port=} instead
+  def remote_port=(args)
+    self.port = args
   end
 
 end

@@ -80,6 +80,18 @@ describe MQTT::Packet do
       expect(buffer).to eq(' World')
     end
   end
+
+  describe "deprecated attributes" do
+    it "should still have a message_id method that is that same as id" do
+      packet = MQTT::Packet.new
+      packet.message_id = 1234
+      expect(packet.message_id).to eq(1234)
+      expect(packet.id).to eq(1234)
+      packet.id = 4321
+      expect(packet.message_id).to eq(4321)
+      expect(packet.id).to eq(4321)
+    end
+  end
 end
 
 describe MQTT::Packet::Publish do
@@ -972,6 +984,18 @@ describe MQTT::Packet::Connect do
       expect(packet.inspect).to eq("#<MQTT::Packet::Connect: keep_alive=10, client_id='c123', username='foo'>")
     end
   end
+
+  describe "deprecated attributes" do
+    it "should still have a protocol_version method that is that same as protocol_level" do
+      packet = MQTT::Packet::Connect.new
+      packet.protocol_version = 5
+      expect(packet.protocol_version).to eq(5)
+      expect(packet.protocol_level).to eq(5)
+      packet.protocol_version = 4
+      expect(packet.protocol_version).to eq(4)
+      expect(packet.protocol_level).to eq(4)
+    end
+  end
 end
 
 describe MQTT::Packet::Connack do
@@ -1603,6 +1627,18 @@ describe MQTT::Packet::Suback do
     it "should output correct string for multiple topics" do
       packet = MQTT::Packet::Suback.new(:id => 0x1235, :return_codes => [0,1,2])
       expect(packet.inspect).to eq("#<MQTT::Packet::Suback: 0x1235, rc=0x00,0x01,0x02>")
+    end
+  end
+
+  describe "deprecated attributes" do
+    it "should still have a granted_qos method that is that same as return_codes" do
+      packet = MQTT::Packet::Suback.new
+      packet.granted_qos = [0,1,2]
+      expect(packet.granted_qos).to eq([0,1,2])
+      expect(packet.return_codes).to eq([0,1,2])
+      packet.return_codes = [0,1,0]
+      expect(packet.granted_qos).to eq([0,1,0])
+      expect(packet.return_codes).to eq([0,1,0])
     end
   end
 end

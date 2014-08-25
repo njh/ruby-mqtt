@@ -189,17 +189,23 @@ describe MQTT::Client do
     end
   end
 
-  describe "legacy attribute names" do
+  describe "deprecated attributes" do
     it "should allow getting and setting the host name using the remote_host method" do
       client.remote_host = 'remote-host.example.com'
       expect(client.host).to eq('remote-host.example.com')
       expect(client.remote_host).to eq('remote-host.example.com')
+      client.host = 'foo.example.org'
+      expect(client.host).to eq('foo.example.org')
+      expect(client.remote_host).to eq('foo.example.org')
     end
 
     it "should allow getting and setting the port using the remote_port method" do
       client.remote_port = 9999
       expect(client.port).to eq(9999)
       expect(client.remote_port).to eq(9999)
+      client.port = 1234
+      expect(client.port).to eq(1234)
+      expect(client.remote_port).to eq(1234)
     end
   end
 
