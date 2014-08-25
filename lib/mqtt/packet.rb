@@ -138,6 +138,10 @@ module MQTT
       return index
     end
 
+    # Get the name of the packet type as a string in capitals
+    # (like the MQTT specification uses)
+    #
+    # Example: CONNACK
     def type_name
       self.class.name.split('::').last.upcase
     end
