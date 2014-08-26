@@ -1,12 +1,32 @@
 Ruby MQTT NEWS
 ==============
 
+Ruby MQTT Version 0.3.0 (2014-08-26)
+------------------------------------
+
+* Added support for MQTT protocol version 3.1.1
+* Renamed a number of methods/attributes:
+  - Renamed ```:granted_qos``` to ```:return_codes```
+  - Renamed ```:remote_port``` to ```:port```
+  - Renamed ```:remote_host``` to ```:host```
+  - Renamed ```:message_id``` to ```:id```
+  - Renamed ```:protocol_version``` to ```:protocol_level```
+  - Renamed ```MQTT_SERVER``` environment variable to ```MQTT_SERVER```
+* Added more checks to ensure that the 3.1.1 protocol specs are adhered to
+* Added a Library Overview section to the README
+* Added links to the protocol specification to README
+* Improvements to the YARD API documentation
+* Don't display payload in inspect if it contains non-visible ASCII characters
+* Upgraded to rspec 3
+* Various minor bug fixes and corrections
+
+
 Ruby MQTT Version 0.2.0 (2014-04-02)
 ------------------------------------
 
 * Added SSL/TLS support
 * Added support for passing connection details using a URI
-* Added support for using the MQTT_BROKER environment variable
+* Added support for using the ```MQTT_BROKER``` environment variable
 * Allow passing array of topics to Client#unsubscribe
 * Allow more combinations of arguments to be passed to a new Client
 * No longer defaults to ‘localhost’ if there is no server configured
