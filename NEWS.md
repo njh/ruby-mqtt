@@ -11,7 +11,7 @@ Ruby MQTT Version 0.3.0 (2014-08-26)
   - Renamed ```:remote_host``` to ```:host```
   - Renamed ```:message_id``` to ```:id```
   - Renamed ```:protocol_version``` to ```:protocol_level```
-  - Renamed ```MQTT_SERVER``` environment variable to ```MQTT_SERVER```
+  - Renamed ```MQTT_BROKER``` environment variable to ```MQTT_SERVER```
 * Added more checks to ensure that the 3.1.1 protocol specs are adhered to
 * Added a Library Overview section to the README
 * Added links to the protocol specification to README
