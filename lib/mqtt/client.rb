@@ -54,7 +54,7 @@ class MQTT::Client
   attr_accessor :will_retain
 
   #Last ping response time
-  attr_accessor :last_ping_response
+  attr_reader :last_ping_response
 
 
   # Timeout between select polls (in seconds)
