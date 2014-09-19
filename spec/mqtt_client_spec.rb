@@ -736,6 +736,13 @@ describe MQTT::Client do
       client.send(:receive_packet)
     end
 
+    it "should update last_ping_response when receiving a Pingresp" do
+      allow(MQTT::Packet).to receive(:read).and_return MQTT::Packet::Pingresp.new
+      client.instance_variable_set '@last_ping_response', Time.at(0)
+      client.send :receive_packet
+      expect(client.last_ping_response).to be_within(1).of Time.now
+    end
+
     it "should close the socket if there is an exception" do
       expect(socket).to receive(:close).once
       allow(MQTT::Packet).to receive(:read).and_raise(MQTT::Exception)
