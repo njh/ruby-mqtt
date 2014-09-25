@@ -53,6 +53,9 @@ class MQTT::Client
   # If the Will message should be retain by the server after it is sent
   attr_accessor :will_retain
 
+  #Last ping response time
+  attr_reader :last_ping_response
+
 
   # Timeout between select polls (in seconds)
   SELECT_TIMEOUT = 0.5
@@ -173,7 +176,7 @@ class MQTT::Client
     # Initialise private instance variables
     @packet_id = 0
     @last_pingreq = Time.now
-    @last_pingresp = Time.now
+    @last_ping_response = Time.now
     @socket = nil
     @read_queue = Queue.new
     @read_thread = nil
@@ -452,6 +455,8 @@ private
         if packet.class == MQTT::Packet::Publish
           # Add to queue
           @read_queue.push(packet)
+        elsif packet.class == MQTT::Packet::Pingresp
+          @last_ping_response = Time.now
         else
           # Ignore all other packets
           nil
