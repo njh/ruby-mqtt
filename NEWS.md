@@ -1,6 +1,12 @@
 Ruby MQTT NEWS
 ==============
 
+Ruby MQTT Version 0.3.1 (2014-10-10)
+------------------------------------
+
+* Added ```last_ping_response``` to attribute to ```MQTT::Client```
+
+
 Ruby MQTT Version 0.3.0 (2014-08-26)
 ------------------------------------
 
