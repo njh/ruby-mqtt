@@ -451,25 +451,9 @@ private
       unless result.nil?
         # Yes - read in the packet
         packet = MQTT::Packet.read(@socket)
-        if packet.class == MQTT::Packet::Publish
-          # Add to queue
-          @read_queue.push(packet)
-        elsif packet.class == MQTT::Packet::Pingresp
-          @last_ping_response = Time.now
-        else
-          # Ignore all other packets
-          nil
-          # FIXME: implement responses for QOS 1 and 2
-        end
+        handle_packet packet
       end
-
-      # Time to send a keep-alive ping request?
-      if @keep_alive > 0 and Time.now > @last_pingreq + @keep_alive
-        ping
-      end
-
-      # FIXME: check we received a ping response recently?
-
+      keep_alive!
     # Pass exceptions up to parent thread
     rescue Exception => exp
       unless @socket.nil?
@@ -477,6 +461,24 @@ private
         @socket = nil
       end
       Thread.current[:parent].raise(exp)
+    end
+  end
+
+  def handle_packet packet
+    if packet.class == MQTT::Packet::Publish
+      # Add to queue
+      @read_queue.push(packet)
+      send_packet(MQTT::Packet::Puback.new id: packet.id) if packet.qos > 0
+    elsif packet.class == MQTT::Packet::Pingresp
+      @last_ping_response = Time.now
+    end
+    # Ignore all other packets
+    # FIXME: implement responses for QOS  2
+  end
+
+  def keep_alive!
+    if @keep_alive > 0 and Time.now > @last_pingreq + @keep_alive
+      ping
     end
   end
 
