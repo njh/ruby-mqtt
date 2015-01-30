@@ -469,7 +469,7 @@ private
     if packet.class == MQTT::Packet::Publish
       # Add to queue
       @read_queue.push(packet)
-      send_packet MQTT::Packet::Puback.new(id: packet.id) if packet.qos > 0
+      send_packet(MQTT::Packet::Puback.new id: packet.id) if packet.qos > 0
     elsif packet.class == MQTT::Packet::Pingresp
       @last_ping_response = Time.now
     end
