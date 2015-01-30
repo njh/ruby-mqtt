@@ -454,7 +454,7 @@ private
         packet = MQTT::Packet.read(@socket)
         handle_packet packet
       end
-      keep_alive
+      keep_alive!
     # Pass exceptions up to parent thread
     rescue Exception => exp
       unless @socket.nil?
@@ -477,7 +477,7 @@ private
     # FIXME: implement responses for QOS  2
   end
 
-  def keep_alive
+  def keep_alive!
     if @keep_alive > 0 and Time.now > @last_pingreq + @keep_alive
       ping
     end
