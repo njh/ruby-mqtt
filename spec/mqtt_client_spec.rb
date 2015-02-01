@@ -555,6 +555,13 @@ describe MQTT::Client do
         'Topic name cannot be empty'
       )
     end
+
+    it "correctly assigns consecutive ids to packets with QoS 1" do
+      expect(client).to receive(:send_packet) { |packet| expect(packet.id).to eq(1) }
+      client.publish "topic", "message", false, 1
+      expect(client).to receive(:send_packet) { |packet| expect(packet.id).to eq(2) }
+      client.publish "topic", "message", false, 1
+    end
   end
 
   describe "when calling the 'subscribe' method" do
