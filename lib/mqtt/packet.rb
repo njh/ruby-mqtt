@@ -368,7 +368,7 @@ module MQTT
         end
         body += encode_string(@topic)
         body += encode_short(@id) unless qos == 0
-        body += payload.to_s.force_encoding('ASCII-8BIT')
+        body += payload.to_s.dup.force_encoding('ASCII-8BIT')
         return body
       end
 
