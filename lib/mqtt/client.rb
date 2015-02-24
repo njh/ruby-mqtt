@@ -381,10 +381,12 @@ class MQTT::Client
       loop do
         packet = @read_queue.pop
         yield(packet.topic, packet.payload)
+        puback_packet(packet) if packet.qos > 0
       end
     else
       # Wait for one packet to be available
       packet = @read_queue.pop
+      puback_packet(packet) if packet.qos > 0
       return packet.topic, packet.payload
     end
   end
@@ -468,7 +470,6 @@ private
     if packet.class == MQTT::Packet::Publish
       # Add to queue
       @read_queue.push(packet)
-      send_packet(MQTT::Packet::Puback.new id: packet.id) if packet.qos > 0
     elsif packet.class == MQTT::Packet::Pingresp
       @last_ping_response = Time.now
     end
@@ -480,6 +481,10 @@ private
     if @keep_alive > 0 and Time.now > @last_pingreq + @keep_alive
       ping
     end
+  end
+
+  def puback_packet(packet)
+    send_packet(MQTT::Packet::Puback.new :id => packet.id)
   end
 
   # Read and check a connection acknowledgement packet

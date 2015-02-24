@@ -638,6 +638,12 @@ describe MQTT::Client do
       expect(client.queue_empty?).to be_truthy
     end
 
+    it "acks when qos > 1 when returning the packet" do
+      inject_packet(:topic => 'topic1', :payload => 'payload1', :qos => 1)
+      expect(client).to receive(:send_packet).with(an_instance_of(MQTT::Packet::Puback))
+      client.get
+    end
+
     context "with a block" do
       it "should successfull receive a more than 1 message" do
         inject_packet(:topic => 'topic0', :payload => 'payload0')
@@ -649,6 +655,17 @@ describe MQTT::Client do
         end
         expect(payloads.size).to eq(2)
         expect(payloads).to eq(['payload0', 'payload1'])
+      end
+
+      it "acks when qos > 1 after running the block" do
+        inject_packet(:topic => 'topic1', :payload => 'payload1', :qos => 1)
+        inject_packet(:topic => 'topic2', :payload => 'payload1')
+        expect(client).to receive(:send_packet).with(an_instance_of(MQTT::Packet::Puback))
+        payloads = []
+        client.get do |topic,payload|
+          payloads << payload
+          break if payloads.size > 1
+        end
       end
     end
   end
