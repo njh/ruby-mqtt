@@ -174,7 +174,6 @@ class MQTT::Client
     end
 
     # Initialise private instance variables
-    @packet_id = 0
     @last_pingreq = Time.now
     @last_ping_response = Time.now
     @socket = nil
@@ -331,7 +330,7 @@ class MQTT::Client
     raise ArgumentError.new("Topic name cannot be empty") if topic.empty?
 
     packet = MQTT::Packet::Publish.new(
-      :id => @packet_id.next,
+      :id => next_packet_id,
       :qos => qos,
       :retain => retain,
       :topic => topic,
@@ -356,7 +355,7 @@ class MQTT::Client
   #
   def subscribe(*topics)
     packet = MQTT::Packet::Subscribe.new(
-      :id => @packet_id.next,
+      :id => next_packet_id,
       :topics => topics
     )
     send_packet(packet)
@@ -436,7 +435,7 @@ class MQTT::Client
 
     packet = MQTT::Packet::Unsubscribe.new(
       :topics => topics,
-      :id => @packet_id.next
+      :id => next_packet_id
     )
     send_packet(packet)
   end
@@ -529,6 +528,9 @@ private
     }
   end
 
+  def next_packet_id
+    @last_packet_id = ( @last_packet_id || 0 ).next
+  end
 
   # ---- Deprecated attributes and methods  ---- #
   public
