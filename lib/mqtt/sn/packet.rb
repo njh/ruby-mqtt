@@ -104,6 +104,14 @@ module MQTT::SN
     def encode_flags
       flags = 0x00
       flags += 0x80 if duplicate
+      case qos
+        when -1
+          flags += 0x60
+        when 1
+          flags += 0x20
+        when 2
+          flags += 0x40
+      end
       flags += 0x10 if retain
       flags += 0x08 if request_will
       flags += 0x04 if clean_session

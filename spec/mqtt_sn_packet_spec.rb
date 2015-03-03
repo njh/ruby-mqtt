@@ -397,13 +397,44 @@ describe MQTT::SN::Packet::Publish do
   end
 
   describe "when serialising a packet with a short topic id type" do
-    it "should output the correct bytes for a publish packet" do
+    it "should output the correct bytes for a publish packet of QoS -1" do
       packet = MQTT::SN::Packet::Publish.new(
+        :qos => -1,
+        :topic_id => 'tt',
+        :topic_id_type => :short,
+        :data => "Hello World"
+      )
+      expect(packet.to_s).to eq("\x12\x0C\x62tt\x00\x00Hello World")
+    end
+
+    it "should output the correct bytes for a publish packet of QoS 0" do
+      packet = MQTT::SN::Packet::Publish.new(
+        :qos => 0,
         :topic_id => 'tt',
         :topic_id_type => :short,
         :data => "Hello World"
       )
       expect(packet.to_s).to eq("\x12\x0C\x02tt\x00\x00Hello World")
+    end
+
+    it "should output the correct bytes for a publish packet of QoS 1" do
+      packet = MQTT::SN::Packet::Publish.new(
+        :qos => 1,
+        :topic_id => 'tt',
+        :topic_id_type => :short,
+        :data => "Hello World"
+      )
+      expect(packet.to_s).to eq("\x12\x0C\x22tt\x00\x00Hello World")
+    end
+
+    it "should output the correct bytes for a publish packet of QoS 2" do
+      packet = MQTT::SN::Packet::Publish.new(
+        :qos => 2,
+        :topic_id => 'tt',
+        :topic_id_type => :short,
+        :data => "Hello World"
+      )
+      expect(packet.to_s).to eq("\x12\x0C\x42tt\x00\x00Hello World")
     end
   end
 
@@ -460,6 +491,46 @@ describe MQTT::SN::Packet::Publish do
 
     it "should set the QOS of the packet correctly" do
       expect(@packet.qos).to be === 0
+    end
+
+    it "should set the QOS of the packet correctly" do
+      expect(@packet.duplicate).to be === false
+    end
+
+    it "should set the retain flag of the packet correctly" do
+      expect(@packet.retain).to be === false
+    end
+
+    it "should set the topic id type of the packet correctly" do
+      expect(@packet.topic_id_type).to be === :short
+    end
+
+    it "should set the topic id of the packet correctly" do
+      expect(@packet.topic_id).to be === 'tt'
+    end
+
+    it "should set the message id of the packet correctly" do
+      expect(@packet.id).to be === 0x0000
+    end
+
+    it "should set the topic name of the packet correctly" do
+      expect(@packet.data).to eq("Hello World")
+    end
+  end
+
+  describe "when parsing a Publish packet with a short topic id and QoS -1" do
+    before(:each) do
+      @packet = MQTT::SN::Packet.parse(
+        "\x12\x0C\x62tt\x00\x00Hello World"
+      )
+    end
+
+    it "should correctly create the right type of packet object" do
+      expect(@packet.class).to eq(MQTT::SN::Packet::Publish)
+    end
+
+    it "should set the QOS of the packet correctly" do
+      expect(@packet.qos).to be === -1
     end
 
     it "should set the QOS of the packet correctly" do
