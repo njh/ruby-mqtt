@@ -538,6 +538,11 @@ describe MQTT::Client do
       expect(socket.string).to eq("\x30\x06\x00\x04test")
     end
 
+    it "should write a valid PUBLISH packet with frozen payload" do
+      client.publish('topic', 'payload'.freeze, false, 0)
+      expect(socket.string).to eq("\x30\x0e\x00\x05topicpayload")
+    end
+
     it "should throw an ArgumentError exception, if the topic is nil" do
       expect {
         client.publish(nil)
@@ -623,14 +628,14 @@ describe MQTT::Client do
       client.instance_variable_set('@socket', socket)
     end
 
-    it "should successfull receive a valid PUBLISH packet with a QoS 0" do
+    it "should successfully receive a valid PUBLISH packet with a QoS 0" do
       inject_packet(:topic => 'topic0', :payload => 'payload0', :qos => 0)
       topic,payload = client.get
       expect(topic).to eq('topic0')
       expect(payload).to eq('payload0')
     end
 
-    it "should successfull receive a valid PUBLISH packet with a QoS 1" do
+    it "should successfully receive a valid PUBLISH packet with a QoS 1" do
       inject_packet(:topic => 'topic1', :payload => 'payload1', :qos => 1)
       topic,payload = client.get
       expect(topic).to eq('topic1')
@@ -639,7 +644,7 @@ describe MQTT::Client do
     end
 
     context "with a block" do
-      it "should successfull receive a more than 1 message" do
+      it "should successfully receive more than 1 message" do
         inject_packet(:topic => 'topic0', :payload => 'payload0')
         inject_packet(:topic => 'topic1', :payload => 'payload1')
         payloads = []
@@ -658,7 +663,7 @@ describe MQTT::Client do
       client.instance_variable_set('@socket', socket)
     end
 
-    it "should successfull receive a valid PUBLISH packet with a QoS 0" do
+    it "should successfully receive a valid PUBLISH packet with a QoS 0" do
       inject_packet(:topic => 'topic0', :payload => 'payload0', :qos => 0)
       packet = client.get_packet
       expect(packet.class).to eq(MQTT::Packet::Publish)
@@ -667,7 +672,7 @@ describe MQTT::Client do
       expect(packet.payload).to eq('payload0')
     end
 
-    it "should successfull receive a valid PUBLISH packet with a QoS 1" do
+    it "should successfully receive a valid PUBLISH packet with a QoS 1" do
       inject_packet(:topic => 'topic1', :payload => 'payload1', :qos => 1)
       packet = client.get_packet
       expect(packet.class).to eq(MQTT::Packet::Publish)
@@ -678,7 +683,7 @@ describe MQTT::Client do
     end
 
     context "with a block" do
-      it "should successfull receive a more than 1 packet" do
+      it "should successfully receive more than 1 packet" do
         inject_packet(:topic => 'topic0', :payload => 'payload0')
         inject_packet(:topic => 'topic1', :payload => 'payload1')
         packets = []
