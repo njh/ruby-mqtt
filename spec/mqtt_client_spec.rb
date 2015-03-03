@@ -538,6 +538,11 @@ describe MQTT::Client do
       expect(socket.string).to eq("\x30\x06\x00\x04test")
     end
 
+    it "should write a valid PUBLISH packet with frozen payload" do
+      client.publish('topic', 'payload'.freeze, false, 0)
+      expect(socket.string).to eq("\x30\x0e\x00\x05topicpayload")
+    end
+
     it "should throw an ArgumentError exception, if the topic is nil" do
       expect {
         client.publish(nil)
