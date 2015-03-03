@@ -5,6 +5,8 @@ ruby-mqtt
 
 Pure Ruby gem that implements the [MQTT] protocol, a lightweight protocol for publish/subscribe messaging.
 
+Also includes a class for parsing and generating [MQTT-SN] packets.
+
 
 Table of Contents
 -----------------
@@ -167,6 +169,7 @@ Contact
 
 
 [MQTT]:           http://www.mqtt.org/
+[MQTT-SN]:        http://mqtt.org/2013/12/mqtt-for-sensor-networks-mqtt-sn
 [Rubygems]:       http://rubygems.org/
 [Bundler]:        http://bundler.io/
 [MQTT URI]:       https://github.com/mqtt/mqtt.github.io/wiki/URI-Scheme

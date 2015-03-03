@@ -39,4 +39,17 @@ module MQTT
   autoload :Packet,   'mqtt/packet'
   autoload :Proxy,    'mqtt/proxy'
 
+  # MQTT-SN
+  module SN
+
+    # Default port number for unencrypted connections
+    DEFAULT_PORT = 1883
+
+    # A ProtocolException will be raised if there is a
+    # problem with data received from a remote host
+    class ProtocolException < MQTT::Exception
+    end
+
+    autoload :Packet,   'mqtt/sn/packet'
+  end
 end
