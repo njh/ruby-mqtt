@@ -178,7 +178,7 @@ Resources
 License
 -------
 
-The mqtt gem is licensed under the terms of the MIT license.
+The mqtt ruby gem is licensed under the terms of the MIT license.
 See the file LICENSE for details.
 
 
@@ -187,10 +187,12 @@ Contact
 
 * Author:    Nicholas J Humfrey
 * Email:     njh@aelius.com
+* Twitter:   [@njh]
 * Home Page: http://www.aelius.com/njh/
 
 
 
+[@njh]:           http://twitter.com/njh
 [MQTT]:           http://www.mqtt.org/
 [MQTT-SN]:        http://mqtt.org/2013/12/mqtt-for-sensor-networks-mqtt-sn
 [Rubygems]:       http://rubygems.org/
