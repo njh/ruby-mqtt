@@ -134,11 +134,34 @@ Alternatively, you can give the get method a block, which will be called for eve
 For more information see the [MQTT::Client#get] method.
 
 
+### Parsing and serialising of packets ###
+
+The parsing and serialising of MQTT and MQTT-SN packets is a separate lower-level API.
+You can use it to build your own clients and servers, without using any of the rest of the 
+code in this gem.
+
+    # Parse a string containing a binary packet into an object
+    packet_obj = MQTT::Packet.parse(binary_packet)
+    
+    # Write a PUBACK packet to an IO handle
+    ios << MQTT::Packet::Puback(:id => 20)
+    
+    # Write an MQTT-SN Publish packet with QoS -1 to a UDP socket
+    socket = UDPSocket.new
+    socket.connect('localhost', MQTT::SN::DEFAULT_PORT)
+    socket << MQTT::SN::Packet::Publish.new(
+      :topic_id => 'TT',
+      :topic_id_type => :short,
+      :data => "The time is: #{Time.now}",
+      :qos => -1
+    )
+    socket.close
+
 
 Limitations
 -----------
 
- * Only QOS 0 currently supported
+ * Only QOS 0 currently supported by client
  * Automatic re-connects to the server are not supported
 
 
