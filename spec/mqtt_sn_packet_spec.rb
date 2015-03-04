@@ -97,65 +97,53 @@ describe MQTT::SN::Packet::Connect do
   end
 
   describe "when parsing a simple Connect packet" do
-    before(:each) do
-      @packet = MQTT::SN::Packet.parse(
-        "\x18\x04\x04\x01\x00\x00mqtt-sn-client-pub"
-      )
-    end
+    let(:packet) { MQTT::SN::Packet.parse("\x18\x04\x04\x01\x00\x00mqtt-sn-client-pub") }
 
     it "should correctly create the right type of packet object" do
-      expect(@packet.class).to eq(MQTT::SN::Packet::Connect)
+      expect(packet.class).to eq(MQTT::SN::Packet::Connect)
     end
 
     it "should not have the request will flag set" do
-      expect(@packet.request_will).to be_falsy
+      expect(packet.request_will).to be_falsy
     end
 
     it "shoul have the clean session flag set" do
-      expect(@packet.clean_session).to be_truthy
+      expect(packet.clean_session).to be_truthy
     end
 
     it "should set the Keep Alive timer of the packet correctly" do
-      expect(@packet.keep_alive).to eq(0)
+      expect(packet.keep_alive).to eq(0)
     end
 
     it "should set the Client Identifier of the packet correctly" do
-      expect(@packet.client_id).to eq('mqtt-sn-client-pub')
+      expect(packet.client_id).to eq('mqtt-sn-client-pub')
     end
   end
 
   describe "when parsing a Connect packet with the clean session flag set" do
-    before(:each) do
-      @packet = MQTT::SN::Packet.parse(
-        "\016\004\004\001\000\017myclient"
-      )
-    end
+    let(:packet) { MQTT::SN::Packet.parse("\016\004\004\001\000\017myclient") }
 
     it "should set the clean session flag" do
-      expect(@packet.clean_session).to be_truthy
+      expect(packet.clean_session).to be_truthy
     end
   end
 
   describe "when parsing a Connect packet with the will request flag set" do
-    before(:each) do
-      @packet = MQTT::SN::Packet.parse(
-        "\016\004\014\001\000\017myclient"
-      )
-    end
+    let(:packet) { MQTT::SN::Packet.parse("\016\004\014\001\000\017myclient") }
 
     it "should correctly create the right type of packet object" do
-      expect(@packet.class).to eq(MQTT::SN::Packet::Connect)
+      expect(packet.class).to eq(MQTT::SN::Packet::Connect)
     end
     it "should set the Client Identifier of the packet correctly" do
-      expect(@packet.client_id).to eq('myclient')
+      expect(packet.client_id).to eq('myclient')
     end
 
     it "should set the clean session flag should be set" do
-      expect(@packet.clean_session).to be_truthy
+      expect(packet.clean_session).to be_truthy
     end
 
     it "should set the Will retain flag should be false" do
-      expect(@packet.request_will).to be_truthy
+      expect(packet.request_will).to be_truthy
     end
   end
 
@@ -198,92 +186,82 @@ describe MQTT::SN::Packet::Connack do
   end
 
   describe "when parsing a successful Connection Accepted packet" do
-    before(:each) do
-      @packet = MQTT::SN::Packet.parse( "\x03\x05\x00" )
-    end
+    let(:packet) { MQTT::SN::Packet.parse( "\x03\x05\x00" ) }
 
     it "should correctly create the right type of packet object" do
-      expect(@packet.class).to eq(MQTT::SN::Packet::Connack)
+      expect(packet.class).to eq(MQTT::SN::Packet::Connack)
     end
 
     it "should set the return code of the packet correctly" do
-      expect(@packet.return_code).to eq(0x00)
+      expect(packet.return_code).to eq(0x00)
     end
 
     it "should set the return message of the packet correctly" do
-      expect(@packet.return_msg).to match(/accepted/i)
+      expect(packet.return_msg).to match(/accepted/i)
     end
   end
 
   describe "when parsing a congestion packet" do
-    before(:each) do
-      @packet = MQTT::SN::Packet.parse( "\x03\x05\x01" )
-    end
+    let(:packet) { MQTT::SN::Packet.parse( "\x03\x05\x01" ) }
 
     it "should correctly create the right type of packet object" do
-      expect(@packet.class).to eq(MQTT::SN::Packet::Connack)
+      expect(packet.class).to eq(MQTT::SN::Packet::Connack)
     end
 
     it "should set the return code of the packet correctly" do
-      expect(@packet.return_code).to eq(0x01)
+      expect(packet.return_code).to eq(0x01)
     end
 
     it "should set the return message of the packet correctly" do
-      expect(@packet.return_msg).to match(/rejected: congestion/i)
+      expect(packet.return_msg).to match(/rejected: congestion/i)
     end
   end
 
   describe "when parsing a invalid topic ID packet" do
-    before(:each) do
-      @packet = MQTT::SN::Packet.parse( "\x03\x05\x02" )
-    end
+    let(:packet) { MQTT::SN::Packet.parse( "\x03\x05\x02" ) }
 
     it "should correctly create the right type of packet object" do
-      expect(@packet.class).to eq(MQTT::SN::Packet::Connack)
+      expect(packet.class).to eq(MQTT::SN::Packet::Connack)
     end
 
     it "should set the return code of the packet correctly" do
-      expect(@packet.return_code).to eq(0x02)
+      expect(packet.return_code).to eq(0x02)
     end
 
     it "should set the return message of the packet correctly" do
-      expect(@packet.return_msg).to match(/rejected: invalid topic ID/i)
+      expect(packet.return_msg).to match(/rejected: invalid topic ID/i)
     end
   end
 
   describe "when parsing a 'not supported' packet" do
-    before(:each) do
-      @packet = MQTT::SN::Packet.parse( "\x03\x05\x03" )
-    end
+    let(:packet) { MQTT::SN::Packet.parse( "\x03\x05\x03" ) }
 
     it "should correctly create the right type of packet object" do
-      expect(@packet.class).to eq(MQTT::SN::Packet::Connack)
+      expect(packet.class).to eq(MQTT::SN::Packet::Connack)
     end
 
     it "should set the return code of the packet correctly" do
-      expect(@packet.return_code).to eq(0x03)
+      expect(packet.return_code).to eq(0x03)
     end
 
     it "should set the return message of the packet correctly" do
-      expect(@packet.return_msg).to match(/not supported/i)
+      expect(packet.return_msg).to match(/not supported/i)
     end
   end
 
   describe "when parsing an unknown connection refused packet" do
-    before(:each) do
-      @packet = MQTT::SN::Packet.parse( "\x03\x05\x10" )
-    end
+    let(:packet) { MQTT::SN::Packet.parse( "\x03\x05\x10" ) }
 
     it "should correctly create the right type of packet object" do
-      expect(@packet.class).to eq(MQTT::SN::Packet::Connack)
+      expect(packet.class).to eq(MQTT::SN::Packet::Connack)
     end
 
     it "should set the return code of the packet correctly" do
-      expect(@packet.return_code).to eq(0x10)
+      expect(packet.return_code).to eq(0x10)
     end
 
     it "should set the return message of the packet correctly" do
-      expect(@packet.return_msg).to match(/rejected/i)
+      expect(packet.return_msg).to match(/rejected/i)
     end
   end
 end
@@ -307,28 +285,26 @@ describe MQTT::SN::Packet::Register do
   end
 
   describe "when parsing a Register packet" do
-    before(:each) do
-      @packet = MQTT::SN::Packet.parse( "\x0A\x0A\x00\x01\x00\x01test" )
-    end
+    let(:packet) { MQTT::SN::Packet.parse( "\x0A\x0A\x00\x01\x00\x01test" ) }
 
     it "should correctly create the right type of packet object" do
-      expect(@packet.class).to eq(MQTT::SN::Packet::Register)
+      expect(packet.class).to eq(MQTT::SN::Packet::Register)
     end
 
     it "should set the topic id type of the packet correctly" do
-      expect(@packet.topic_id_type).to eq(:normal)
+      expect(packet.topic_id_type).to eq(:normal)
     end
 
     it "should set the topic id of the packet correctly" do
-      expect(@packet.topic_id).to eq(0x01)
+      expect(packet.topic_id).to eq(0x01)
     end
 
     it "should set the message id of the packet correctly" do
-      expect(@packet.id).to eq(0x01)
+      expect(packet.id).to eq(0x01)
     end
 
     it "should set the topic name of the packet correctly" do
-      expect(@packet.topic_name).to eq('test')
+      expect(packet.topic_name).to eq('test')
     end
   end
 end
@@ -352,28 +328,26 @@ describe MQTT::SN::Packet::Regack do
   end
 
   describe "when parsing a REGACK packet" do
-    before(:each) do
-      @packet = MQTT::SN::Packet.parse( "\x07\x0B\x00\x01\x00\x02\x03" )
-    end
+    let(:packet) { MQTT::SN::Packet.parse( "\x07\x0B\x00\x01\x00\x02\x03" ) }
 
     it "should correctly create the right type of packet object" do
-      expect(@packet.class).to eq(MQTT::SN::Packet::Regack)
+      expect(packet.class).to eq(MQTT::SN::Packet::Regack)
     end
 
     it "should set the topic id type of the packet correctly" do
-      expect(@packet.topic_id_type).to eq(:normal)
+      expect(packet.topic_id_type).to eq(:normal)
     end
 
     it "should set the topic id of the packet correctly" do
-      expect(@packet.topic_id).to eq(0x01)
+      expect(packet.topic_id).to eq(0x01)
     end
 
     it "should set the message id of the packet correctly" do
-      expect(@packet.id).to eq(0x02)
+      expect(packet.id).to eq(0x02)
     end
 
     it "should set the topic name of the packet correctly" do
-      expect(@packet.return_code).to eq(0x03)
+      expect(packet.return_code).to eq(0x03)
     end
   end
 end
@@ -439,122 +413,110 @@ describe MQTT::SN::Packet::Publish do
   end
 
   describe "when parsing a Publish packet with a normal topic id" do
-    before(:each) do
-      @packet = MQTT::SN::Packet.parse(
-        "\x12\x0C\x00\x00\x01\x00\x00Hello World"
-      )
-    end
+    let(:packet) { MQTT::SN::Packet.parse("\x12\x0C\x00\x00\x01\x00\x00Hello World") }
 
     it "should correctly create the right type of packet object" do
-      expect(@packet.class).to eq(MQTT::SN::Packet::Publish)
+      expect(packet.class).to eq(MQTT::SN::Packet::Publish)
     end
 
     it "should set the QOS of the packet correctly" do
-      expect(@packet.qos).to be === 0
+      expect(packet.qos).to be === 0
     end
 
     it "should set the QOS of the packet correctly" do
-      expect(@packet.duplicate).to be === false
+      expect(packet.duplicate).to be === false
     end
 
     it "should set the retain flag of the packet correctly" do
-      expect(@packet.retain).to be === false
+      expect(packet.retain).to be === false
     end
 
     it "should set the topic id of the packet correctly" do
-      expect(@packet.topic_id_type).to be === :normal
+      expect(packet.topic_id_type).to be === :normal
     end
 
     it "should set the topic id of the packet correctly" do
-      expect(@packet.topic_id).to be === 0x01
+      expect(packet.topic_id).to be === 0x01
     end
 
     it "should set the message id of the packet correctly" do
-      expect(@packet.id).to be === 0x0000
+      expect(packet.id).to be === 0x0000
     end
 
     it "should set the topic name of the packet correctly" do
-      expect(@packet.data).to eq("Hello World")
+      expect(packet.data).to eq("Hello World")
     end
   end
 
   describe "when parsing a Publish packet with a short topic id" do
-    before(:each) do
-      @packet = MQTT::SN::Packet.parse(
-        "\x12\x0C\x02tt\x00\x00Hello World"
-      )
-    end
+    let(:packet) { MQTT::SN::Packet.parse("\x12\x0C\x02tt\x00\x00Hello World") }
 
     it "should correctly create the right type of packet object" do
-      expect(@packet.class).to eq(MQTT::SN::Packet::Publish)
+      expect(packet.class).to eq(MQTT::SN::Packet::Publish)
     end
 
     it "should set the QOS of the packet correctly" do
-      expect(@packet.qos).to be === 0
+      expect(packet.qos).to be === 0
     end
 
     it "should set the QOS of the packet correctly" do
-      expect(@packet.duplicate).to be === false
+      expect(packet.duplicate).to be === false
     end
 
     it "should set the retain flag of the packet correctly" do
-      expect(@packet.retain).to be === false
+      expect(packet.retain).to be === false
     end
 
     it "should set the topic id type of the packet correctly" do
-      expect(@packet.topic_id_type).to be === :short
+      expect(packet.topic_id_type).to be === :short
     end
 
     it "should set the topic id of the packet correctly" do
-      expect(@packet.topic_id).to be === 'tt'
+      expect(packet.topic_id).to be === 'tt'
     end
 
     it "should set the message id of the packet correctly" do
-      expect(@packet.id).to be === 0x0000
+      expect(packet.id).to be === 0x0000
     end
 
     it "should set the topic name of the packet correctly" do
-      expect(@packet.data).to eq("Hello World")
+      expect(packet.data).to eq("Hello World")
     end
   end
 
   describe "when parsing a Publish packet with a short topic id and QoS -1" do
-    before(:each) do
-      @packet = MQTT::SN::Packet.parse(
-        "\x12\x0C\x62tt\x00\x00Hello World"
-      )
-    end
+    let(:packet) { MQTT::SN::Packet.parse("\x12\x0C\x62tt\x00\x00Hello World") }
 
     it "should correctly create the right type of packet object" do
-      expect(@packet.class).to eq(MQTT::SN::Packet::Publish)
+      expect(packet.class).to eq(MQTT::SN::Packet::Publish)
     end
 
     it "should set the QOS of the packet correctly" do
-      expect(@packet.qos).to be === -1
+      expect(packet.qos).to be === -1
     end
 
     it "should set the QOS of the packet correctly" do
-      expect(@packet.duplicate).to be === false
+      expect(packet.duplicate).to be === false
     end
 
     it "should set the retain flag of the packet correctly" do
-      expect(@packet.retain).to be === false
+      expect(packet.retain).to be === false
     end
 
     it "should set the topic id type of the packet correctly" do
-      expect(@packet.topic_id_type).to be === :short
+      expect(packet.topic_id_type).to be === :short
     end
 
     it "should set the topic id of the packet correctly" do
-      expect(@packet.topic_id).to be === 'tt'
+      expect(packet.topic_id).to be === 'tt'
     end
 
     it "should set the message id of the packet correctly" do
-      expect(@packet.id).to be === 0x0000
+      expect(packet.id).to be === 0x0000
     end
 
     it "should set the topic name of the packet correctly" do
-      expect(@packet.data).to eq("Hello World")
+      expect(packet.data).to eq("Hello World")
     end
   end
 end
@@ -579,28 +541,26 @@ describe MQTT::SN::Packet::Subscribe do
   end
 
   describe "when parsing a Subscribe packet" do
-    before(:each) do
-      @packet = MQTT::SN::Packet.parse( "\x09\x12\x00\x00\x03test" )
-    end
+    let(:packet) { MQTT::SN::Packet.parse( "\x09\x12\x00\x00\x03test" ) }
 
     it "should correctly create the right type of packet object" do
-      expect(@packet.class).to eq(MQTT::SN::Packet::Subscribe)
+      expect(packet.class).to eq(MQTT::SN::Packet::Subscribe)
     end
 
     it "should set the message id of the packet correctly" do
-      expect(@packet.id).to eq(0x03)
+      expect(packet.id).to eq(0x03)
     end
 
     it "should set the message id of the packet correctly" do
-      expect(@packet.qos).to eq(0)
+      expect(packet.qos).to eq(0)
     end
 
     it "should set the message id of the packet correctly" do
-      expect(@packet.duplicate).to eq(false)
+      expect(packet.duplicate).to eq(false)
     end
 
     it "should set the topic name of the packet correctly" do
-      expect(@packet.topic_name).to eq('test')
+      expect(packet.topic_name).to eq('test')
     end
   end
 end
@@ -625,32 +585,30 @@ describe MQTT::SN::Packet::Suback do
   end
 
   describe "when parsing a SUBACK packet" do
-    before(:each) do
-      @packet = MQTT::SN::Packet.parse( "\x08\x13\x00\x00\x01\x00\x02\x03" )
-    end
+    let(:packet) { MQTT::SN::Packet.parse( "\x08\x13\x00\x00\x01\x00\x02\x03" ) }
 
     it "should correctly create the right type of packet object" do
-      expect(@packet.class).to eq(MQTT::SN::Packet::Suback)
+      expect(packet.class).to eq(MQTT::SN::Packet::Suback)
     end
 
     it "should set the topic id of the packet correctly" do
-      expect(@packet.qos).to eq(0)
+      expect(packet.qos).to eq(0)
     end
 
     it "should set the topic id type of the packet correctly" do
-      expect(@packet.topic_id_type).to eq(:normal)
+      expect(packet.topic_id_type).to eq(:normal)
     end
 
     it "should set the topic id of the packet correctly" do
-      expect(@packet.topic_id).to eq(0x01)
+      expect(packet.topic_id).to eq(0x01)
     end
 
     it "should set the message id of the packet correctly" do
-      expect(@packet.id).to eq(0x02)
+      expect(packet.id).to eq(0x02)
     end
 
     it "should set the topic name of the packet correctly" do
-      expect(@packet.return_code).to eq(0x03)
+      expect(packet.return_code).to eq(0x03)
     end
   end
 end
@@ -675,28 +633,26 @@ describe MQTT::SN::Packet::Unsubscribe do
   end
 
   describe "when parsing a Unsubscribe packet" do
-    before(:each) do
-      @packet = MQTT::SN::Packet.parse( "\x09\x14\x00\x00\x03test" )
-    end
+    let(:packet) { MQTT::SN::Packet.parse( "\x09\x14\x00\x00\x03test" ) }
 
     it "should correctly create the right type of packet object" do
-      expect(@packet.class).to eq(MQTT::SN::Packet::Unsubscribe)
+      expect(packet.class).to eq(MQTT::SN::Packet::Unsubscribe)
     end
 
     it "should set the message id of the packet correctly" do
-      expect(@packet.id).to eq(0x03)
+      expect(packet.id).to eq(0x03)
     end
 
     it "should set the message id of the packet correctly" do
-      expect(@packet.qos).to eq(0)
+      expect(packet.qos).to eq(0)
     end
 
     it "should set the message id of the packet correctly" do
-      expect(@packet.duplicate).to eq(false)
+      expect(packet.duplicate).to eq(false)
     end
 
     it "should set the topic name of the packet correctly" do
-      expect(@packet.topic_name).to eq('test')
+      expect(packet.topic_name).to eq('test')
     end
   end
 end
@@ -716,16 +672,14 @@ describe MQTT::SN::Packet::Unsuback do
   end
 
   describe "when parsing a SUBACK packet" do
-    before(:each) do
-      @packet = MQTT::SN::Packet.parse( "\x04\x15\x00\x02" )
-    end
+    let(:packet) { MQTT::SN::Packet.parse( "\x04\x15\x00\x02" ) }
 
     it "should correctly create the right type of packet object" do
-      expect(@packet.class).to eq(MQTT::SN::Packet::Unsuback)
+      expect(packet.class).to eq(MQTT::SN::Packet::Unsuback)
     end
 
     it "should set the message id of the packet correctly" do
-      expect(@packet.id).to eq(0x02)
+      expect(packet.id).to eq(0x02)
     end
   end
 end
@@ -745,12 +699,10 @@ describe MQTT::SN::Packet::Pingreq do
   end
 
   describe "when parsing a Pingreq packet" do
-    before(:each) do
-      @packet = MQTT::SN::Packet.parse("\x02\x16")
-    end
+    let(:packet) { MQTT::SN::Packet.parse("\x02\x16") }
 
     it "should correctly create the right type of packet object" do
-      expect(@packet.class).to eq(MQTT::SN::Packet::Pingreq)
+      expect(packet.class).to eq(MQTT::SN::Packet::Pingreq)
     end
   end
 end
@@ -770,12 +722,10 @@ describe MQTT::SN::Packet::Pingresp do
   end
 
   describe "when parsing a Pingresp packet" do
-    before(:each) do
-      @packet = MQTT::SN::Packet.parse("\x02\x17")
-    end
+    let(:packet) { MQTT::SN::Packet.parse("\x02\x17") }
 
     it "should correctly create the right type of packet object" do
-      expect(@packet.class).to eq(MQTT::SN::Packet::Pingresp)
+      expect(packet.class).to eq(MQTT::SN::Packet::Pingresp)
     end
   end
 end
@@ -795,12 +745,10 @@ describe MQTT::SN::Packet::Disconnect do
   end
 
   describe "when parsing a Disconnect packet" do
-    before(:each) do
-      @packet = MQTT::SN::Packet.parse("\x02\x18")
-    end
+    let(:packet) { MQTT::SN::Packet.parse("\x02\x18") }
 
     it "should correctly create the right type of packet object" do
-      expect(@packet.class).to eq(MQTT::SN::Packet::Disconnect)
+      expect(packet.class).to eq(MQTT::SN::Packet::Disconnect)
     end
   end
 end
