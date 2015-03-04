@@ -412,6 +412,43 @@ describe MQTT::SN::Packet::Publish do
     end
   end
 
+  describe "when serialising packet larger than 256 bytes" do
+    let(:packet) {
+      MQTT::SN::Packet::Publish.new(
+        :topic_id => 0x10,
+        :topic_id_type => :normal,
+        :data => "Hello World" * 100
+      )
+    }
+
+    it "should have the first byte set to 1" do
+      expect(packet.to_s[0]).to eq("\x01")
+    end
+
+    it "should have the second and third bytes set to 0x0455" do
+      expect(packet.to_s[1,2]).to eq("\x04\x55")
+    end
+
+    it "should have a total length of 0x0455 (1109) bytes" do
+      expect(packet.to_s.length).to eq(0x0455)
+    end
+  end
+
+  describe "when serialising an excessively large packet" do
+    it "should throw an exception" do
+      expect {
+        MQTT::SN::Packet::Publish.new(
+          :topic_id => 0x01,
+          :topic_id_type => :normal,
+          :data => "Hello World" * 6553
+        ).to_s
+      }.to raise_error(
+        RuntimeError,
+        "MQTT-SN Packet is too big, maximum packet body size is 65531"
+      )
+    end
+  end
+
   describe "when parsing a Publish packet with a normal topic id" do
     let(:packet) { MQTT::SN::Packet.parse("\x12\x0C\x00\x00\x01\x00\x00Hello World") }
 
@@ -517,6 +554,42 @@ describe MQTT::SN::Packet::Publish do
 
     it "should set the topic name of the packet correctly" do
       expect(packet.data).to eq("Hello World")
+    end
+  end
+
+  describe "when parsing a Publish packet longer than 256 bytes" do
+    let(:packet) { MQTT::SN::Packet.parse("\x01\x04\x55\x0C\x62tt\x00\x00" + ("Hello World" * 100)) }
+
+    it "should correctly create the right type of packet object" do
+      expect(packet.class).to eq(MQTT::SN::Packet::Publish)
+    end
+
+    it "should set the QOS of the packet correctly" do
+      expect(packet.qos).to be === -1
+    end
+
+    it "should set the QOS of the packet correctly" do
+      expect(packet.duplicate).to be === false
+    end
+
+    it "should set the retain flag of the packet correctly" do
+      expect(packet.retain).to be === false
+    end
+
+    it "should set the topic id type of the packet correctly" do
+      expect(packet.topic_id_type).to be === :short
+    end
+
+    it "should set the topic id of the packet correctly" do
+      expect(packet.topic_id).to be === 'tt'
+    end
+
+    it "should set the message id of the packet correctly" do
+      expect(packet.id).to be === 0x0000
+    end
+
+    it "should set the topic name of the packet correctly" do
+      expect(packet.data).to eq("Hello World" * 100)
     end
   end
 end
