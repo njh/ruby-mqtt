@@ -6,17 +6,17 @@ describe MQTT::SN::Packet do
 
   describe "when creating a new packet" do
     it "should allow you to set the packet dup flag as a hash parameter" do
-      packet = MQTT::SN::Packet.new( :duplicate => true )
+      packet = MQTT::SN::Packet.new(:duplicate => true)
       expect(packet.duplicate).to be_truthy
     end
 
     it "should allow you to set the packet QOS level as a hash parameter" do
-      packet = MQTT::SN::Packet.new( :qos => 2 )
+      packet = MQTT::SN::Packet.new(:qos => 2)
       expect(packet.qos).to eq(2)
     end
 
     it "should allow you to set the packet retain flag as a hash parameter" do
-      packet = MQTT::SN::Packet.new( :retain => true )
+      packet = MQTT::SN::Packet.new(:retain => true)
       expect(packet.retain).to be_truthy
     end
   end
@@ -150,7 +150,7 @@ describe MQTT::SN::Packet::Connect do
   context "that has an invalid type identifier" do
     it "should throw an exception" do
       expect {
-        MQTT::SN::Packet.parse( "\x02\xFF" )
+        MQTT::SN::Packet.parse("\x02\xFF")
       }.to raise_error(
         MQTT::SN::ProtocolException,
         "Invalid packet type identifier: 255"
@@ -180,13 +180,13 @@ describe MQTT::SN::Packet::Connack do
 
   describe "when serialising a packet" do
     it "should output the correct bytes for a sucessful connection acknowledgement packet" do
-      packet = MQTT::SN::Packet::Connack.new( :return_code => 0x00 )
+      packet = MQTT::SN::Packet::Connack.new(:return_code => 0x00)
       expect(packet.to_s).to eq("\x03\x05\x00")
     end
   end
 
   describe "when parsing a successful Connection Accepted packet" do
-    let(:packet) { MQTT::SN::Packet.parse( "\x03\x05\x00" ) }
+    let(:packet) { MQTT::SN::Packet.parse("\x03\x05\x00") }
 
     it "should correctly create the right type of packet object" do
       expect(packet.class).to eq(MQTT::SN::Packet::Connack)
@@ -202,7 +202,7 @@ describe MQTT::SN::Packet::Connack do
   end
 
   describe "when parsing a congestion packet" do
-    let(:packet) { MQTT::SN::Packet.parse( "\x03\x05\x01" ) }
+    let(:packet) { MQTT::SN::Packet.parse("\x03\x05\x01") }
 
     it "should correctly create the right type of packet object" do
       expect(packet.class).to eq(MQTT::SN::Packet::Connack)
@@ -218,7 +218,7 @@ describe MQTT::SN::Packet::Connack do
   end
 
   describe "when parsing a invalid topic ID packet" do
-    let(:packet) { MQTT::SN::Packet.parse( "\x03\x05\x02" ) }
+    let(:packet) { MQTT::SN::Packet.parse("\x03\x05\x02") }
 
     it "should correctly create the right type of packet object" do
       expect(packet.class).to eq(MQTT::SN::Packet::Connack)
@@ -234,7 +234,7 @@ describe MQTT::SN::Packet::Connack do
   end
 
   describe "when parsing a 'not supported' packet" do
-    let(:packet) { MQTT::SN::Packet.parse( "\x03\x05\x03" ) }
+    let(:packet) { MQTT::SN::Packet.parse("\x03\x05\x03") }
 
     it "should correctly create the right type of packet object" do
       expect(packet.class).to eq(MQTT::SN::Packet::Connack)
@@ -250,7 +250,7 @@ describe MQTT::SN::Packet::Connack do
   end
 
   describe "when parsing an unknown connection refused packet" do
-    let(:packet) { MQTT::SN::Packet.parse( "\x03\x05\x10" ) }
+    let(:packet) { MQTT::SN::Packet.parse("\x03\x05\x10") }
 
     it "should correctly create the right type of packet object" do
       expect(packet.class).to eq(MQTT::SN::Packet::Connack)
@@ -285,7 +285,7 @@ describe MQTT::SN::Packet::Register do
   end
 
   describe "when parsing a Register packet" do
-    let(:packet) { MQTT::SN::Packet.parse( "\x0A\x0A\x00\x01\x00\x01test" ) }
+    let(:packet) { MQTT::SN::Packet.parse("\x0A\x0A\x00\x01\x00\x01test") }
 
     it "should correctly create the right type of packet object" do
       expect(packet.class).to eq(MQTT::SN::Packet::Register)
@@ -328,7 +328,7 @@ describe MQTT::SN::Packet::Regack do
   end
 
   describe "when parsing a REGACK packet" do
-    let(:packet) { MQTT::SN::Packet.parse( "\x07\x0B\x00\x01\x00\x02\x03" ) }
+    let(:packet) { MQTT::SN::Packet.parse("\x07\x0B\x00\x01\x00\x02\x03") }
 
     it "should correctly create the right type of packet object" do
       expect(packet.class).to eq(MQTT::SN::Packet::Regack)
@@ -541,7 +541,7 @@ describe MQTT::SN::Packet::Subscribe do
   end
 
   describe "when parsing a Subscribe packet" do
-    let(:packet) { MQTT::SN::Packet.parse( "\x09\x12\x00\x00\x03test" ) }
+    let(:packet) { MQTT::SN::Packet.parse("\x09\x12\x00\x00\x03test") }
 
     it "should correctly create the right type of packet object" do
       expect(packet.class).to eq(MQTT::SN::Packet::Subscribe)
@@ -585,7 +585,7 @@ describe MQTT::SN::Packet::Suback do
   end
 
   describe "when parsing a SUBACK packet" do
-    let(:packet) { MQTT::SN::Packet.parse( "\x08\x13\x00\x00\x01\x00\x02\x03" ) }
+    let(:packet) { MQTT::SN::Packet.parse("\x08\x13\x00\x00\x01\x00\x02\x03") }
 
     it "should correctly create the right type of packet object" do
       expect(packet.class).to eq(MQTT::SN::Packet::Suback)
@@ -633,7 +633,7 @@ describe MQTT::SN::Packet::Unsubscribe do
   end
 
   describe "when parsing a Unsubscribe packet" do
-    let(:packet) { MQTT::SN::Packet.parse( "\x09\x14\x00\x00\x03test" ) }
+    let(:packet) { MQTT::SN::Packet.parse("\x09\x14\x00\x00\x03test") }
 
     it "should correctly create the right type of packet object" do
       expect(packet.class).to eq(MQTT::SN::Packet::Unsubscribe)
@@ -672,7 +672,7 @@ describe MQTT::SN::Packet::Unsuback do
   end
 
   describe "when parsing a SUBACK packet" do
-    let(:packet) { MQTT::SN::Packet.parse( "\x04\x15\x00\x02" ) }
+    let(:packet) { MQTT::SN::Packet.parse("\x04\x15\x00\x02") }
 
     it "should correctly create the right type of packet object" do
       expect(packet.class).to eq(MQTT::SN::Packet::Unsuback)
