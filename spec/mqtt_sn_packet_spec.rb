@@ -592,7 +592,7 @@ describe MQTT::SN::Packet::Publish do
     end
 
     it "should set the QOS of the packet correctly" do
-      expect(packet.qos).to be === -1
+      expect(packet.qos).to be === 0
     end
 
     it "should set the QOS of the packet correctly" do
