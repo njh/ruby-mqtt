@@ -307,6 +307,42 @@ module MQTT::SN
       end
     end
 
+    class Unsubscribe < Packet
+      attr_accessor :id
+      attr_accessor :topic_id
+      attr_accessor :topic_name
+
+      DEFAULTS = {
+        :id => 0x00,
+        :topic_id_type => :normal
+      }
+
+      def encode_body
+        [encode_flags, id, topic_name].pack('Cna*')
+      end
+
+      def parse_body(buffer)
+        flags, self.id, self.topic_name = buffer.unpack('Cna*')
+        parse_flags(flags)
+      end
+    end
+
+    class Unsuback < Packet
+      attr_accessor :id
+
+      DEFAULTS = {
+        :id => 0x00,
+      }
+
+      def encode_body
+        [id].pack('n')
+      end
+
+      def parse_body(buffer)
+        self.id = buffer.unpack('n').first
+      end
+    end
+
     class Pingreq < Packet
       # No attributes
     end
@@ -342,8 +378,8 @@ module MQTT::SN
 #       0x10 => MQTT::SN::Packet::Pubrel,
       0x12 => MQTT::SN::Packet::Subscribe,
       0x13 => MQTT::SN::Packet::Suback,
-#       0x14 => MQTT::SN::Packet::Unsubscribe,
-#       0x15 => MQTT::SN::Packet::Unsuback,
+      0x14 => MQTT::SN::Packet::Unsubscribe,
+      0x15 => MQTT::SN::Packet::Unsuback,
       0x16 => MQTT::SN::Packet::Pingreq,
       0x17 => MQTT::SN::Packet::Pingresp,
       0x18 => MQTT::SN::Packet::Disconnect,

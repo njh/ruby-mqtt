@@ -656,6 +656,81 @@ describe MQTT::SN::Packet::Suback do
 end
 
 
+describe MQTT::SN::Packet::Unsubscribe do
+  it "should have the right type id" do
+    packet = MQTT::SN::Packet::Unsubscribe.new
+    expect(packet.type_id).to eq(0x14)
+  end
+
+  describe "when serialising a packet" do
+    it "should output the correct bytes for a Unsubscribe packet" do
+      packet = MQTT::SN::Packet::Unsubscribe.new(
+        :id => 0x02,
+        :duplicate => false,
+        :qos => 0,
+        :topic_name => 'test'
+      )
+      expect(packet.to_s).to eq("\x09\x14\x00\x00\x02test")
+    end
+  end
+
+  describe "when parsing a Unsubscribe packet" do
+    before(:each) do
+      @packet = MQTT::SN::Packet.parse( "\x09\x14\x00\x00\x03test" )
+    end
+
+    it "should correctly create the right type of packet object" do
+      expect(@packet.class).to eq(MQTT::SN::Packet::Unsubscribe)
+    end
+
+    it "should set the message id of the packet correctly" do
+      expect(@packet.id).to eq(0x03)
+    end
+
+    it "should set the message id of the packet correctly" do
+      expect(@packet.qos).to eq(0)
+    end
+
+    it "should set the message id of the packet correctly" do
+      expect(@packet.duplicate).to eq(false)
+    end
+
+    it "should set the topic name of the packet correctly" do
+      expect(@packet.topic_name).to eq('test')
+    end
+  end
+end
+
+
+describe MQTT::SN::Packet::Unsuback do
+  it "should have the right type id" do
+    packet = MQTT::SN::Packet::Unsuback.new
+    expect(packet.type_id).to eq(0x15)
+  end
+
+  describe "when serialising a packet" do
+    it "should output the correct bytes for a register packet" do
+      packet = MQTT::SN::Packet::Unsuback.new(:id => 0x02)
+      expect(packet.to_s).to eq("\x04\x15\x00\x02")
+    end
+  end
+
+  describe "when parsing a SUBACK packet" do
+    before(:each) do
+      @packet = MQTT::SN::Packet.parse( "\x04\x15\x00\x02" )
+    end
+
+    it "should correctly create the right type of packet object" do
+      expect(@packet.class).to eq(MQTT::SN::Packet::Unsuback)
+    end
+
+    it "should set the message id of the packet correctly" do
+      expect(@packet.id).to eq(0x02)
+    end
+  end
+end
+
+
 describe MQTT::SN::Packet::Pingreq do
   it "should have the right type id" do
     packet = MQTT::SN::Packet::Pingreq.new
