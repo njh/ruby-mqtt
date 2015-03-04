@@ -412,6 +412,17 @@ describe MQTT::SN::Packet::Publish do
     end
   end
 
+  describe "when serialising a packet with a pre-defined topic id type" do
+    it "should output the correct bytes for a publish packet" do
+      packet = MQTT::SN::Packet::Publish.new(
+        :topic_id => 0x00EE,
+        :topic_id_type => :predefined,
+        :data => "Hello World"
+      )
+      expect(packet.to_s).to eq("\x12\x0C\x01\x00\xEE\x00\x00Hello World")
+    end
+  end
+
   describe "when serialising packet larger than 256 bytes" do
     let(:packet) {
       MQTT::SN::Packet::Publish.new(
@@ -550,6 +561,58 @@ describe MQTT::SN::Packet::Publish do
 
     it "should set the message id of the packet correctly" do
       expect(packet.id).to be === 0x0000
+    end
+
+    it "should set the topic name of the packet correctly" do
+      expect(packet.data).to eq("Hello World")
+    end
+  end
+
+  describe "when parsing a Publish packet with a predefined topic id type" do
+    let(:packet) { MQTT::SN::Packet.parse("\x12\x0C\x01\x00\xEE\x00\x00Hello World") }
+
+    it "should correctly create the right type of packet object" do
+      expect(packet.class).to eq(MQTT::SN::Packet::Publish)
+    end
+
+    it "should set the topic id type of the packet correctly" do
+      expect(packet.topic_id_type).to eql(:predefined)
+    end
+
+    it "should set the topic id of the packet correctly" do
+      expect(packet.topic_id).to eq(0xEE)
+    end
+  end
+
+  describe "when parsing a Publish packet with a invalid topic id type" do
+    let(:packet) { MQTT::SN::Packet.parse("\x12\x0C\x03\x00\x10\x55\xCCHello World") }
+
+    it "should correctly create the right type of packet object" do
+      expect(packet.class).to eq(MQTT::SN::Packet::Publish)
+    end
+
+    it "should set the QOS of the packet correctly" do
+      expect(packet.qos).to be === -1
+    end
+
+    it "should set the QOS of the packet correctly" do
+      expect(packet.duplicate).to be === false
+    end
+
+    it "should set the retain flag of the packet correctly" do
+      expect(packet.retain).to be === false
+    end
+
+    it "should set the topic id type of the packet correctly" do
+      expect(packet.topic_id_type).to be_nil
+    end
+
+    it "should set the topic id of the packet correctly" do
+      expect(packet.topic_id).to eq(0x10)
+    end
+
+    it "should set the message id of the packet correctly" do
+      expect(packet.id).to be === 0x55CC
     end
 
     it "should set the topic name of the packet correctly" do
