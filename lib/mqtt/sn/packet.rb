@@ -364,6 +364,74 @@ module MQTT::SN
       end
     end
 
+    class Puback < Packet
+      attr_accessor :topic_id
+      attr_accessor :id
+      attr_accessor :return_code
+
+      DEFAULTS = {
+        :id => 0x00,
+        :topic_id => nil,
+        :return_code => 0x00,
+      }
+
+      def encode_body
+        [topic_id, id, return_code].pack('nnC')
+      end
+
+      def parse_body(buffer)
+        self.topic_id, self.id, self.return_code = buffer.unpack('nnC')
+      end
+    end
+
+    class Pubcomp < Packet
+      attr_accessor :id
+
+      DEFAULTS = {
+        :id => 0x00
+      }
+
+      def encode_body
+        [id].pack('n')
+      end
+
+      def parse_body(buffer)
+        self.id, _ignore = buffer.unpack('n')
+      end
+    end
+
+    class Pubrec < Packet
+      attr_accessor :id
+
+      DEFAULTS = {
+        :id => 0x00
+      }
+
+      def encode_body
+        [id].pack('n')
+      end
+
+      def parse_body(buffer)
+        self.id, _ignore = buffer.unpack('n')
+      end
+    end
+
+    class Pubrel < Packet
+      attr_accessor :id
+
+      DEFAULTS = {
+        :id => 0x00
+      }
+
+      def encode_body
+        [id].pack('n')
+      end
+
+      def parse_body(buffer)
+        self.id, _ignore = buffer.unpack('n')
+      end
+    end
+
     class Subscribe < Packet
       attr_accessor :id
       attr_accessor :topic_id
@@ -471,10 +539,10 @@ module MQTT::SN
       0x0a => MQTT::SN::Packet::Register,
       0x0b => MQTT::SN::Packet::Regack,
       0x0c => MQTT::SN::Packet::Publish,
-#       0x0d => MQTT::SN::Packet::Puback,
-#       0x0e => MQTT::SN::Packet::Pubcomp,
-#       0x0f => MQTT::SN::Packet::Pubrec,
-#       0x10 => MQTT::SN::Packet::Pubrel,
+      0x0d => MQTT::SN::Packet::Puback,
+      0x0e => MQTT::SN::Packet::Pubcomp,
+      0x0f => MQTT::SN::Packet::Pubrec,
+      0x10 => MQTT::SN::Packet::Pubrel,
       0x12 => MQTT::SN::Packet::Subscribe,
       0x13 => MQTT::SN::Packet::Suback,
       0x14 => MQTT::SN::Packet::Unsubscribe,

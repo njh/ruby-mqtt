@@ -892,6 +892,119 @@ describe MQTT::SN::Packet::Publish do
   end
 end
 
+describe MQTT::SN::Packet::Puback do
+  it "should have the right type id" do
+    packet = MQTT::SN::Packet::Puback.new
+    expect(packet.type_id).to eq(0x0D)
+  end
+
+  describe "when serialising a packet" do
+    it "should output the correct bytes" do
+      packet = MQTT::SN::Packet::Puback.new(:id => 0x02, :topic_id => 0x03, :return_code => 0x01)
+      expect(packet.to_s).to eq("\x07\x0D\x00\x03\x00\x02\x01")
+    end
+  end
+
+  describe "when parsing a PUBACK packet" do
+    let(:packet) { MQTT::SN::Packet.parse("\x07\x0D\x00\x01\x00\x02\x03") }
+
+    it "should correctly create the right type of packet object" do
+      expect(packet.class).to eq(MQTT::SN::Packet::Puback)
+    end
+
+    it "should set the topic id of the packet correctly" do
+      expect(packet.topic_id).to eq(0x01)
+    end
+
+    it "should set the message id of the packet correctly" do
+      expect(packet.id).to eq(0x02)
+    end
+
+    it "should set the return code of the packet correctly" do
+      expect(packet.return_code).to eq(0x03)
+    end
+  end
+end
+
+describe MQTT::SN::Packet::Pubcomp do
+  it "should have the right type id" do
+    packet = MQTT::SN::Packet::Pubcomp.new
+    expect(packet.type_id).to eq(0x0E)
+  end
+
+  describe "when serialising a packet" do
+    it "should output the correct bytes" do
+      packet = MQTT::SN::Packet::Pubcomp.new(:id => 0x02)
+      expect(packet.to_s).to eq("\x04\x0E\x00\x02")
+    end
+  end
+
+  describe "when parsing a PUBCOMP packet" do
+    let(:packet) { MQTT::SN::Packet.parse("\x04\x0E\x00\x02") }
+
+    it "should correctly create the right type of packet object" do
+      expect(packet.class).to eq(MQTT::SN::Packet::Pubcomp)
+    end
+
+    it "should set the message id of the packet correctly" do
+      expect(packet.id).to eq(0x02)
+    end
+  end
+end
+
+describe MQTT::SN::Packet::Pubrec do
+  it "should have the right type id" do
+    packet = MQTT::SN::Packet::Pubrec.new
+    expect(packet.type_id).to eq(0x0F)
+  end
+
+  describe "when serialising a packet" do
+    it "should output the correct bytes" do
+      packet = MQTT::SN::Packet::Pubrec.new(:id => 0x02)
+      expect(packet.to_s).to eq("\x04\x0F\x00\x02")
+    end
+  end
+
+  describe "when parsing a PUBREC packet" do
+    let(:packet) { MQTT::SN::Packet.parse("\x04\x0F\x00\x02") }
+
+    it "should correctly create the right type of packet object" do
+      expect(packet.class).to eq(MQTT::SN::Packet::Pubrec)
+    end
+
+    it "should set the message id of the packet correctly" do
+      expect(packet.id).to eq(0x02)
+    end
+  end
+end
+
+
+describe MQTT::SN::Packet::Pubrel do
+  it "should have the right type id" do
+    packet = MQTT::SN::Packet::Pubrel.new
+    expect(packet.type_id).to eq(0x10)
+  end
+
+  describe "when serialising a packet" do
+    it "should output the correct bytes" do
+      packet = MQTT::SN::Packet::Pubrel.new(:id => 0x02)
+      expect(packet.to_s).to eq("\x04\x10\x00\x02")
+    end
+  end
+
+  describe "when parsing a PUBREL packet" do
+    let(:packet) { MQTT::SN::Packet.parse("\x04\x10\x00\x02") }
+
+    it "should correctly create the right type of packet object" do
+      expect(packet.class).to eq(MQTT::SN::Packet::Pubrel)
+    end
+
+    it "should set the message id of the packet correctly" do
+      expect(packet.id).to eq(0x02)
+    end
+  end
+end
+
 
 describe MQTT::SN::Packet::Subscribe do
   it "should have the right type id" do
