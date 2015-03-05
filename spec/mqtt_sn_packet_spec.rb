@@ -376,6 +376,131 @@ describe MQTT::SN::Packet::Connack do
   end
 end
 
+describe MQTT::SN::Packet::Willtopicreq do
+  it "should have the right type id" do
+    packet = MQTT::SN::Packet::Willtopicreq.new
+    expect(packet.type_id).to eq(0x06)
+  end
+
+  describe "when serialising a packet" do
+    it "should output the correct bytes" do
+      packet = MQTT::SN::Packet::Willtopicreq.new
+      expect(packet.to_s).to eq("\x02\x06")
+    end
+  end
+
+  describe "when parsing a Willtopicreq packet" do
+    let(:packet) { MQTT::SN::Packet.parse("\x02\x06") }
+
+    it "should correctly create the right type of packet object" do
+      expect(packet.class).to eq(MQTT::SN::Packet::Willtopicreq)
+    end
+  end
+end
+
+describe MQTT::SN::Packet::Willtopic do
+  it "should have the right type id" do
+    packet = MQTT::SN::Packet::Willtopic.new
+    expect(packet.type_id).to eq(0x07)
+  end
+
+  describe "when serialising a packet" do
+    it "should output the correct bytes for a Willtopic packet" do
+      packet = MQTT::SN::Packet::Willtopic.new(:topic_name => 'test', :qos => 0)
+      expect(packet.to_s).to eq("\x07\x07\x00test")
+    end
+
+    it "should output the correct bytes for a Willtopic packet with QoS 1" do
+      packet = MQTT::SN::Packet::Willtopic.new(:topic_name => 'test', :qos => 1)
+      expect(packet.to_s).to eq("\x07\x07\x20test")
+    end
+
+    it "should output the correct bytes for a Willtopic packet with no topic name" do
+      packet = MQTT::SN::Packet::Willtopic.new(:topic_name => nil)
+      expect(packet.to_s).to eq("\x03\x07\x00")
+    end
+  end
+
+  describe "when parsing a Willtopic packet" do
+    let(:packet) { MQTT::SN::Packet.parse("\x07\x07\x40test") }
+
+    it "should correctly create the right type of packet object" do
+      expect(packet.class).to eq(MQTT::SN::Packet::Willtopic)
+    end
+
+    it "should set the topic name of the packet correctly" do
+      expect(packet.topic_name).to eq('test')
+    end
+
+    it "should set the QoS of the packet correctly" do
+      expect(packet.qos).to eq(2)
+    end
+
+    it "should set the retain flag of the packet correctly" do
+      expect(packet.retain).to be_falsy
+    end
+  end
+
+  describe "when parsing a Willtopic packet with no topic name" do
+    let(:packet) { MQTT::SN::Packet.parse("\x03\x07\x00") }
+
+    it "should correctly create the right type of packet object" do
+      expect(packet.class).to eq(MQTT::SN::Packet::Willtopic)
+    end
+
+    it "should set the topic name of the packet correctly" do
+      expect(packet.topic_name).to be_nil
+    end
+  end
+end
+
+describe MQTT::SN::Packet::Willmsgreq do
+  it "should have the right type id" do
+    packet = MQTT::SN::Packet::Willmsgreq.new
+    expect(packet.type_id).to eq(0x08)
+  end
+
+  describe "when serialising a packet" do
+    it "should output the correct bytes" do
+      packet = MQTT::SN::Packet::Willmsgreq.new
+      expect(packet.to_s).to eq("\x02\x08")
+    end
+  end
+
+  describe "when parsing a Willmsgreq packet" do
+    let(:packet) { MQTT::SN::Packet.parse("\x02\x08") }
+
+    it "should correctly create the right type of packet object" do
+      expect(packet.class).to eq(MQTT::SN::Packet::Willmsgreq)
+    end
+  end
+end
+
+describe MQTT::SN::Packet::Willmsg do
+  it "should have the right type id" do
+    packet = MQTT::SN::Packet::Willmsg.new
+    expect(packet.type_id).to eq(0x09)
+  end
+
+  describe "when serialising a packet" do
+    it "should output the correct bytes for a Willmsg packet" do
+      packet = MQTT::SN::Packet::Willmsg.new(:data => 'msg')
+      expect(packet.to_s).to eq("\x05\x09msg")
+    end
+  end
+
+  describe "when parsing a Willmsg packet" do
+    let(:packet) { MQTT::SN::Packet.parse("\x0D\x09willmessage") }
+
+    it "should correctly create the right type of packet object" do
+      expect(packet.class).to eq(MQTT::SN::Packet::Willmsg)
+    end
+
+    it "should set the topic id of the packet correctly" do
+      expect(packet.data).to eq('willmessage')
+    end
+  end
+end
 
 describe MQTT::SN::Packet::Register do
   it "should have the right type id" do

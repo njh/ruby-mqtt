@@ -256,6 +256,50 @@ module MQTT::SN
       end
     end
 
+    class Willtopicreq < Packet
+      # No attributes
+    end
+
+    class Willtopic < Packet
+      attr_accessor :topic_name
+
+      DEFAULTS = {
+        :qos => 0,
+        :retain => false,
+        :topic_name => nil
+      }
+
+      def encode_body
+        [encode_flags, topic_name].pack('Ca*')
+      end
+
+      def parse_body(buffer)
+        if buffer.length > 1
+          flags, self.topic_name = buffer.unpack('Ca*')
+        else
+          flags, _ignore = buffer.unpack('C')
+          self.topic_name = nil
+        end
+        parse_flags(flags)
+      end
+    end
+
+    class Willmsgreq < Packet
+      # No attributes
+    end
+
+    class Willmsg < Packet
+      attr_accessor :data
+
+      def encode_body
+        data
+      end
+
+      def parse_body(buffer)
+        self.data = buffer
+      end
+    end
+
     class Register < Packet
       attr_accessor :id
       attr_accessor :topic_id
@@ -420,10 +464,10 @@ module MQTT::SN
       0x02 => MQTT::SN::Packet::Gwinfo,
       0x04 => MQTT::SN::Packet::Connect,
       0x05 => MQTT::SN::Packet::Connack,
-#       0x06 => MQTT::SN::Packet::Willtopicreq,
-#       0x07 => MQTT::SN::Packet::Willtopic,
-#       0x08 => MQTT::SN::Packet::Willmsgreq,
-#       0x09 => MQTT::SN::Packet::Willmsg,
+      0x06 => MQTT::SN::Packet::Willtopicreq,
+      0x07 => MQTT::SN::Packet::Willtopic,
+      0x08 => MQTT::SN::Packet::Willmsgreq,
+      0x09 => MQTT::SN::Packet::Willmsg,
       0x0a => MQTT::SN::Packet::Register,
       0x0b => MQTT::SN::Packet::Regack,
       0x0c => MQTT::SN::Packet::Publish,
