@@ -419,6 +419,11 @@ describe MQTT::SN::Packet::Willtopic do
       packet = MQTT::SN::Packet::Willtopic.new(:topic_name => nil)
       expect(packet.to_s).to eq("\x02\x07")
     end
+
+    it "should output the correct bytes for a Willtopic packet with an empty topic name" do
+      packet = MQTT::SN::Packet::Willtopic.new(:topic_name => '')
+      expect(packet.to_s).to eq("\x02\x07")
+    end
   end
 
   describe "when parsing a Willtopic packet" do
