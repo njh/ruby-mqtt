@@ -1,3 +1,6 @@
+# encoding: BINARY
+# Encoding is set to binary, so that the binary packets aren't validated as UTF-8
+
 $:.unshift(File.dirname(__FILE__))
 
 require 'spec_helper'

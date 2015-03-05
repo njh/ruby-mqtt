@@ -1,3 +1,5 @@
+# encoding: BINARY
+
 module MQTT::SN
 
   # Class representing a MQTT::SN Packet
