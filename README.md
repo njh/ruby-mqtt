@@ -93,7 +93,7 @@ Or, if using a block, with an implicit disconnection at the end of the block.
     MQTT::Client.connect('test.mosquitto.org') do |client|
       # perform operations
     end
-    
+
 For more information, see and list of attributes for the [MQTT::Client] class and the [MQTT::Client.connect] method.
 
 
@@ -137,7 +137,7 @@ For more information see the [MQTT::Client#get] method.
 ### Parsing and serialising of packets ###
 
 The parsing and serialising of MQTT and MQTT-SN packets is a separate lower-level API.
-You can use it to build your own clients and servers, without using any of the rest of the 
+You can use it to build your own clients and servers, without using any of the rest of the
 code in this gem.
 
     # Parse a string containing a binary packet into an object
