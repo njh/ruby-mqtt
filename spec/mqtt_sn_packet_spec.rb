@@ -417,7 +417,7 @@ describe MQTT::SN::Packet::Willtopic do
 
     it "should output the correct bytes for a Willtopic packet with no topic name" do
       packet = MQTT::SN::Packet::Willtopic.new(:topic_name => nil)
-      expect(packet.to_s).to eq("\x03\x07\x00")
+      expect(packet.to_s).to eq("\x02\x07")
     end
   end
 

@@ -270,7 +270,11 @@ module MQTT::SN
       }
 
       def encode_body
+        if topic_name.nil? or topic_name.empty?
+          ''
+        else
         [encode_flags, topic_name].pack('Ca*')
+      end
       end
 
       def parse_body(buffer)
