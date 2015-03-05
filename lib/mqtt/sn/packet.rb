@@ -273,8 +273,8 @@ module MQTT::SN
         if topic_name.nil? or topic_name.empty?
           ''
         else
-        [encode_flags, topic_name].pack('Ca*')
-      end
+          [encode_flags, topic_name].pack('Ca*')
+        end
       end
 
       def parse_body(buffer)
@@ -526,6 +526,77 @@ module MQTT::SN
       # No attributes
     end
 
+    class Willtopicupd < Packet
+      attr_accessor :topic_name
+
+      DEFAULTS = {
+        :qos => 0,
+        :retain => false,
+        :topic_name => nil
+      }
+
+      def encode_body
+        if topic_name.nil? or topic_name.empty?
+          ''
+        else
+          [encode_flags, topic_name].pack('Ca*')
+        end
+      end
+
+      def parse_body(buffer)
+        if buffer.length > 1
+          flags, self.topic_name = buffer.unpack('Ca*')
+          parse_flags(flags)
+        else
+          self.topic_name = nil
+        end
+      end
+    end
+
+    class Willtopicresp < Packet
+      attr_accessor :return_code
+
+      DEFAULTS = {
+        :return_code => 0x00
+      }
+
+      def encode_body
+        [return_code].pack('C')
+      end
+
+      def parse_body(buffer)
+        self.return_code, _ignore = buffer.unpack('C')
+      end
+    end
+
+    class Willmsgupd < Packet
+      attr_accessor :data
+
+      def encode_body
+        data
+      end
+
+      def parse_body(buffer)
+        self.data = buffer
+      end
+    end
+
+    class Willmsgresp < Packet
+      attr_accessor :return_code
+
+      DEFAULTS = {
+        :return_code => 0x00
+      }
+
+      def encode_body
+        [return_code].pack('C')
+      end
+
+      def parse_body(buffer)
+        self.return_code, _ignore = buffer.unpack('C')
+      end
+    end
+
   end
 
 
@@ -554,10 +625,10 @@ module MQTT::SN
       0x16 => MQTT::SN::Packet::Pingreq,
       0x17 => MQTT::SN::Packet::Pingresp,
       0x18 => MQTT::SN::Packet::Disconnect,
-#       0x1a => MQTT::SN::Packet::Willtopicupd,
-#       0x1b => MQTT::SN::Packet::Willtopicresp,
-#       0x1c => MQTT::SN::Packet::Willmsgupd,
-#       0x1d => MQTT::SN::Packet::Willmsgresp,
+      0x1a => MQTT::SN::Packet::Willtopicupd,
+      0x1b => MQTT::SN::Packet::Willtopicresp,
+      0x1c => MQTT::SN::Packet::Willmsgupd,
+      0x1d => MQTT::SN::Packet::Willmsgresp,
   }
 
 end
