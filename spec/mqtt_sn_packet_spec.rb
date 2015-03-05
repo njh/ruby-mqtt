@@ -509,7 +509,7 @@ describe MQTT::SN::Packet::Register do
   end
 
   describe "when serialising a packet" do
-    it "should output the correct bytes for a register packet" do
+    it "should output the correct bytes" do
       packet = MQTT::SN::Packet::Register.new(
         :id => 0x01,
         :topic_id => 0x01,
@@ -552,7 +552,7 @@ describe MQTT::SN::Packet::Regack do
   end
 
   describe "when serialising a packet" do
-    it "should output the correct bytes for a register packet" do
+    it "should output the correct bytes" do
       packet = MQTT::SN::Packet::Regack.new(
         :id => 0x02,
         :topic_id => 0x01,
@@ -1057,7 +1057,7 @@ describe MQTT::SN::Packet::Suback do
   end
 
   describe "when serialising a packet" do
-    it "should output the correct bytes for a register packet" do
+    it "should output the correct bytes" do
       packet = MQTT::SN::Packet::Suback.new(
         :id => 0x02,
         :qos => 0,
@@ -1149,7 +1149,7 @@ describe MQTT::SN::Packet::Unsuback do
   end
 
   describe "when serialising a packet" do
-    it "should output the correct bytes for a register packet" do
+    it "should output the correct bytes" do
       packet = MQTT::SN::Packet::Unsuback.new(:id => 0x02)
       expect(packet.to_s).to eq("\x04\x15\x00\x02")
     end
