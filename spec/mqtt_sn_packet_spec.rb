@@ -675,12 +675,8 @@ describe MQTT::SN::Packet::Publish do
       )
     }
 
-    it "should have the first byte set to 1" do
-      expect(packet.to_s[0]).to eq("\x01")
-    end
-
-    it "should have the second and third bytes set to 0x0455" do
-      expect(packet.to_s[1,2]).to eq("\x04\x55")
+    it "should have the first three bytes set to 0x01, 0x04, 0x55" do
+      expect(packet.to_s.unpack('CCC')).to eq([0x01,0x04,0x55])
     end
 
     it "should have a total length of 0x0455 (1109) bytes" do
