@@ -143,6 +143,61 @@ module MQTT::SN
       end
     end
 
+    class Advertise < Packet
+      attr_accessor :gateway_id
+      attr_accessor :duration
+
+      DEFAULTS = {
+        :gateway_id => 0x00,
+        :duration => 0
+      }
+
+      def encode_body
+        [gateway_id, duration].pack('Cn')
+      end
+
+      def parse_body(buffer)
+        self.gateway_id, self.duration = buffer.unpack('Cn')
+      end
+    end
+
+    class Searchgw < Packet
+      attr_accessor :radius
+      DEFAULTS = {
+        :radius => 1
+      }
+
+      def encode_body
+        [radius].pack('C')
+      end
+
+      def parse_body(buffer)
+        self.radius, _ignore = buffer.unpack('C')
+      end
+    end
+
+    class Gwinfo < Packet
+      attr_accessor :gateway_id
+      attr_accessor :gateway_address
+      DEFAULTS = {
+        :gateway_id => 0,
+        :gateway_address => nil
+      }
+
+      def encode_body
+        [gateway_id,gateway_address].pack('Ca*')
+      end
+
+      def parse_body(buffer)
+        if buffer.length > 1
+          self.gateway_id, self.gateway_address = buffer.unpack('Ca*')
+        else
+          self.gateway_id, _ignore = buffer.unpack('C')
+          self.gateway_address = nil
+        end
+      end
+    end
+
     class Connect < Packet
       attr_accessor :keep_alive
       attr_accessor :client_id
@@ -360,9 +415,9 @@ module MQTT::SN
 
   # An enumeration of the MQTT-SN packet types
   PACKET_TYPES = {
-#       0x00 => MQTT::SN::Packet::Advertise,
-#       0x01 => MQTT::SN::Packet::Searchgw,
-#       0x02 => MQTT::SN::Packet::Gwinfo,
+      0x00 => MQTT::SN::Packet::Advertise,
+      0x01 => MQTT::SN::Packet::Searchgw,
+      0x02 => MQTT::SN::Packet::Gwinfo,
       0x04 => MQTT::SN::Packet::Connect,
       0x05 => MQTT::SN::Packet::Connack,
 #       0x06 => MQTT::SN::Packet::Willtopicreq,
