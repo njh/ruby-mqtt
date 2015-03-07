@@ -9,7 +9,7 @@ describe "a client talking to a server" do
   before(:each) do
     @error_log = StringIO.new
     @server = MQTT::FakeServer.new
-    @server.just_one = true
+    @server.just_one_connection = true
     @server.logger = Logger.new(@error_log)
     @server.logger.level = Logger::WARN
     @server.start

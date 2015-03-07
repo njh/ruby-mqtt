@@ -26,7 +26,7 @@ class MQTT::FakeServer
   attr_reader :last_publish
   attr_reader :thread
   attr_reader :pings_received
-  attr_accessor :just_one
+  attr_accessor :just_one_connection
   attr_accessor :logger
 
   # Create a new fake MQTT server
@@ -36,6 +36,8 @@ class MQTT::FakeServer
   def initialize(port=nil, bind_address='127.0.0.1')
     @port = port
     @address = bind_address
+    @pings_received = 0
+    @just_one_connection = false
   end
 
   # Get the logger used by the server
@@ -55,7 +57,7 @@ class MQTT::FakeServer
         client = @socket.accept
         @pings_received = 0
         handle_client(client)
-        break if just_one
+        break if just_one_connection
       end
     end
   end
