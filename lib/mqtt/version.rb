@@ -1,4 +1,4 @@
 module MQTT
   # The version number of the MQTT gem
-  VERSION = "0.3.1"
+  VERSION = "0.4.0"
 end
