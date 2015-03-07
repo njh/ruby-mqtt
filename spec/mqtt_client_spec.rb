@@ -502,9 +502,9 @@ describe MQTT::Client do
     end
 
     it "should update the time a ping was last sent" do
-      client.instance_variable_set('@last_pingreq', 0)
+      client.instance_variable_set('@last_ping_request', 0)
       client.ping
-      expect(client.instance_variable_get('@last_pingreq')).not_to eq(0)
+      expect(client.instance_variable_get('@last_ping_request')).not_to eq(0)
     end
   end
 
@@ -760,7 +760,7 @@ describe MQTT::Client do
 
     it "should send a ping packet if one is due" do
       expect(IO).to receive(:select).and_return(nil)
-      client.instance_variable_set('@last_pingreq', Time.at(0))
+      client.instance_variable_set('@last_ping_request', Time.at(0))
       expect(client).to receive(:ping).once
       client.send(:receive_packet)
     end

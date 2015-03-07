@@ -174,7 +174,7 @@ class MQTT::Client
     end
 
     # Initialise private instance variables
-    @last_pingreq = Time.now
+    @last_ping_request = Time.now
     @last_ping_response = Time.now
     @socket = nil
     @read_queue = Queue.new
@@ -321,7 +321,7 @@ class MQTT::Client
   def ping
     packet = MQTT::Packet::Pingreq.new
     send_packet(packet)
-    @last_pingreq = Time.now
+    @last_ping_request = Time.now
   end
 
   # Publish a message on a particular topic to the MQTT server.
@@ -478,7 +478,7 @@ private
   end
 
   def keep_alive!
-    if @keep_alive > 0 and Time.now > @last_pingreq + @keep_alive
+    if @keep_alive > 0 and Time.now > @last_ping_request + @keep_alive
       ping
     end
   end
