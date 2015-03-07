@@ -491,23 +491,6 @@ describe MQTT::Client do
     end
   end
 
-  describe "when calling the 'ping' method" do
-    before(:each) do
-      client.instance_variable_set('@socket', socket)
-    end
-
-    it "should write a valid PINGREQ packet to the socket" do
-      client.ping
-      expect(socket.string).to eq("\xC0\x00")
-    end
-
-    it "should update the time a ping was last sent" do
-      client.instance_variable_set('@last_ping_request', 0)
-      client.ping
-      expect(client.instance_variable_get('@last_ping_request')).not_to eq(0)
-    end
-  end
-
   describe "when calling the 'publish' method" do
     before(:each) do
       client.instance_variable_set('@socket', socket)
@@ -758,20 +741,6 @@ describe MQTT::Client do
       expect(@read_queue.size).to eq(0)
     end
 
-    it "should send a ping packet if one is due" do
-      expect(IO).to receive(:select).and_return(nil)
-      client.instance_variable_set('@last_ping_request', Time.at(0))
-      expect(client).to receive(:ping).once
-      client.send(:receive_packet)
-    end
-
-    it "should update last_ping_response when receiving a Pingresp" do
-      allow(MQTT::Packet).to receive(:read).and_return MQTT::Packet::Pingresp.new
-      client.instance_variable_set '@last_ping_response', Time.at(0)
-      client.send :receive_packet
-      expect(client.last_ping_response).to be_within(1).of Time.now
-    end
-
     it "should close the socket if there is an exception" do
       expect(socket).to receive(:close).once
       allow(MQTT::Packet).to receive(:read).and_raise(MQTT::Exception)
@@ -782,6 +751,42 @@ describe MQTT::Client do
       expect(@parent_thread).to receive(:raise).once
       allow(MQTT::Packet).to receive(:read).and_raise(MQTT::Exception)
       client.send(:receive_packet)
+    end
+
+    it "should update last_ping_response when receiving a Pingresp" do
+      allow(MQTT::Packet).to receive(:read).and_return MQTT::Packet::Pingresp.new
+      client.instance_variable_set '@last_ping_response', Time.at(0)
+      client.send :receive_packet
+      expect(client.last_ping_response).to be_within(1).of Time.now
+    end
+  end
+
+  describe "when calling the 'keep_alive!' method" do
+    before(:each) do
+      client.instance_variable_set('@socket', socket)
+    end
+
+    it "should send a ping packet if one is due" do
+      client.instance_variable_set('@last_ping_request', Time.at(0))
+      client.send('keep_alive!')
+      expect(socket.string).to eq("\xC0\x00")
+    end
+
+    it "should update the time a ping was last sent" do
+      client.instance_variable_set('@last_ping_request', Time.at(0))
+      client.send('keep_alive!')
+      expect(client.instance_variable_get('@last_ping_request')).not_to eq(0)
+    end
+
+    it "should throw an exception if no ping response has been received" do
+      client.instance_variable_set('@last_ping_request', Time.now)
+      client.instance_variable_set('@last_ping_response', Time.at(0))
+      expect {
+        client.send('keep_alive!')
+      }.to raise_error(
+        MQTT::ProtocolException,
+        /No Ping Response received for \d+ seconds/
+      )
     end
   end
 

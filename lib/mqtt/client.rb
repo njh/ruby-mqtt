@@ -314,16 +314,6 @@ class MQTT::Client
     (not @socket.nil?) and (not @socket.closed?)
   end
 
-  # Send a MQTT ping message to indicate that the MQTT client is alive.
-  #
-  # Note that you will not normally need to call this method
-  # as it is called automatically
-  def ping
-    packet = MQTT::Packet::Pingreq.new
-    send_packet(packet)
-    @last_ping_request = Time.now
-  end
-
   # Publish a message on a particular topic to the MQTT server.
   def publish(topic, payload='', retain=false, qos=0)
     raise ArgumentError.new("Topic name cannot be nil") if topic.nil?
@@ -478,8 +468,17 @@ private
   end
 
   def keep_alive!
-    if @keep_alive > 0 and Time.now > @last_ping_request + @keep_alive
-      ping
+    if @keep_alive > 0
+      response_timeout = (@keep_alive * 1.5).ceil
+      if Time.now >= @last_ping_request + @keep_alive
+        packet = MQTT::Packet::Pingreq.new
+        send_packet(packet)
+        @last_ping_request = Time.now
+      elsif Time.now > @last_ping_response + response_timeout
+        raise MQTT::ProtocolException.new(
+          "No Ping Response received for #{response_timeout} seconds"
+        )
+      end
     end
   end
 

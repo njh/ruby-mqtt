@@ -26,6 +26,7 @@ class MQTT::FakeServer
   attr_reader :last_publish
   attr_reader :thread
   attr_reader :pings_received
+  attr_accessor :respond_to_pings
   attr_accessor :just_one_connection
   attr_accessor :logger
 
@@ -38,6 +39,7 @@ class MQTT::FakeServer
     @address = bind_address
     @pings_received = 0
     @just_one_connection = false
+    @respond_to_pings = true
   end
 
   # Get the logger used by the server
@@ -109,8 +111,10 @@ class MQTT::FakeServer
             :retain => true
           )
         when MQTT::Packet::Pingreq
-          client.write MQTT::Packet::Pingresp.new
           @pings_received += 1
+          if respond_to_pings
+            client.write MQTT::Packet::Pingresp.new
+          end
         when MQTT::Packet::Disconnect
           client.close
         break
