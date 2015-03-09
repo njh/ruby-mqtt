@@ -53,7 +53,7 @@ class MQTT::Client
   # If the Will message should be retain by the server after it is sent
   attr_accessor :will_retain
 
-  #Last ping response time
+  # Last ping response time
   attr_reader :last_ping_response
 
 
@@ -363,20 +363,13 @@ class MQTT::Client
   #   end
   #
   def get(topic=nil)
-    # Subscribe to a topic, if an argument is given
-    subscribe(topic) unless topic.nil?
-
     if block_given?
-      # Loop forever!
-      loop do
-        packet = @read_queue.pop
+      get_packet(topic) do |packet|
         yield(packet.topic, packet.payload)
-        puback_packet(packet) if packet.qos > 0
       end
     else
       # Wait for one packet to be available
-      packet = @read_queue.pop
-      puback_packet(packet) if packet.qos > 0
+      packet = get_packet(topic)
       return packet.topic, packet.payload
     end
   end
@@ -401,11 +394,15 @@ class MQTT::Client
     if block_given?
       # Loop forever!
       loop do
-        yield(@read_queue.pop)
+        packet = @read_queue.pop
+        yield(packet)
+        puback_packet(packet) if packet.qos > 0
       end
     else
       # Wait for one packet to be available
-      return @read_queue.pop
+      packet = @read_queue.pop
+      puback_packet(packet) if packet.qos > 0
+      return packet
     end
   end
 
@@ -456,7 +453,7 @@ private
     end
   end
 
-  def handle_packet packet
+  def handle_packet(packet)
     if packet.class == MQTT::Packet::Publish
       # Add to queue
       @read_queue.push(packet)
