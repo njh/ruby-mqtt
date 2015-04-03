@@ -35,12 +35,12 @@ Quick Start
 
     require 'rubygems'
     require 'mqtt'
-    
+
     # Publish example
     MQTT::Client.connect('test.mosquitto.org') do |c|
       c.publish('topic', 'message')
     end
-    
+
     # Subscribe example
     MQTT::Client.connect('test.mosquitto.org') do |c|
       # If you pass a block to the get method, then it will loop
@@ -68,7 +68,7 @@ TLS/SSL is not enabled by default, to enabled it, pass ```:ssl => true```:
 
     client = MQTT::Client.connect(
       :host => 'test.mosquitto.org',
-      :port => 8883
+      :port => 8883,
       :ssl => true
     )
 
