@@ -24,6 +24,10 @@ class Encoding
   def to_s
     @name
   end
+  
+  def name
+    @name
+  end
 
   UTF_8 = Encoding.new("UTF-8")
   ASCII_8BIT = Encoding.new("ASCII-8BIT")
