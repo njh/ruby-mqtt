@@ -348,12 +348,11 @@ module MQTT::SN
       }
 
       def encode_body
-        [encode_topic_id, id, topic_name].pack('nna*')
+        [topic_id, id, topic_name].pack('nna*')
       end
 
       def parse_body(buffer)
-        topic_id, self.id, self.topic_name = buffer.unpack('nna*')
-        parse_topic_id(topic_id)
+        self.topic_id, self.id, self.topic_name = buffer.unpack('nna*')
       end
     end
 
@@ -368,12 +367,11 @@ module MQTT::SN
       }
 
       def encode_body
-        [encode_topic_id, id, return_code].pack('nnC')
+        [topic_id, id, return_code].pack('nnC')
       end
 
       def parse_body(buffer)
-        topic_id, self.id, self.return_code = buffer.unpack('nnC')
-        parse_topic_id(topic_id)
+        self.topic_id, self.id, self.return_code = buffer.unpack('nnC')
       end
     end
 
