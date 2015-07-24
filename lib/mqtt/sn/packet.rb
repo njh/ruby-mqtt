@@ -144,6 +144,37 @@ module MQTT::SN
         self.topic_id = topic_id
       end
     end
+    
+    # Used where a field can either be a Topic Id or a Topic Name
+    # (the Subscribe and Unsubscribe packet types)
+    def encode_topic
+      case topic_id_type
+        when :normal
+          topic_name
+        when :short
+          unless topic_name.nil?
+            topic_name
+          else
+            topic_id
+          end 
+        when :predefined
+          [topic_id].pack('n')
+      end
+    end
+    
+    # Used where a field can either be a Topic Id or a Topic Name
+    # (the Subscribe and Unsubscribe packet types)
+    def parse_topic(topic)
+      case topic_id_type
+        when :normal
+          self.topic_name = topic
+        when :short
+          self.topic_name = topic
+          self.topic_id = topic
+        when :predefined
+          self.topic_id = topic.unpack('n').first
+      end
+    end
 
     class Advertise < Packet
       attr_accessor :gateway_id
@@ -449,12 +480,13 @@ module MQTT::SN
       }
 
       def encode_body
-        [encode_flags, id, topic_name].pack('Cna*')
+        [encode_flags, id, encode_topic].pack('Cna*')
       end
 
       def parse_body(buffer)
-        flags, self.id, self.topic_name = buffer.unpack('Cna*')
+        flags, self.id, topic = buffer.unpack('Cna*')
         parse_flags(flags)
+        parse_topic(topic)
       end
     end
 
@@ -491,12 +523,13 @@ module MQTT::SN
       }
 
       def encode_body
-        [encode_flags, id, topic_name].pack('Cna*')
+        [encode_flags, id, encode_topic].pack('Cna*')
       end
 
       def parse_body(buffer)
-        flags, self.id, self.topic_name = buffer.unpack('Cna*')
+        flags, self.id, topic = buffer.unpack('Cna*')
         parse_flags(flags)
+        parse_topic(topic)
       end
     end
 
