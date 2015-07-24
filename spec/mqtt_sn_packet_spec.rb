@@ -13,7 +13,7 @@ describe MQTT::SN::Packet do
       expect(packet.duplicate).to be_truthy
     end
 
-    it "should allow you to set the packet QOS level as a hash parameter" do
+    it "should allow you to set the packet QoS level as a hash parameter" do
       packet = MQTT::SN::Packet.new(:qos => 2)
       expect(packet.qos).to eq(2)
     end
@@ -440,7 +440,7 @@ describe MQTT::SN::Packet::Willtopic do
       expect(packet.topic_name).to eq('test')
     end
 
-    it "should set the QoS of the packet correctly" do
+    it "should set the QoS value of the packet correctly" do
       expect(packet.qos).to eq(2)
     end
 
@@ -706,11 +706,11 @@ describe MQTT::SN::Packet::Publish do
       expect(packet.class).to eq(MQTT::SN::Packet::Publish)
     end
 
-    it "should set the QOS of the packet correctly" do
+    it "should set the QoS value of the packet correctly" do
       expect(packet.qos).to be === 0
     end
 
-    it "should set the QOS of the packet correctly" do
+    it "should set the duplicate flag of the packet correctly" do
       expect(packet.duplicate).to be === false
     end
 
@@ -742,11 +742,11 @@ describe MQTT::SN::Packet::Publish do
       expect(packet.class).to eq(MQTT::SN::Packet::Publish)
     end
 
-    it "should set the QOS of the packet correctly" do
+    it "should set the QoS value of the packet correctly" do
       expect(packet.qos).to be === 0
     end
 
-    it "should set the QOS of the packet correctly" do
+    it "should set the duplicate flag of the packet correctly" do
       expect(packet.duplicate).to be === false
     end
 
@@ -778,11 +778,11 @@ describe MQTT::SN::Packet::Publish do
       expect(packet.class).to eq(MQTT::SN::Packet::Publish)
     end
 
-    it "should set the QOS of the packet correctly" do
+    it "should set the QoS value of the packet correctly" do
       expect(packet.qos).to be === -1
     end
 
-    it "should set the QOS of the packet correctly" do
+    it "should set the duplicate flag of the packet correctly" do
       expect(packet.duplicate).to be === false
     end
 
@@ -830,11 +830,11 @@ describe MQTT::SN::Packet::Publish do
       expect(packet.class).to eq(MQTT::SN::Packet::Publish)
     end
 
-    it "should set the QOS of the packet correctly" do
+    it "should set the QoS value of the packet correctly" do
       expect(packet.qos).to be === 0
     end
 
-    it "should set the QOS of the packet correctly" do
+    it "should set the duplicate flag of the packet correctly" do
       expect(packet.duplicate).to be === false
     end
 
@@ -866,11 +866,11 @@ describe MQTT::SN::Packet::Publish do
       expect(packet.class).to eq(MQTT::SN::Packet::Publish)
     end
 
-    it "should set the QOS of the packet correctly" do
+    it "should set the QoS value of the packet correctly" do
       expect(packet.qos).to be === -1
     end
 
-    it "should set the QOS of the packet correctly" do
+    it "should set the duplicate flag of the packet correctly" do
       expect(packet.duplicate).to be === false
     end
 
@@ -1039,11 +1039,11 @@ describe MQTT::SN::Packet::Subscribe do
       expect(packet.id).to eq(0x03)
     end
 
-    it "should set the message id of the packet correctly" do
+    it "should set the QoS value of the packet correctly" do
       expect(packet.qos).to eq(0)
     end
 
-    it "should set the message id of the packet correctly" do
+    it "should set the duplicate flag of the packet correctly" do
       expect(packet.duplicate).to eq(false)
     end
 
@@ -1131,11 +1131,11 @@ describe MQTT::SN::Packet::Unsubscribe do
       expect(packet.id).to eq(0x03)
     end
 
-    it "should set the message id of the packet correctly" do
+    it "should set the QoS value of the packet correctly" do
       expect(packet.qos).to eq(0)
     end
 
-    it "should set the message id of the packet correctly" do
+    it "should set the duplicate flag of the packet correctly" do
       expect(packet.duplicate).to eq(false)
     end
 
@@ -1281,7 +1281,7 @@ describe MQTT::SN::Packet::Willtopicupd do
       expect(packet.topic_name).to eq('test')
     end
 
-    it "should set the QoS of the packet correctly" do
+    it "should set the QoS value of the packet correctly" do
       expect(packet.qos).to eq(2)
     end
 
