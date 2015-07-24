@@ -95,7 +95,7 @@ end
 
 describe MQTT::Packet::Publish do
   describe "when creating a packet" do
-    it "should allow you to set the packet QOS level as a hash parameter" do
+    it "should allow you to set the packet QoS level as a hash parameter" do
       packet = MQTT::Packet::Publish.new( :qos => 2 )
       expect(packet.qos).to eq(2)
     end
@@ -158,22 +158,22 @@ describe MQTT::Packet::Publish do
   end
 
   describe "when serialising a packet" do
-    it "should output the correct bytes for a packet with default QOS and no flags" do
+    it "should output the correct bytes for a packet with default QoS and no flags" do
       packet = MQTT::Packet::Publish.new( :topic => 'test', :payload => 'hello world' )
       expect(packet.to_s).to eq("\x30\x11\x00\x04testhello world")
     end
 
-    it "should output the correct bytes for a packet with QOS 1 and no flags" do
+    it "should output the correct bytes for a packet with QoS 1 and no flags" do
       packet = MQTT::Packet::Publish.new( :id => 5, :qos => 1, :topic => 'a/b', :payload => 'hello world' )
       expect(packet.to_s).to eq("\x32\x12\x00\x03a/b\x00\x05hello world")
     end
 
-    it "should output the correct bytes for a packet with QOS 2 and retain flag set" do
+    it "should output the correct bytes for a packet with QoS 2 and retain flag set" do
       packet = MQTT::Packet::Publish.new( :id => 5, :qos => 2, :retain => true, :topic => 'c/d', :payload => 'hello world' )
       expect(packet.to_s).to eq("\x35\x12\x00\x03c/d\x00\x05hello world")
     end
 
-    it "should output the correct bytes for a packet with QOS 2 and dup flag set" do
+    it "should output the correct bytes for a packet with QoS 2 and dup flag set" do
       packet = MQTT::Packet::Publish.new( :id => 5, :qos => 2, :duplicate => true, :topic => 'c/d', :payload => 'hello world' )
       expect(packet.to_s).to eq("\x3C\x12\x00\x03c/d\x00\x05hello world")
     end
@@ -221,14 +221,14 @@ describe MQTT::Packet::Publish do
     end
   end
 
-  describe "when parsing a packet with QOS 0" do
+  describe "when parsing a packet with QoS 0" do
     let(:packet) { MQTT::Packet.parse( "\x30\x11\x00\x04testhello world" ) }
 
     it "should correctly create the right type of packet object" do
       expect(packet.class).to eq(MQTT::Packet::Publish)
     end
 
-    it "should set the QOS level correctly" do
+    it "should set the QoS level correctly" do
       expect(packet.qos).to eq(0)
     end
 
@@ -251,14 +251,14 @@ describe MQTT::Packet::Publish do
     end
   end
 
-  describe "when parsing a packet with QOS 2 and retain and dup flags set" do
+  describe "when parsing a packet with QoS 2 and retain and dup flags set" do
     let(:packet) { MQTT::Packet.parse( "\x3D\x12\x00\x03c/d\x00\x05hello world" ) }
 
     it "should correctly create the right type of packet object" do
       expect(packet.class).to eq(MQTT::Packet::Publish)
     end
 
-    it "should set the QOS level correctly" do
+    it "should set the QoS level correctly" do
       expect(packet.qos).to eq(2)
     end
 
@@ -411,7 +411,7 @@ describe MQTT::Packet::Publish do
       expect(packet.body_length).to eq(17)
     end
 
-    it "should set the QOS level correctly" do
+    it "should set the QoS level correctly" do
       expect(packet.qos).to eq(0)
     end
 
@@ -743,7 +743,7 @@ describe MQTT::Packet::Connect do
       expect(packet.clean_session).to be_truthy
     end
 
-    it "should set the QOS of the Will should be 1" do
+    it "should set the QoS of the Will should be 1" do
       expect(packet.will_qos).to eq(1)
     end
 
@@ -1568,15 +1568,15 @@ describe MQTT::Packet::Suback do
       expect(packet.to_s).to eq("\x90\x04\x00\x06\x00\x01")
     end
 
-    it "should throw an exception when no granted QOSs are given" do
+    it "should throw an exception when no granted QoSs are given" do
       expect {
         MQTT::Packet::Suback.new( :id => 7 ).to_s
       }.to raise_error(
-        'no granted QOS given when serialising packet'
+        'no granted QoS given when serialising packet'
       )
     end
 
-    it "should throw an exception if the granted QOS is not an integer" do
+    it "should throw an exception if the granted QoS is not an integer" do
       expect {
         MQTT::Packet::Suback.new( :id => 8, :return_codes => :foo ).to_s
       }.to raise_error(
@@ -1585,7 +1585,7 @@ describe MQTT::Packet::Suback do
     end
   end
 
-  describe "when parsing a packet with a single QOS value of 0" do
+  describe "when parsing a packet with a single QoS value of 0" do
     let(:packet) { MQTT::Packet.parse( "\x90\x03\x12\x34\x00" ) }
 
     it "should correctly create the right type of packet object" do
@@ -1596,12 +1596,12 @@ describe MQTT::Packet::Suback do
       expect(packet.id).to eq(0x1234)
     end
 
-    it "should set the Granted QOS of the packet correctly" do
+    it "should set the Granted QoS of the packet correctly" do
       expect(packet.return_codes).to eq([0])
     end
   end
 
-  describe "when parsing a packet with two QOS values" do
+  describe "when parsing a packet with two QoS values" do
     let(:packet) { MQTT::Packet.parse( "\x90\x04\x12\x34\x01\x01" ) }
 
     it "should correctly create the right type of packet object" do
@@ -1612,7 +1612,7 @@ describe MQTT::Packet::Suback do
       expect(packet.id).to eq(0x1234)
     end
 
-    it "should set the Granted QOS of the packet correctly" do
+    it "should set the Granted QoS of the packet correctly" do
       expect(packet.return_codes).to eq([1,1])
     end
   end
