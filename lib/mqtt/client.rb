@@ -333,9 +333,9 @@ class MQTT::Client
 
   # Send a subscribe message for one or more topics on the MQTT server.
   # The topics parameter should be one of the following:
-  # * String: subscribe to one topic with QOS 0
-  # * Array: subscribe to multiple topics with QOS 0
-  # * Hash: subscribe to multiple topics where the key is the topic and the value is the QOS level
+  # * String: subscribe to one topic with QoS 0
+  # * Array: subscribe to multiple topics with QoS 0
+  # * Hash: subscribe to multiple topics where the key is the topic and the value is the QoS level
   #
   # For example:
   #   client.subscribe( 'a/b' )
@@ -461,7 +461,7 @@ private
       @last_ping_response = Time.now
     end
     # Ignore all other packets
-    # FIXME: implement responses for QOS  2
+    # FIXME: implement responses for QoS  2
   end
 
   def keep_alive!

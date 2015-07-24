@@ -376,7 +376,7 @@ describe MQTT::Client do
         expect(client.will_retain).to be_falsey
       end
 
-      it "should have set the Will's retain QOS value to 1" do
+      it "should have set the Will's retain QoS value to 1" do
         expect(client.will_qos).to eq(1)
       end
 
@@ -506,12 +506,12 @@ describe MQTT::Client do
       expect(socket.string).to eq("\x31\x0e\x00\x05topicpayload")
     end
 
-    it "should write a valid PUBLISH packet to the socket with the QOS set to 1" do
+    it "should write a valid PUBLISH packet to the socket with the QoS set to 1" do
       client.publish('topic','payload', false, 1)
       expect(socket.string).to eq("\x32\x10\x00\x05topic\x00\x01payload")
     end
 
-    it "should write a valid PUBLISH packet to the socket with the QOS set to 2" do
+    it "should write a valid PUBLISH packet to the socket with the QoS set to 2" do
       client.publish('topic','payload', false, 2)
       expect(socket.string).to eq("\x34\x10\x00\x05topic\x00\x01payload")
     end

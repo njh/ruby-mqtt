@@ -780,9 +780,9 @@ module MQTT
 
       # Set one or more topic filters for the Subscribe packet
       # The topics parameter should be one of the following:
-      # * String: subscribe to one topic with QOS 0
-      # * Array: subscribe to multiple topics with QOS 0
-      # * Hash: subscribe to multiple topics where the key is the topic and the value is the QOS level
+      # * String: subscribe to one topic with QoS 0
+      # * Array: subscribe to multiple topics with QoS 0
+      # * Hash: subscribe to multiple topics where the key is the topic and the value is the QoS level
       #
       # For example:
       #   packet.topics = 'a/b'
@@ -877,7 +877,7 @@ module MQTT
         super(ATTR_DEFAULTS.merge(args))
       end
 
-      # Set the granted QOS value for each of the topics that were subscribed to
+      # Set the granted QoS value for each of the topics that were subscribed to
       # Can either be an integer or an array or integers.
       def return_codes=(value)
         if value.is_a?(Array)
@@ -892,7 +892,7 @@ module MQTT
       # Get serialisation of packet's body
       def encode_body
         if @return_codes.empty?
-          raise "no granted QOS given when serialising packet"
+          raise "no granted QoS given when serialising packet"
         end
         body = encode_short(@id)
         return_codes.each { |qos| body += encode_bytes(qos) }

@@ -161,8 +161,9 @@ code in this gem.
 Limitations
 -----------
 
- * Only QOS 0 currently supported by client
+ * QoS 2 is not currently supported by client
  * Automatic re-connects to the server are not supported
+ * No local persistence for packets
 
 
 Resources
