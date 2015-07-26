@@ -1044,7 +1044,7 @@ describe MQTT::SN::Packet::Subscribe do
         :qos => 0,
         :id => 0x04,
         :topic_id_type => :short,
-        :topic_id => 'TT',
+        :topic_id => 'TT'
       )
       expect(packet.to_s).to eq("\x07\x12\x02\x00\x04TT")
     end
@@ -1236,7 +1236,7 @@ describe MQTT::SN::Packet::Unsubscribe do
         :qos => 0,
         :id => 0x04,
         :topic_id_type => :short,
-        :topic_id => 'TT',
+        :topic_id => 'TT'
       )
       expect(packet.to_s).to eq("\x07\x14\x02\x00\x04TT")
     end
