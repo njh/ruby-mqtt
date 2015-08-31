@@ -39,7 +39,7 @@ require 'mqtt'
 
 # Publish example
 MQTT::Client.connect('test.mosquitto.org') do |c|
-  c.publish('topic', 'message')
+  c.publish('test', 'message')
 end
 
 # Subscribe example
