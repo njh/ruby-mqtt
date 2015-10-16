@@ -53,6 +53,7 @@ class MQTT::FakeServer
     @address = @socket.addr[3]
     @port = @socket.addr[1]
     @thread ||= Thread.new do
+      Thread.current.abort_on_exception = true
       logger.info "Started a fake MQTT server on #{@address}:#{@port}"
       loop do
         # Wait for a client to connect
