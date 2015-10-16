@@ -1171,6 +1171,14 @@ describe MQTT::SN::Packet::Suback do
       )
       expect(packet.to_s).to eq("\x08\x13\x00\x00\x01\x00\x02\x03")
     end
+
+    it "should output the correct bytes for a packet with no topic id" do
+      packet = MQTT::SN::Packet::Suback.new(
+        :id => 0x02,
+        :return_code => 0x02
+      )
+      expect(packet.to_s).to eq("\x08\x13\x00\x00\x00\x00\x02\x02")
+    end
   end
 
   describe "when parsing a SUBACK packet" do

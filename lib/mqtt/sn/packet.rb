@@ -363,6 +363,7 @@ module MQTT::SN
 
       DEFAULTS = {
         :id => 0x00,
+        :topic_id => 0x00,
         :topic_id_type => :normal
       }
 
@@ -496,6 +497,7 @@ module MQTT::SN
       DEFAULTS = {
         :qos => 0,
         :id => 0x00,
+        :topic_id => 0x00,
         :topic_id_type => :normal
       }
 
