@@ -296,6 +296,11 @@ describe MQTT::SN::Packet::Connack do
       packet = MQTT::SN::Packet::Connack.new(:return_code => 0x00)
       expect(packet.to_s).to eq("\x03\x05\x00")
     end
+
+    it "should raise an exception if the return code isn't an Integer" do
+      packet = MQTT::SN::Packet::Connack.new(:return_code => true)
+      expect { packet.to_s }.to raise_error("return_code must be an Integer")
+    end
   end
 
   describe "when parsing a successful Connection Accepted packet" do
@@ -525,6 +530,16 @@ describe MQTT::SN::Packet::Register do
       )
       expect(packet.to_s).to eq("\x0A\x0A\x00\x01\x00\x01test")
     end
+
+    it "should raise an exception if the Packet Id isn't an Integer" do
+      packet = MQTT::SN::Packet::Register.new(:id => "0x45")
+      expect { packet.to_s }.to raise_error("id must be an Integer")
+    end
+
+    it "should raise an exception if the Topic Id isn't an Integer" do
+      packet = MQTT::SN::Packet::Register.new(:topic_id => "0x45")
+      expect { packet.to_s }.to raise_error("topic_id must be an Integer")
+    end
   end
 
   describe "when parsing a Register packet" do
@@ -568,6 +583,16 @@ describe MQTT::SN::Packet::Regack do
       )
       expect(packet.to_s).to eq("\x07\x0B\x00\x01\x00\x02\x03")
     end
+
+    it "should raise an exception if the Packet Id isn't an Integer" do
+      packet = MQTT::SN::Packet::Regack.new(:id => "0x45")
+      expect { packet.to_s }.to raise_error("id must be an Integer")
+    end
+
+    it "should raise an exception if the Topic Id isn't an Integer" do
+      packet = MQTT::SN::Packet::Regack.new(:topic_id => "0x45")
+      expect { packet.to_s }.to raise_error("topic_id must be an Integer")
+    end
   end
 
   describe "when parsing a REGACK packet" do
@@ -610,6 +635,11 @@ describe MQTT::SN::Packet::Publish do
         :data => "Hello World"
       )
       expect(packet.to_s).to eq("\x12\x0C\x00\x00\x01\x00\x00Hello World")
+    end
+
+    it "should raise an exception if the Packet Id isn't an Integer" do
+      packet = MQTT::SN::Packet::Publish.new(:id => "0x45")
+      expect { packet.to_s }.to raise_error("id must be an Integer")
     end
   end
 
@@ -907,6 +937,16 @@ describe MQTT::SN::Packet::Puback do
       packet = MQTT::SN::Packet::Puback.new(:id => 0x02, :topic_id => 0x03, :return_code => 0x01)
       expect(packet.to_s).to eq("\x07\x0D\x00\x03\x00\x02\x01")
     end
+
+    it "should raise an exception if the Packet Id isn't an Integer" do
+      packet = MQTT::SN::Packet::Puback.new(:id => "0x45")
+      expect { packet.to_s }.to raise_error("id must be an Integer")
+    end
+
+    it "should raise an exception if the Topic Id isn't an Integer" do
+      packet = MQTT::SN::Packet::Puback.new(:topic_id => "0x45")
+      expect { packet.to_s }.to raise_error("topic_id must be an Integer")
+    end
   end
 
   describe "when parsing a PUBACK packet" do
@@ -941,6 +981,11 @@ describe MQTT::SN::Packet::Pubcomp do
       packet = MQTT::SN::Packet::Pubcomp.new(:id => 0x02)
       expect(packet.to_s).to eq("\x04\x0E\x00\x02")
     end
+
+    it "should raise an exception if the Packet Id isn't an Integer" do
+      packet = MQTT::SN::Packet::Pubcomp.new(:id => "0x45")
+      expect { packet.to_s }.to raise_error("id must be an Integer")
+    end
   end
 
   describe "when parsing a PUBCOMP packet" do
@@ -966,6 +1011,11 @@ describe MQTT::SN::Packet::Pubrec do
     it "should output the correct bytes" do
       packet = MQTT::SN::Packet::Pubrec.new(:id => 0x02)
       expect(packet.to_s).to eq("\x04\x0F\x00\x02")
+    end
+
+    it "should raise an exception if the Packet Id isn't an Integer" do
+      packet = MQTT::SN::Packet::Pubrec.new(:id => "0x45")
+      expect { packet.to_s }.to raise_error("id must be an Integer")
     end
   end
 
@@ -993,6 +1043,11 @@ describe MQTT::SN::Packet::Pubrel do
     it "should output the correct bytes" do
       packet = MQTT::SN::Packet::Pubrel.new(:id => 0x02)
       expect(packet.to_s).to eq("\x04\x10\x00\x02")
+    end
+
+    it "should raise an exception if the Packet Id isn't an Integer" do
+      packet = MQTT::SN::Packet::Pubrel.new(:id => "0x45")
+      expect { packet.to_s }.to raise_error("id must be an Integer")
     end
   end
 
@@ -1058,6 +1113,11 @@ describe MQTT::SN::Packet::Subscribe do
         :topic_id => 16
       )
       expect(packet.to_s).to eq("\x07\x12\x01\x00\x05\x00\x10")
+    end
+
+    it "should raise an exception if the Packet Id isn't an Integer" do
+      packet = MQTT::SN::Packet::Subscribe.new(:id => "0x45")
+      expect { packet.to_s }.to raise_error("id must be an Integer")
     end
   end
 
@@ -1179,6 +1239,16 @@ describe MQTT::SN::Packet::Suback do
       )
       expect(packet.to_s).to eq("\x08\x13\x00\x00\x00\x00\x02\x02")
     end
+
+    it "should raise an exception if the Packet Id isn't an Integer" do
+      packet = MQTT::SN::Packet::Suback.new(:id => "0x45")
+      expect { packet.to_s }.to raise_error("id must be an Integer")
+    end
+
+    it "should raise an exception if the Topic Id isn't an Integer" do
+      packet = MQTT::SN::Packet::Suback.new(:topic_id => "0x45")
+      expect { packet.to_s }.to raise_error("topic_id must be an Integer")
+    end
   end
 
   describe "when parsing a SUBACK packet" do
@@ -1259,6 +1329,11 @@ describe MQTT::SN::Packet::Unsubscribe do
         :topic_id => 16
       )
       expect(packet.to_s).to eq("\x07\x14\x01\x00\x05\x00\x10")
+    end
+
+    it "should raise an exception if the Packet Id isn't an Integer" do
+      packet = MQTT::SN::Packet::Unsubscribe.new(:id => "0x45")
+      expect { packet.to_s }.to raise_error("id must be an Integer")
     end
   end
 
@@ -1362,6 +1437,11 @@ describe MQTT::SN::Packet::Unsuback do
     it "should output the correct bytes" do
       packet = MQTT::SN::Packet::Unsuback.new(:id => 0x02)
       expect(packet.to_s).to eq("\x04\x15\x00\x02")
+    end
+
+    it "should raise an exception if the Packet Id isn't an Integer" do
+      packet = MQTT::SN::Packet::Unsuback.new(:id => "0x45")
+      expect { packet.to_s }.to raise_error("id must be an Integer")
     end
   end
 
@@ -1522,6 +1602,11 @@ describe MQTT::SN::Packet::Willtopicresp do
       )
       expect(packet.to_s).to eq("\x03\x1B\x03")
     end
+
+    it "should raise an exception if the return code isn't an Integer" do
+      packet = MQTT::SN::Packet::Willtopicresp.new(:return_code => true)
+      expect { packet.to_s }.to raise_error("return_code must be an Integer")
+    end
   end
 
   describe "when parsing a WILLTOPICRESP packet" do
@@ -1577,6 +1662,11 @@ describe MQTT::SN::Packet::Willmsgresp do
         :return_code => 0x03
       )
       expect(packet.to_s).to eq("\x03\x1D\x03")
+    end
+
+    it "should raise an exception if the return code isn't an Integer" do
+      packet = MQTT::SN::Packet::Willmsgresp.new(:return_code => true)
+      expect { packet.to_s }.to raise_error("return_code must be an Integer")
     end
   end
 
