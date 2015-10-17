@@ -25,7 +25,7 @@ describe MQTT::SN::Packet do
   end
 
   describe "getting the type id on a un-subclassed packet" do
-    it "should throw an exception" do
+    it "should raise an exception" do
       expect {
         MQTT::SN::Packet.new.type_id
       }.to raise_error(
@@ -36,7 +36,7 @@ describe MQTT::SN::Packet do
   end
 
   describe "Parsing a packet that does not match the packet length" do
-    it "should throw an exception" do
+    it "should raise an exception" do
       expect {
         packet = MQTT::SN::Packet.parse("\x02\x1834567")
       }.to raise_error(
@@ -181,7 +181,7 @@ describe MQTT::SN::Packet::Connect do
       expect(packet.to_s).to eq("\016\004\000\001\000\017myclient")
     end
 
-    it "should throw an exception when there is no client identifier" do
+    it "should raise an exception when there is no client identifier" do
       expect {
         MQTT::SN::Packet::Connect.new.to_s
       }.to raise_error(
@@ -261,7 +261,7 @@ describe MQTT::SN::Packet::Connect do
   end
 
   context "that has an invalid type identifier" do
-    it "should throw an exception" do
+    it "should raise an exception" do
       expect {
         MQTT::SN::Packet.parse("\x02\xFF")
       }.to raise_error(
@@ -272,7 +272,7 @@ describe MQTT::SN::Packet::Connect do
   end
 
   describe "when parsing a Connect packet an unsupport protocol ID" do
-    it "should throw an exception" do
+    it "should raise an exception" do
       expect {
         packet = MQTT::SN::Packet.parse(
           "\016\004\014\005\000\017myclient"
@@ -685,7 +685,7 @@ describe MQTT::SN::Packet::Publish do
   end
 
   describe "when serialising an excessively large packet" do
-    it "should throw an exception" do
+    it "should raise an exception" do
       expect {
         MQTT::SN::Packet::Publish.new(
           :topic_id => 0x01,
@@ -1227,6 +1227,7 @@ describe MQTT::SN::Packet::Unsubscribe do
       )
       expect(packet.to_s).to eq("\x09\x14\x00\x00\x02test")
     end
+
     it "should output the correct bytes for a Unsubscribe packet with a short topic name" do
       packet = MQTT::SN::Packet::Unsubscribe.new(
         :duplicate => false,

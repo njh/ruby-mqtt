@@ -502,7 +502,7 @@ private
 
   # Send a packet to server
   def send_packet(data)
-    # Throw exception if we aren't connected
+    # Raise exception if we aren't connected
     raise MQTT::NotConnectedException if not connected?
 
     # Only allow one thread to write to socket at a time

@@ -253,7 +253,7 @@ describe MQTT::Client do
       client.connect('myclient')
     end
 
-    it "should throw an exception if no host is configured" do
+    it "should raise an exception if no host is configured" do
       expect {
         client = MQTT::Client.new
         client.connect
@@ -287,7 +287,7 @@ describe MQTT::Client do
     end
 
     context "no client id is given" do
-      it "should throw an exception if the clean session flag is false" do
+      it "should raise an exception if the clean session flag is false" do
         expect {
           client.client_id = nil
           client.clean_session = false
@@ -423,37 +423,37 @@ describe MQTT::Client do
       allow(IO).to receive(:select).and_return([[socket], [], []])
     end
 
-    it "should not throw an exception for a successful CONNACK packet" do
+    it "should not raise an exception for a successful CONNACK packet" do
       socket.write("\x20\x02\x00\x00")
       socket.rewind
       expect { client.send(:receive_connack) }.not_to raise_error
     end
 
-    it "should throw an exception if the packet type isn't CONNACK" do
+    it "should raise an exception if the packet type isn't CONNACK" do
       socket.write("\xD0\x00")
       socket.rewind
       expect { client.send(:receive_connack) }.to raise_error(MQTT::ProtocolException)
     end
 
-    it "should throw an exception if the CONNACK packet return code is 'unacceptable protocol version'" do
+    it "should raise an exception if the CONNACK packet return code is 'unacceptable protocol version'" do
       socket.write("\x20\x02\x00\x01")
       socket.rewind
       expect { client.send(:receive_connack) }.to raise_error(MQTT::ProtocolException, /unacceptable protocol version/i)
     end
 
-    it "should throw an exception if the CONNACK packet return code is 'client identifier rejected'" do
+    it "should raise an exception if the CONNACK packet return code is 'client identifier rejected'" do
       socket.write("\x20\x02\x00\x02")
       socket.rewind
       expect { client.send(:receive_connack) }.to raise_error(MQTT::ProtocolException, /client identifier rejected/i)
     end
 
-    it "should throw an exception if the CONNACK packet return code is 'server unavailable'" do
+    it "should raise an exception if the CONNACK packet return code is 'server unavailable'" do
       socket.write("\x20\x02\x00\x03")
       socket.rewind
       expect { client.send(:receive_connack) }.to raise_error(MQTT::ProtocolException, /server unavailable/i)
     end
 
-    it "should throw an exception if the CONNACK packet return code is an unknown" do
+    it "should raise an exception if the CONNACK packet return code is an unknown" do
       socket.write("\x20\x02\x00\xAA")
       socket.rewind
       expect { client.send(:receive_connack) }.to raise_error(MQTT::ProtocolException, /connection refused/i)
@@ -526,7 +526,7 @@ describe MQTT::Client do
       expect(socket.string).to eq("\x30\x0e\x00\x05topicpayload")
     end
 
-    it "should throw an ArgumentError exception, if the topic is nil" do
+    it "should raise an ArgumentError exception, if the topic is nil" do
       expect {
         client.publish(nil)
       }.to raise_error(
@@ -535,7 +535,7 @@ describe MQTT::Client do
       )
     end
 
-    it "should throw an ArgumentError exception, if the topic is empty" do
+    it "should raise an ArgumentError exception, if the topic is empty" do
       expect {
         client.publish("")
       }.to raise_error(
@@ -784,7 +784,7 @@ describe MQTT::Client do
       expect(client.instance_variable_get('@last_ping_request')).not_to eq(0)
     end
 
-    it "should throw an exception if no ping response has been received" do
+    it "should raise an exception if no ping response has been received" do
       client.instance_variable_set('@last_ping_request', Time.now)
       client.instance_variable_set('@last_ping_response', Time.at(0))
       expect {
