@@ -1530,7 +1530,7 @@ describe MQTT::SN::Packet::Willtopicresp do
       expect(packet.class).to eq(MQTT::SN::Packet::Willtopicresp)
     end
 
-    it "should set the topic name of the packet correctly" do
+    it "should set the return code of the packet correctly" do
       expect(packet.return_code).to eq(0x04)
     end
   end
@@ -1586,7 +1586,7 @@ describe MQTT::SN::Packet::Willmsgresp do
       expect(packet.class).to eq(MQTT::SN::Packet::Willmsgresp)
     end
 
-    it "should set the topic name of the packet correctly" do
+    it "should set the return code of the packet correctly" do
       expect(packet.return_code).to eq(0x04)
     end
   end
