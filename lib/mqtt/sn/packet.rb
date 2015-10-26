@@ -622,7 +622,27 @@ module MQTT::SN
     end
 
     class Disconnect < Packet
-      # No attributes
+      attr_accessor :duration
+
+      DEFAULTS = {
+        :duration => nil
+      }
+
+      def encode_body
+        if duration.nil? or duration == 0
+          ''
+        else
+          [duration].pack('n')
+        end
+      end
+
+      def parse_body(buffer)
+        if buffer.length == 2
+          self.duration = buffer.unpack('n').first
+        else
+          self.duration = nil
+        end
+      end
     end
 
     class Willtopicupd < Packet

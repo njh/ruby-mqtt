@@ -1516,6 +1516,11 @@ describe MQTT::SN::Packet::Disconnect do
       packet = MQTT::SN::Packet::Disconnect.new
       expect(packet.to_s).to eq("\x02\x18")
     end
+
+    it "should output the correct bytes for a disconnect packet with a duration" do
+      packet = MQTT::SN::Packet::Disconnect.new(:duration => 10)
+      expect(packet.to_s).to eq("\x04\x18\x00\x0A")
+    end
   end
 
   describe "when parsing a Disconnect packet" do
@@ -1523,6 +1528,22 @@ describe MQTT::SN::Packet::Disconnect do
 
     it "should correctly create the right type of packet object" do
       expect(packet.class).to eq(MQTT::SN::Packet::Disconnect)
+    end
+
+    it "should have the duration field set to nil" do
+      expect(packet.duration).to be_nil
+    end
+  end
+
+  describe "when parsing a Disconnect packet with duration field" do
+    let(:packet) { MQTT::SN::Packet.parse("\x04\x18\x00\x0A") }
+
+    it "should correctly create the right type of packet object" do
+      expect(packet.class).to eq(MQTT::SN::Packet::Disconnect)
+    end
+
+    it "should have the duration field set to 10" do
+      expect(packet.duration).to eq(10)
     end
   end
 end
