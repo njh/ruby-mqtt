@@ -130,8 +130,14 @@ module MQTT::SN
 
     def encode_topic_id
       if topic_id_type == :short
+        unless topic_id.is_a?(String)
+          raise "topic_id must be an String for type #{topic_id_type}"
+        end
         (topic_id[0].ord << 8) + topic_id[1].ord
       else
+        unless topic_id.is_a?(Integer)
+          raise "topic_id must be an Integer for type #{topic_id_type}"
+        end
         topic_id
       end
     end
@@ -144,7 +150,7 @@ module MQTT::SN
         self.topic_id = topic_id
       end
     end
-    
+
     # Used where a field can either be a Topic Id or a Topic Name
     # (the Subscribe and Unsubscribe packet types)
     def encode_topic
@@ -156,12 +162,12 @@ module MQTT::SN
             topic_name
           else
             topic_id
-          end 
+          end
         when :predefined
           [topic_id].pack('n')
       end
     end
-    
+
     # Used where a field can either be a Topic Id or a Topic Name
     # (the Subscribe and Unsubscribe packet types)
     def parse_topic(topic)
@@ -552,10 +558,6 @@ module MQTT::SN
       def encode_body
         unless id.is_a?(Integer)
           raise "id must be an Integer"
-        end
-
-        unless topic_id.is_a?(Integer)
-          raise "topic_id must be an Integer"
         end
 
         [encode_flags, encode_topic_id, id, return_code].pack('CnnC')

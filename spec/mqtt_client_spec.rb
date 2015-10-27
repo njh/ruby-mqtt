@@ -637,7 +637,7 @@ describe MQTT::Client do
       expect(client).to receive(:send_packet).with(an_instance_of(MQTT::Packet::Puback))
       client.get
     end
- 
+
     context "with a block" do
       it "should successfully receive more than 1 message" do
         inject_packet(:topic => 'topic0', :payload => 'payload0')
