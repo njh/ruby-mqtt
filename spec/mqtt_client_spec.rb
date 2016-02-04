@@ -176,6 +176,26 @@ describe MQTT::Client do
     end
   end
 
+  describe "setting an encrypted client private key, w/the correct passphrase" do
+    let(:key_pass) { 'mqtt' }
+
+    it "should add the decrypted certificate to the SSL context" do
+      expect(client.ssl_context.key).to be_nil
+      client.key_file = [fixture_path('client.pass.key'), key_pass]
+      expect(client.ssl_context.key).to be_a(OpenSSL::PKey::RSA)
+    end
+  end
+
+  describe "setting an encrypted client private key, w/an incorrect passphrase" do
+    let(:key_pass) { 'ttqm' }
+
+    it "should raise an OpenSSL::PKey::RSAError exception" do
+      expect(client.ssl_context.key).to be_nil
+      expect { client.key_file = [fixture_path('client.pass.key'), key_pass] }.to(
+        raise_error(OpenSSL::PKey::RSAError, /Neither PUB key nor PRIV key/))
+    end
+  end
+
   describe "setting a Certificate Authority file path" do
     it "should add a CA file path to the SSL context" do
       expect(client.ssl_context.ca_file).to be_nil
