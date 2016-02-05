@@ -527,11 +527,13 @@ describe MQTT::Client do
     end
 
     it "should write a valid PUBLISH packet to the socket with the QoS set to 1" do
+      inject_puback(1)
       client.publish('topic','payload', false, 1)
       expect(socket.string).to eq("\x32\x10\x00\x05topic\x00\x01payload")
     end
 
     it "should write a valid PUBLISH packet to the socket with the QoS set to 2" do
+      inject_puback(1)
       client.publish('topic','payload', false, 2)
       expect(socket.string).to eq("\x34\x10\x00\x05topic\x00\x01payload")
     end
@@ -565,6 +567,9 @@ describe MQTT::Client do
     end
 
     it "correctly assigns consecutive ids to packets with QoS 1" do
+      inject_puback(1)
+      inject_puback(2)
+      
       expect(client).to receive(:send_packet) { |packet| expect(packet.id).to eq(1) }
       client.publish "topic", "message", false, 1
       expect(client).to receive(:send_packet) { |packet| expect(packet.id).to eq(2) }
@@ -855,6 +860,11 @@ describe MQTT::Client do
   def inject_packet(opts={})
     packet = MQTT::Packet::Publish.new(opts)
     client.instance_variable_get('@read_queue').push(packet)
+  end
+
+  def inject_puback(packet_id)
+    packet = MQTT::Packet::Puback.new(:id => packet_id)
+    client.instance_variable_get('@pubacks')[packet_id] = packet
   end
 
 end
