@@ -287,8 +287,11 @@ class MQTT::Client
 
     # If a block is given, then yield and disconnect
     if block_given?
-      yield(self)
-      disconnect
+      begin
+        yield(self)
+      ensure
+        disconnect
+      end
     end
   end
 
