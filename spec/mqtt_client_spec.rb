@@ -282,9 +282,19 @@ describe MQTT::Client do
       )
     end
 
-    it "should disconnect after connecting, if a block is given" do
-      expect(client).to receive(:disconnect).once
-      client.connect('myclient') { nil }
+    context "if a block is given" do
+      it "should disconnect after connecting" do
+        expect(client).to receive(:disconnect).once
+        client.connect('myclient') { nil }
+      end
+
+      it "should disconnect even if the block raises an exception" do
+        expect(client).to receive(:disconnect).once
+        begin
+          client.connect('myclient') { raise StandardError }
+        rescue StandardError
+        end
+      end
     end
 
     it "should not disconnect after connecting, if no block is given" do
