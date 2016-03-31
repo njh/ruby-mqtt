@@ -168,10 +168,26 @@ describe MQTT::Client do
     end
   end
 
+  describe "setting a client certificate directly" do
+    it "should add a certificate to the SSL context" do
+      expect(client.ssl_context.cert).to be_nil
+      client.cert = File.read(fixture_path('client.pem'))
+      expect(client.ssl_context.cert).to be_a(OpenSSL::X509::Certificate)
+    end
+  end
+    
   describe "setting a client private key file path" do
     it "should add a certificate to the SSL context" do
       expect(client.ssl_context.key).to be_nil
       client.key_file = fixture_path('client.key')
+      expect(client.ssl_context.key).to be_a(OpenSSL::PKey::RSA)
+    end
+  end
+
+  describe "setting a client private key directly" do
+    it "should add a certificate to the SSL context" do
+      expect(client.ssl_context.key).to be_nil
+      client.key = File.read(fixture_path('client.key'))
       expect(client.ssl_context.key).to be_a(OpenSSL::PKey::RSA)
     end
   end

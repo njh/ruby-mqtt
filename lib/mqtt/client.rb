@@ -189,13 +189,24 @@ class MQTT::Client
 
   # Set a path to a file containing a PEM-format client certificate
   def cert_file=(path)
-    ssl_context.cert = OpenSSL::X509::Certificate.new(File.open(path))
+    self.cert = File.read(path)
+  end
+
+  # PEM-format client certificate
+  def cert=(cert)
+    ssl_context.cert = OpenSSL::X509::Certificate.new(cert)
   end
 
   # Set a path to a file containing a PEM-format client private key
   def key_file=(*args)
     path, passphrase = args.flatten
     ssl_context.key = OpenSSL::PKey::RSA.new(File.open(path), passphrase)
+  end
+
+  # Set to a PEM-format client private key
+  def key=(*args)
+    cert, passphrase = args.flatten
+    ssl_context.key = OpenSSL::PKey::RSA.new(cert, passphrase)
   end
 
   # Set a path to a file containing a PEM-format CA certificate and enable peer verification
