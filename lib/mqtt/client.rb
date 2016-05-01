@@ -178,8 +178,10 @@ class MQTT::Client
     @last_ping_response = Time.now
     @socket = nil
     @read_queue = Queue.new
+    @pubacks = {}
     @read_thread = nil
     @write_semaphore = Mutex.new
+    @pubacks_semaphore = Mutex.new
   end
 
   # Get the OpenSSL context, that is used if SSL/TLS is enabled
@@ -343,7 +345,19 @@ class MQTT::Client
     )
 
     # Send the packet
-    send_packet(packet)
+    res = send_packet(packet)
+
+    if packet.qos > 0
+      Timeout.timeout(@ack_timeout) do
+        while connected? do
+          @pubacks_semaphore.synchronize do
+            return res if @pubacks.delete(packet.id)
+          end
+          sleep 0.1
+        end
+      end
+      return -1
+    end
   end
 
   # Send a subscribe message for one or more topics on the MQTT server.
@@ -474,6 +488,10 @@ private
       @read_queue.push(packet)
     elsif packet.class == MQTT::Packet::Pingresp
       @last_ping_response = Time.now
+    elsif packet.class == MQTT::Packet::Puback
+      @pubacks_semaphore.synchronize do
+        @pubacks[packet.id] = packet
+      end
     end
     # Ignore all other packets
     # FIXME: implement responses for QoS  2
