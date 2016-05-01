@@ -353,7 +353,9 @@ class MQTT::Client
           @pubacks_semaphore.synchronize do
             return res if @pubacks.delete(packet.id)
           end
-          sleep 0.1
+          # FIXME: make threads communicate with each other, instead of polling
+          # (using a pipe and select ?)
+          sleep 0.01
         end
       end
       return -1
