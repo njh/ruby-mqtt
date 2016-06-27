@@ -1,6 +1,19 @@
 Ruby MQTT NEWS
 ==============
 
+Ruby MQTT Version 0.4.0 (2016-06-27)
+------------------------------------
+
+* Added puback handling for QoS level 1
+* Low-level MQTT-SN packet parsing support
+* Allow certs to be set directly instead of just by file
+* Allow keyphrase for certs to be passed through
+* Put 'disconnect' inside an 'ensure' block
+* Fix for error on publish with frozen payload
+* Fix for packets always getting id 1
+* Improvements to tests
+
+
 Ruby MQTT Version 0.3.1 (2014-10-10)
 ------------------------------------
 
