@@ -24,9 +24,13 @@ describe "a client talking to a server" do
   end
 
   context "connecting and publishing a packet" do
-    def connect_and_publish
+    def connect_and_publish(options = {})
       @client.connect
-      @client.publish('test', 'foobar')
+
+      retain = options.fetch(:retain) { false }
+      qos = options.fetch(:qos) { 0 }
+
+      @client.publish('test', 'foobar', retain, qos)
       @client.disconnect
       @server.thread.join(1)
     end
@@ -49,6 +53,13 @@ describe "a client talking to a server" do
     it "the server should not report any errors" do
       connect_and_publish
       expect(@error_log.string).to be_empty
+    end
+
+    context "with qos > 0" do
+      it "the server should have received a packet without timeout" do
+        connect_and_publish(:qos => 1)
+        expect(@server.last_publish).not_to be_nil
+      end
     end
   end
 
