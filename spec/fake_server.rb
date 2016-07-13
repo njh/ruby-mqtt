@@ -100,6 +100,11 @@ class MQTT::FakeServer
         when MQTT::Packet::Publish
           client.write packet
           @last_publish = packet
+
+          if packet.qos > 0
+            puback = MQTT::Packet::Puback.new(:id => 1)
+            client.write puback
+          end
         when MQTT::Packet::Subscribe
           client.write MQTT::Packet::Suback.new(
             :id => packet.id,
