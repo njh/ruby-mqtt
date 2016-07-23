@@ -194,7 +194,7 @@ module MQTT
       # Build up the body length field bytes
       begin
         digit = (body_length % 128)
-        body_length = (body_length / 128)
+        body_length = body_length.div(128)
         # if there are more digits to encode, set the top bit of this digit
         digit |= 0x80 if (body_length > 0)
         header.push(digit)
