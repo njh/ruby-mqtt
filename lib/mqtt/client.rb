@@ -10,7 +10,7 @@ class MQTT::Client
   # Port number of the remote server
   attr_accessor :port
 
-  # The version number of the MQTT protocol to use (default 3.1.0)
+  # The version number of the MQTT protocol to use (default 3.1.1)
   attr_accessor :version
 
   # Set to true to enable SSL/TLS encrypted communication
@@ -64,7 +64,7 @@ class MQTT::Client
   ATTR_DEFAULTS = {
     :host => nil,
     :port => nil,
-    :version => '3.1.0',
+    :version => '3.1.1',
     :keep_alive => 15,
     :clean_session => true,
     :client_id => nil,

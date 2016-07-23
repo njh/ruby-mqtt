@@ -28,7 +28,7 @@ describe MQTT::Client do
       client = MQTT::Client.new
       expect(client.host).to eq(nil)
       expect(client.port).to eq(1883)
-      expect(client.version).to eq('3.1.0')
+      expect(client.version).to eq('3.1.1')
       expect(client.keep_alive).to eq(15)
     end
 
@@ -323,9 +323,9 @@ describe MQTT::Client do
       client.password = 'password'
       client.connect('myclient')
       expect(socket.string).to eq(
-        "\x10\x2A"+
-        "\x00\x06MQIsdp"+
-        "\x03\xC2\x00\x0f"+
+        "\x10\x28"+
+        "\x00\x04MQTT"+
+        "\x04\xC2\x00\x0f"+
         "\x00\x08myclient"+
         "\x00\x08username"+
         "\x00\x08password"
@@ -429,9 +429,9 @@ describe MQTT::Client do
       it "should include the will in the CONNECT message" do
         client.connect('myclient')
         expect(socket.string).to eq(
-          "\x10\x24"+
-          "\x00\x06MQIsdp"+
-          "\x03\x0e\x00\x0f"+
+          "\x10\x22"+
+          "\x00\x04MQTT"+
+          "\x04\x0e\x00\x0f"+
           "\x00\x08myclient"+
           "\x00\x05topic\x00\x05hello"
         )
