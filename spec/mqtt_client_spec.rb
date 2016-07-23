@@ -473,6 +473,7 @@ describe MQTT::Client do
       socket.write("\x20\x02\x00\x00")
       socket.rewind
       expect { client.send(:receive_connack) }.not_to raise_error
+      expect(socket).not_to be_closed
     end
 
     it "should raise an exception if the packet type isn't CONNACK" do
@@ -503,6 +504,13 @@ describe MQTT::Client do
       socket.write("\x20\x02\x00\xAA")
       socket.rewind
       expect { client.send(:receive_connack) }.to raise_error(MQTT::ProtocolException, /connection refused/i)
+    end
+
+    it "should close the socket for an unsuccessful CONNACK packet" do
+      socket.write("\x20\x02\x00\x05")
+      socket.rewind
+      expect { client.send(:receive_connack) }.to raise_error(MQTT::ProtocolException, /not authorised/i)
+      expect(socket).to be_closed
     end
   end
 

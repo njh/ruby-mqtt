@@ -530,6 +530,9 @@ private
 
       # Check the return code
       if packet.return_code != 0x00
+        # 3.2.2.3 If a server sends a CONNACK packet containing a non-zero 
+        # return code it MUST then close the Network Connection
+        @socket.close
         raise MQTT::ProtocolException.new(packet.return_msg)
       end
     end
