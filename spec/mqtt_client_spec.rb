@@ -175,7 +175,7 @@ describe MQTT::Client do
       expect(client.ssl_context.cert).to be_a(OpenSSL::X509::Certificate)
     end
   end
-    
+
   describe "setting a client private key file path" do
     it "should add a certificate to the SSL context" do
       expect(client.ssl_context.key).to be_nil
@@ -603,7 +603,7 @@ describe MQTT::Client do
     it "correctly assigns consecutive ids to packets with QoS 1" do
       inject_puback(1)
       inject_puback(2)
-      
+
       expect(client).to receive(:send_packet) { |packet| expect(packet.id).to eq(1) }
       client.publish "topic", "message", false, 1
       expect(client).to receive(:send_packet) { |packet| expect(packet.id).to eq(2) }
@@ -852,6 +852,13 @@ describe MQTT::Client do
         MQTT::ProtocolException,
         /No Ping Response received for \d+ seconds/
       )
+    end
+
+    it "should not raise an exception if no ping response received and client is disconnected" do
+      client.instance_variable_set('@last_ping_request', Time.now)
+      client.instance_variable_set('@last_ping_response', Time.at(0))
+      client.disconnect(false)
+      client.send('keep_alive!')
     end
   end
 
