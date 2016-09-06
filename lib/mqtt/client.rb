@@ -500,7 +500,7 @@ private
   end
 
   def keep_alive!
-    if @keep_alive > 0
+    if @keep_alive > 0 && connected?
       response_timeout = (@keep_alive * 1.5).ceil
       if Time.now >= @last_ping_request + @keep_alive
         packet = MQTT::Packet::Pingreq.new
@@ -530,7 +530,7 @@ private
 
       # Check the return code
       if packet.return_code != 0x00
-        # 3.2.2.3 If a server sends a CONNACK packet containing a non-zero 
+        # 3.2.2.3 If a server sends a CONNACK packet containing a non-zero
         # return code it MUST then close the Network Connection
         @socket.close
         raise MQTT::ProtocolException.new(packet.return_msg)
