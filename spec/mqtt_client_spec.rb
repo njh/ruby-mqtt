@@ -685,6 +685,15 @@ describe MQTT::Client do
       expect(client.queue_empty?).to be_truthy
     end
 
+    it "should successfully receive a valid PUBLISH packet, but not return it, if omit_retained is set" do
+      inject_packet(:topic => 'topic1', :payload => 'payload1', :qos => 1, :retain => 1)
+      inject_packet(:topic => 'topic1', :payload => 'payload2', :qos => 1)
+      topic,payload = client.get(nil, :omit_retained => true)
+      expect(topic).to eq('topic1')
+      expect(payload).to eq('payload2')
+      expect(client.queue_empty?).to be_truthy
+    end
+
     it "acks calling #get_packet and qos=1" do
       inject_packet(:topic => 'topic1', :payload => 'payload1', :qos => 1)
       expect(client).to receive(:send_packet).with(an_instance_of(MQTT::Packet::Puback))
@@ -719,6 +728,18 @@ describe MQTT::Client do
           payloads << payload
           break if payloads.size > 1
         end
+      end
+
+      it "should ignore a PUBLISH message when it is marked as retained and omit_retained is set" do
+        inject_packet(:topic => 'topic0', :payload => 'payload0', :retain => 1)
+        inject_packet(:topic => 'topic1', :payload => 'payload1')
+        payloads = []
+        client.get(nil, :omit_retained => true) do |topic,payload|
+          payloads << payload
+          break if payloads.size > 0
+        end
+        expect(payloads.size).to eq(1)
+        expect(payloads).to eq(['payload1'])
       end
     end
   end
