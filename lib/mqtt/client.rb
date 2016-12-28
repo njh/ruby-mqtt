@@ -98,16 +98,9 @@ class MQTT::Client
   # (using the characters 0-9 and a-z)
   def self.generate_client_id(prefix='ruby', length=16)
     str = prefix.dup
+    letters = [*'a'..'z', *'0'..'9']
     length.times do
-      num = rand(36)
-      if (num<10)
-        # Number
-        num += 48
-      else
-        # Letter
-        num += 87
-      end
-      str += num.chr
+      str << letters.sample
     end
     return str
   end
