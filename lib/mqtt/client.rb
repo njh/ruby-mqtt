@@ -393,15 +393,17 @@ class MQTT::Client
   #     # Do stuff here
   #   end
   #
-  def get(topic=nil)
+  def get(topic=nil, options={})
     if block_given?
       get_packet(topic) do |packet|
-        yield(packet.topic, packet.payload)
+        yield(packet.topic, packet.payload) unless packet.retain && options[:omit_retained]
       end
     else
-      # Wait for one packet to be available
-      packet = get_packet(topic)
-      return packet.topic, packet.payload
+      loop do
+        # Wait for one packet to be available
+        packet = get_packet(topic)
+        return packet.topic, packet.payload unless packet.retain && options[:omit_retained]
+      end
     end
   end
 
