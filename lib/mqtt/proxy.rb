@@ -95,19 +95,19 @@ class MQTT::Proxy
         # Iterate through each of the sockets with data to read
         if selected[0].include?(client_socket)
           packet = MQTT::Packet.read(client_socket)
-          logger.debug "client -> <#{packet.type}>"
+          logger.debug "client -> <#{packet.type_name}>"
           packet = @client_filter.call(packet) unless @client_filter.nil?
           unless packet.nil?
             server_socket.write(packet)
-            logger.debug "<#{packet.type}> -> server"
+            logger.debug "<#{packet.type_name}> -> server"
           end
         elsif selected[0].include?(server_socket)
           packet = MQTT::Packet.read(server_socket)
-          logger.debug "server -> <#{packet.type}>"
+          logger.debug "server -> <#{packet.type_name}>"
           packet = @server_filter.call(packet) unless @server_filter.nil?
           unless packet.nil?
             client_socket.write(packet)
-            logger.debug "<#{packet.type}> -> client"
+            logger.debug "<#{packet.type_name}> -> client"
           end
         else
           logger.error "Problem with select: socket is neither server or client"
