@@ -4,8 +4,11 @@ autoload :URI, 'uri'
 
 # Client class for talking to an MQTT server
 class MQTT::Client
-  # Hostname of the remote server
+  # Host address of the remote server
   attr_accessor :host
+
+  # Hostname of the remote server
+  attr_accessor :hostname
 
   # Port number of the remote server
   attr_accessor :port
@@ -63,6 +66,7 @@ class MQTT::Client
   # Default attribute values
   ATTR_DEFAULTS = {
     :host => nil,
+    :hostname => nil,
     :port => nil,
     :version => '3.1.1',
     :keep_alive => 15,
@@ -264,6 +268,11 @@ class MQTT::Client
 
         @socket = OpenSSL::SSL::SSLSocket.new(tcp_socket, ssl_context)
         @socket.sync_close = true
+
+        unless @hostname.nil?
+          @socket.hostname = @hostname
+        end
+
         @socket.connect
       else
         @socket = tcp_socket
