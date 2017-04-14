@@ -571,8 +571,8 @@ private
     {
       :host => uri.host,
       :port => uri.port || nil,
-      :username => uri.user,
-      :password => uri.password,
+      :username => uri.user ? URI.unescape(uri.user) : nil,
+      :password => uri.password ? URI.unescape(uri.password) : nil,
       :ssl => ssl
     }
   end

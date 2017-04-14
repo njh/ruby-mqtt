@@ -117,6 +117,22 @@ describe MQTT::Client do
       expect(client.password).to eq('bpass')
     end
 
+    it "with a URI containing an escaped username and password" do
+      client = MQTT::Client.new(URI.parse('mqtt://foo%20bar:%40123%2B%25@mqtt.example.com'))
+      expect(client.host).to eq('mqtt.example.com')
+      expect(client.port).to eq(1883)
+      expect(client.username).to eq('foo bar')
+      expect(client.password).to eq('@123+%')
+    end
+
+    it "with a URI containing a double escaped username and password" do
+      client = MQTT::Client.new(URI.parse('mqtt://foo%2520bar:123%2525@mqtt.example.com'))
+      expect(client.host).to eq('mqtt.example.com')
+      expect(client.port).to eq(1883)
+      expect(client.username).to eq('foo%20bar')
+      expect(client.password).to eq('123%25')
+    end
+
     it "with a URI as a string" do
       client = MQTT::Client.new('mqtt://mqtt.example.com')
       expect(client.host).to eq('mqtt.example.com')
