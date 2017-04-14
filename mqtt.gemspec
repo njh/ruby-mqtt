@@ -24,7 +24,7 @@ Gem::Specification.new do |gem|
     gem.add_development_dependency 'bundler',  '>= 1.11.2'
     gem.add_development_dependency 'rake',     '>= 10.2.2'
     gem.add_development_dependency 'yard',     '>= 0.8.7'
-    gem.add_development_dependency 'rspec',    '>= 3.0.0'
+    gem.add_development_dependency 'rspec',    '>= 3.5.0'
     gem.add_development_dependency 'simplecov','>= 0.9.2'
   elsif Gem.ruby_version > Gem::Version.new('1.9')
     gem.add_development_dependency 'bundler',  '>= 1.11.2'
