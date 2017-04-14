@@ -264,6 +264,12 @@ class MQTT::Client
 
         @socket = OpenSSL::SSL::SSLSocket.new(tcp_socket, ssl_context)
         @socket.sync_close = true
+
+        # Set hostname on secure socket for Server Name Indication (SNI)
+        if @socket.respond_to?(:hostname=)
+          @socket.hostname = @host
+        end
+
         @socket.connect
       else
         @socket = tcp_socket

@@ -403,6 +403,15 @@ describe MQTT::Client do
         allow(client).to receive(:receive_connack)
         client.connect
       end
+
+      it "should use set hostname on the SSL socket for SNI" do
+        expect(OpenSSL::SSL::SSLSocket).to receive(:new).and_return(ssl_socket)
+        expect(ssl_socket).to receive(:hostname=).with('mqtt.example.com')
+
+        client = MQTT::Client.new('mqtts://mqtt.example.com')
+        allow(client).to receive(:receive_connack)
+        client.connect
+      end
     end
 
     context "with a last will and testament set" do
