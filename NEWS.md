@@ -1,6 +1,21 @@
 Ruby MQTT NEWS
 ==============
 
+Ruby MQTT Version 0.5.0 (2016-04-16)
+------------------------------------
+
+* Switched default protocol version to 3.1.1
+* Added support for Server Name Identification (SNI)
+* Fix for unescaping user/password in URI
+* Fix for bug in MQTT::Proxy class
+* Add the ability to ignore retained packets when subscribed.
+* Fix problem of wrong Puback packet ID
+* Don't keepalive ping if disconnected
+* Immediately close socket after failed Connack
+* FakeServer improvements
+* Fix for working with mathn library.
+
+
 Ruby MQTT Version 0.4.0 (2016-06-27)
 ------------------------------------
 
