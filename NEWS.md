@@ -1,7 +1,7 @@
 Ruby MQTT NEWS
 ==============
 
-Ruby MQTT Version 0.5.0 (2016-04-16)
+Ruby MQTT Version 0.5.0 (2017-04-16)
 ------------------------------------
 
 * Switched default protocol version to 3.1.1
