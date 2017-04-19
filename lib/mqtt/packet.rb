@@ -128,7 +128,12 @@ module MQTT
         end
       end
     end
-
+    
+    # some mqtt servers fail without this alias
+    def type
+      return type_id
+    end
+    
     # Get the identifer for this packet type
     def type_id
       index = MQTT::PACKET_TYPES.index(self.class)
