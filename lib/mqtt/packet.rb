@@ -204,12 +204,10 @@ module MQTT
       header.pack('C*') + body
     end
 
-    # Check that fixed header flags are valid for types that don't use the flags
+    # Flags are 'always valid' for packets that don't use them.
     # @private
     def validate_flags
-      if flags != [false, false, false, false]
-        raise ProtocolException.new("Invalid flags in #{type_name} packet header")
-      end
+      true
     end
 
     # Returns a human readable string

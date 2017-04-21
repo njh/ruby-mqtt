@@ -966,15 +966,12 @@ describe MQTT::Packet::Connect do
   end
 
   describe "when parsing packet with invalid fixed header flags" do
-    it "should raise a protocol exception" do
+    it "should not raise a protocol exception" do
       expect {
         MQTT::Packet.parse(
           "\x13\x16\x00\x06MQIsdp\x03\x00\x00\x0a\x00\x08myclient"
         )
-      }.to raise_error(
-        MQTT::ProtocolException,
-        "Invalid flags in CONNECT packet header"
-      )
+      }.to_not raise_error
     end
   end
 
@@ -1220,13 +1217,10 @@ describe MQTT::Packet::Connack do
   end
 
   describe "when parsing packet with invalid fixed header flags" do
-    it "should raise a protocol exception" do
+    it "should not raise a protocol exception" do
       expect {
         MQTT::Packet.parse( "\x23\x02\x00\x00" )
-      }.to raise_error(
-        MQTT::ProtocolException,
-        "Invalid flags in CONNACK packet header"
-      )
+      }.to_not raise_error
     end
   end
 
@@ -1274,13 +1268,10 @@ describe MQTT::Packet::Puback do
   end
 
   describe "when parsing packet with invalid fixed header flags" do
-    it "should raise a protocol exception" do
+    it "should not raise a protocol exception" do
       expect {
         MQTT::Packet.parse( "\x43\x02\x12\x34" )
-      }.to raise_error(
-        MQTT::ProtocolException,
-        "Invalid flags in PUBACK packet header"
-      )
+      }.to_not raise_error
     end
   end
 
@@ -1322,13 +1313,10 @@ describe MQTT::Packet::Pubrec do
   end
 
   describe "when parsing packet with invalid fixed header flags" do
-    it "should raise a protocol exception" do
+    it "should not raise a protocol exception" do
       expect {
         MQTT::Packet.parse( "\x53\x02\x12\x34" )
-      }.to raise_error(
-        MQTT::ProtocolException,
-        "Invalid flags in PUBREC packet header"
-      )
+      }.to_not raise_error
     end
   end
 
@@ -1418,13 +1406,10 @@ describe MQTT::Packet::Pubcomp do
   end
 
   describe "when parsing packet with invalid fixed header flags" do
-    it "should raise a protocol exception" do
+    it "should not raise a protocol exception" do
       expect {
         MQTT::Packet.parse( "\x72\x02\x12\x34" )
-      }.to raise_error(
-        MQTT::ProtocolException,
-        "Invalid flags in PUBCOMP packet header"
-      )
+      }.to_not raise_error
     end
   end
 
@@ -1618,13 +1603,10 @@ describe MQTT::Packet::Suback do
   end
 
   describe "when parsing packet with invalid fixed header flags" do
-    it "should raise a protocol exception" do
+    it "should not raise a protocol exception" do
       expect {
         MQTT::Packet.parse( "\x92\x03\x12\x34\x00" )
-      }.to raise_error(
-        MQTT::ProtocolException,
-        "Invalid flags in SUBACK packet header"
-      )
+      }.to_not raise_error
     end
   end
 
@@ -1748,13 +1730,10 @@ describe MQTT::Packet::Unsuback do
   end
 
   describe "when parsing packet with invalid fixed header flags" do
-    it "should raise a protocol exception" do
+    it "should not raise a protocol exception" do
       expect {
         MQTT::Packet.parse( "\xB2\x02\x12\x34" )
-      }.to raise_error(
-        MQTT::ProtocolException,
-        "Invalid flags in UNSUBACK packet header"
-      )
+      }.to_not raise_error
     end
   end
 
@@ -1788,13 +1767,10 @@ describe MQTT::Packet::Pingreq do
   end
 
   describe "when parsing packet with invalid fixed header flags" do
-    it "should raise a protocol exception" do
+    it "should not raise a protocol exception" do
       expect {
         MQTT::Packet.parse( "\xC2\x00" )
-      }.to raise_error(
-        MQTT::ProtocolException,
-        "Invalid flags in PINGREQ packet header"
-      )
+      }.to_not raise_error
     end
   end
 
@@ -1828,13 +1804,10 @@ describe MQTT::Packet::Pingresp do
   end
 
   describe "when parsing packet with invalid fixed header flags" do
-    it "should raise a protocol exception" do
+    it "should not raise a protocol exception" do
       expect {
         MQTT::Packet.parse( "\xD2\x00" )
-      }.to raise_error(
-        MQTT::ProtocolException,
-        "Invalid flags in PINGRESP packet header"
-      )
+      }.to_not raise_error
     end
   end
 
@@ -1869,13 +1842,10 @@ describe MQTT::Packet::Disconnect do
   end
 
   describe "when parsing packet with invalid fixed header flags" do
-    it "should raise a protocol exception" do
+    it "should not raise a protocol exception" do
       expect {
         MQTT::Packet.parse( "\xE2\x00" )
-      }.to raise_error(
-        MQTT::ProtocolException,
-        "Invalid flags in DISCONNECT packet header"
-      )
+      }.to_not raise_error
     end
   end
 
