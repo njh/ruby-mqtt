@@ -1,3 +1,10 @@
+Style/Documentation:
+  Enabled: false
+Style/MutableConstant:
+  Enabled: false
+Style/FormatString:
+  Enabled: false
+
 AllCops:
   Include:
     - 'lib/**/*'
