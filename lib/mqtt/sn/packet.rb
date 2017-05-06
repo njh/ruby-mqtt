@@ -72,8 +72,7 @@ module MQTT
         end
       end
 
-      def parse_body(buffer)
-      end
+      def parse_body(buffer); end
 
       protected
 
