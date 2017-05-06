@@ -487,7 +487,7 @@ module MQTT
     end
 
     def puback_packet(packet)
-      send_packet(MQTT::Packet::Puback.new id: packet.id)
+      send_packet(MQTT::Packet::Puback.new(id: packet.id))
     end
 
     # Read and check a connection acknowledgement packet
