@@ -273,8 +273,6 @@ module MQTT
       str.force_encoding('UTF-8')
     end
 
-    private
-
     # Read and unpack a single byte from a socket
     def self.read_byte(socket)
       byte = socket.read(1)
@@ -540,7 +538,6 @@ module MQTT
       end
 
       # ---- Deprecated attributes and methods  ---- #
-      public
 
       # @deprecated Please use {#protocol_level} instead
       def protocol_version
@@ -876,7 +873,6 @@ module MQTT
       end
 
       # ---- Deprecated attributes and methods  ---- #
-      public
 
       # @deprecated Please use {#return_codes} instead
       def granted_qos
