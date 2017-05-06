@@ -146,7 +146,7 @@ class MQTT::Client
         attr.merge!(parse_uri(args[0]))
       when %r|^mqtts?://|
         attr.merge!(parse_uri(args[0]))
-        else
+      else
         attr.merge!(host: args[0])
       end
     end

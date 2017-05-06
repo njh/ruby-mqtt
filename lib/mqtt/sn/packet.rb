@@ -90,7 +90,7 @@ module MQTT::SN
         self.topic_id_type = :predefined
       when 0x2
         self.topic_id_type = :short
-        else
+      else
         self.topic_id_type = nil
       end
     end
@@ -278,7 +278,7 @@ module MQTT::SN
           'Rejected: invalid topic ID'
         when 0x03
           'Rejected: not supported'
-          else
+        else
           "Rejected: error code #{return_code}"
         end
       end

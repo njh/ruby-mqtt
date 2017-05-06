@@ -610,7 +610,7 @@ module MQTT
           'Connection refused: bad user name or password'
         when 0x05
           'Connection refused: not authorised'
-          else
+        else
           "Connection refused: error code #{return_code}"
         end
       end
