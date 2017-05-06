@@ -761,7 +761,7 @@ module MQTT
         input = value.is_a?(Array) ? value.flatten : [value]
 
         @topics = []
-        while !input.empty?
+        until input.empty?
           item = input.shift
           if item.is_a?(Hash)
             # Convert hash into an ordered array of arrays
