@@ -599,19 +599,19 @@ module MQTT
       def return_msg
         case return_code
         when 0x00
-            'Connection Accepted'
+          'Connection Accepted'
         when 0x01
-            'Connection refused: unacceptable protocol version'
+          'Connection refused: unacceptable protocol version'
         when 0x02
-            'Connection refused: client identifier rejected'
+          'Connection refused: client identifier rejected'
         when 0x03
-            'Connection refused: server unavailable'
+          'Connection refused: server unavailable'
         when 0x04
-            'Connection refused: bad user name or password'
+          'Connection refused: bad user name or password'
         when 0x05
-            'Connection refused: not authorised'
+          'Connection refused: not authorised'
           else
-            "Connection refused: error code #{return_code}"
+          "Connection refused: error code #{return_code}"
         end
       end
 

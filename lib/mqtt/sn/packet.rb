@@ -85,13 +85,13 @@ module MQTT::SN
       self.clean_session = ((flags & 0x04) >> 2) == 0x01
       case (flags & 0x03)
       when 0x0
-          self.topic_id_type = :normal
+        self.topic_id_type = :normal
       when 0x1
-          self.topic_id_type = :predefined
+        self.topic_id_type = :predefined
       when 0x2
-          self.topic_id_type = :short
+        self.topic_id_type = :short
         else
-          self.topic_id_type = nil
+        self.topic_id_type = nil
       end
     end
 
@@ -105,22 +105,22 @@ module MQTT::SN
       flags += 0x80 if duplicate
       case qos
       when -1
-          flags += 0x60
+        flags += 0x60
       when 1
-          flags += 0x20
+        flags += 0x20
       when 2
-          flags += 0x40
+        flags += 0x40
       end
       flags += 0x10 if retain
       flags += 0x08 if request_will
       flags += 0x04 if clean_session
       case topic_id_type
       when :normal
-          flags += 0x0
+        flags += 0x0
       when :predefined
-          flags += 0x1
+        flags += 0x1
       when :short
-          flags += 0x2
+        flags += 0x2
       end
       return flags
     end
@@ -153,15 +153,15 @@ module MQTT::SN
     def encode_topic
       case topic_id_type
       when :normal
-          topic_name
+        topic_name
       when :short
-          unless topic_name.nil?
-            topic_name
-          else
-            topic_id
-          end
+        unless topic_name.nil?
+          topic_name
+        else
+          topic_id
+        end
       when :predefined
-          [topic_id].pack('n')
+        [topic_id].pack('n')
       end
     end
 
@@ -170,12 +170,12 @@ module MQTT::SN
     def parse_topic(topic)
       case topic_id_type
       when :normal
-          self.topic_name = topic
+        self.topic_name = topic
       when :short
-          self.topic_name = topic
+        self.topic_name = topic
           self.topic_id = topic
       when :predefined
-          self.topic_id = topic.unpack('n').first
+        self.topic_id = topic.unpack('n').first
       end
     end
 
@@ -271,15 +271,15 @@ module MQTT::SN
       def return_msg
         case return_code
         when 0x00
-            'Accepted'
+          'Accepted'
         when 0x01
-            'Rejected: congestion'
+          'Rejected: congestion'
         when 0x02
-            'Rejected: invalid topic ID'
+          'Rejected: invalid topic ID'
         when 0x03
-            'Rejected: not supported'
+          'Rejected: not supported'
           else
-            "Rejected: error code #{return_code}"
+          "Rejected: error code #{return_code}"
         end
       end
 
