@@ -170,10 +170,10 @@ module MQTT
       # Encode the fixed header
       header = [
         ((type_id.to_i & 0x0F) << 4) |
-        (flags[3] ? 0x8 : 0x0) |
-        (flags[2] ? 0x4 : 0x0) |
-        (flags[1] ? 0x2 : 0x0) |
-        (flags[0] ? 0x1 : 0x0)
+          (flags[3] ? 0x8 : 0x0) |
+          (flags[2] ? 0x4 : 0x0) |
+          (flags[1] ? 0x2 : 0x0) |
+          (flags[0] ? 0x1 : 0x0)
       ]
 
       # Get the packet's variable header and payload
@@ -377,12 +377,12 @@ module MQTT
       # Returns a human readable string, summarising the properties of the packet
       def inspect
         "\#<#{self.class}: " +
-        "d#{duplicate ? '1' : '0'}, " +
-        "q#{qos}, " +
-        "r#{retain ? '1' : '0'}, " +
-        "m#{id}, " +
-        "'#{topic}', " +
-        "#{inspect_payload}>"
+          "d#{duplicate ? '1' : '0'}, " +
+          "q#{qos}, " +
+          "r#{retain ? '1' : '0'}, " +
+          "m#{id}, " +
+          "'#{topic}', " +
+          "#{inspect_payload}>"
       end
 
       protected
