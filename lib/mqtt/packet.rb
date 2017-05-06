@@ -63,7 +63,7 @@ module MQTT
     def self.parse_header(buffer)
       # Check that the packet is a long as the minimum packet size
       if buffer.bytesize < 2
-        raise ProtocolException.new('Invalid packet: less than 2 bytes long')
+        raise ProtocolException, 'Invalid packet: less than 2 bytes long'
       end
 
       # Create a new packet object
@@ -77,7 +77,7 @@ module MQTT
       pos = 1
       begin
         if buffer.bytesize <= pos
-          raise ProtocolException.new('The packet length header is incomplete')
+          raise ProtocolException, 'The packet length header is incomplete'
         end
         digit = bytes[pos]
         body_length += ((digit & 0x7F) * multiplier)
@@ -100,7 +100,7 @@ module MQTT
       type_id = ((byte & 0xF0) >> 4)
       packet_class = MQTT::PACKET_TYPES[type_id]
       if packet_class.nil?
-        raise ProtocolException.new("Invalid packet type identifier: #{type_id}")
+        raise ProtocolException, "Invalid packet type identifier: #{type_id}"
       end
 
       # Convert the last 4 bits of byte into array of true/false
@@ -156,9 +156,7 @@ module MQTT
     # Parse the body (variable header and payload) of a packet
     def parse_body(buffer)
       if buffer.bytesize != body_length
-        raise ProtocolException.new(
-          "Failed to parse packet - input buffer (#{buffer.bytesize}) is not the same as the body length header (#{body_length})"
-        )
+        raise ProtocolException, "Failed to parse packet - input buffer (#{buffer.bytesize}) is not the same as the body length header (#{body_length})"
       end
     end
 
@@ -205,7 +203,7 @@ module MQTT
     # @private
     def validate_flags
       if flags != [false, false, false, false]
-        raise ProtocolException.new("Invalid flags in #{type_name} packet header")
+        raise ProtocolException, "Invalid flags in #{type_name} packet header"
       end
     end
 
@@ -277,7 +275,7 @@ module MQTT
     def self.read_byte(socket)
       byte = socket.read(1)
       if byte.nil?
-        raise ProtocolException.new('Failed to read byte from socket')
+        raise ProtocolException, 'Failed to read byte from socket'
       end
       byte.unpack('C').first
     end
@@ -380,10 +378,10 @@ module MQTT
       # @private
       def validate_flags
         if qos == 3
-          raise ProtocolException.new('Invalid packet: QoS value of 3 is not allowed')
+          raise ProtocolException, 'Invalid packet: QoS value of 3 is not allowed'
         end
         if qos == 0 and duplicate
-          raise ProtocolException.new('Invalid packet: DUP cannot be set for QoS 0')
+          raise ProtocolException, 'Invalid packet: DUP cannot be set for QoS 0'
         end
       end
 
@@ -469,7 +467,7 @@ module MQTT
           self.protocol_name ||= 'MQTT'
           self.protocol_level ||= 0x04
         else
-          raise ArgumentError.new("Unsupported protocol version: #{version}")
+          raise ArgumentError, "Unsupported protocol version: #{version}"
         end
       end
 
@@ -522,9 +520,7 @@ module MQTT
         elsif @protocol_name == 'MQTT' and @protocol_level == 4
           @version = '3.1.1'
         else
-          raise ProtocolException.new(
-            "Unsupported protocol: #{@protocol_name}/#{@protocol_level}"
-          )
+          raise ProtocolException, "Unsupported protocol: #{@protocol_name}/#{@protocol_level}"
         end
 
         @connect_flags = shift_byte(buffer)
@@ -637,11 +633,11 @@ module MQTT
         super(buffer)
         @connack_flags = shift_bits(buffer)
         unless @connack_flags[1,7] == [false, false, false, false, false, false, false]
-          raise ProtocolException.new('Invalid flags in Connack variable header')
+          raise ProtocolException, 'Invalid flags in Connack variable header'
         end
         @return_code = shift_byte(buffer)
         unless buffer.empty?
-          raise ProtocolException.new('Extra bytes at end of Connect Acknowledgment packet')
+          raise ProtocolException, 'Extra bytes at end of Connect Acknowledgment packet'
         end
       end
 
@@ -663,7 +659,7 @@ module MQTT
         super(buffer)
         @id = shift_short(buffer)
         unless buffer.empty?
-          raise ProtocolException.new('Extra bytes at end of Publish Acknowledgment packet')
+          raise ProtocolException, 'Extra bytes at end of Publish Acknowledgment packet'
         end
       end
 
@@ -685,7 +681,7 @@ module MQTT
         super(buffer)
         @id = shift_short(buffer)
         unless buffer.empty?
-          raise ProtocolException.new('Extra bytes at end of Publish Received packet')
+          raise ProtocolException, 'Extra bytes at end of Publish Received packet'
         end
       end
 
@@ -717,7 +713,7 @@ module MQTT
         super(buffer)
         @id = shift_short(buffer)
         unless buffer.empty?
-          raise ProtocolException.new('Extra bytes at end of Publish Release packet')
+          raise ProtocolException, 'Extra bytes at end of Publish Release packet'
         end
       end
 
@@ -725,7 +721,7 @@ module MQTT
       # @private
       def validate_flags
         if @flags != [false, true, false, false]
-          raise ProtocolException.new('Invalid flags in PUBREL packet header')
+          raise ProtocolException, 'Invalid flags in PUBREL packet header'
         end
       end
 
@@ -747,7 +743,7 @@ module MQTT
         super(buffer)
         @id = shift_short(buffer)
         unless buffer.empty?
-          raise ProtocolException.new('Extra bytes at end of Publish Complete packet')
+          raise ProtocolException, 'Extra bytes at end of Publish Complete packet'
         end
       end
 
@@ -842,7 +838,7 @@ module MQTT
       # @private
       def validate_flags
         if @flags != [false, true, false, false]
-          raise ProtocolException.new('Invalid flags in SUBSCRIBE packet header')
+          raise ProtocolException, 'Invalid flags in SUBSCRIBE packet header'
         end
       end
 
@@ -966,7 +962,7 @@ module MQTT
       # @private
       def validate_flags
         if @flags != [false, true, false, false]
-          raise ProtocolException.new('Invalid flags in UNSUBSCRIBE packet header')
+          raise ProtocolException, 'Invalid flags in UNSUBSCRIBE packet header'
         end
       end
 
@@ -996,7 +992,7 @@ module MQTT
         super(buffer)
         @id = shift_short(buffer)
         unless buffer.empty?
-          raise ProtocolException.new('Extra bytes at end of Unsubscribe Acknowledgment packet')
+          raise ProtocolException, 'Extra bytes at end of Unsubscribe Acknowledgment packet'
         end
       end
 
@@ -1017,7 +1013,7 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         unless buffer.empty?
-          raise ProtocolException.new('Extra bytes at end of Ping Request packet')
+          raise ProtocolException, 'Extra bytes at end of Ping Request packet'
         end
       end
     end
@@ -1033,7 +1029,7 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         unless buffer.empty?
-          raise ProtocolException.new('Extra bytes at end of Ping Response packet')
+          raise ProtocolException, 'Extra bytes at end of Ping Response packet'
         end
       end
     end
@@ -1049,7 +1045,7 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         unless buffer.empty?
-          raise ProtocolException.new('Extra bytes at end of Disconnect packet')
+          raise ProtocolException, 'Extra bytes at end of Disconnect packet'
         end
       end
     end

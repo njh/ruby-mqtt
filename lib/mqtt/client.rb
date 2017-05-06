@@ -325,8 +325,8 @@ class MQTT::Client
 
   # Publish a message on a particular topic to the MQTT server.
   def publish(topic, payload='', retain=false, qos=0)
-    raise ArgumentError.new('Topic name cannot be nil') if topic.nil?
-    raise ArgumentError.new('Topic name cannot be empty') if topic.empty?
+    raise ArgumentError, 'Topic name cannot be nil' if topic.nil?
+    raise ArgumentError, 'Topic name cannot be empty' if topic.empty?
 
     packet = MQTT::Packet::Publish.new(
       id: next_packet_id,
@@ -499,9 +499,7 @@ private
         send_packet(packet)
         @last_ping_request = Time.now
       elsif Time.now > @last_ping_response + response_timeout
-        raise MQTT::ProtocolException.new(
-          "No Ping Response received for #{response_timeout} seconds"
-        )
+        raise MQTT::ProtocolException, "No Ping Response received for #{response_timeout} seconds"
       end
     end
   end
@@ -515,9 +513,7 @@ private
     Timeout.timeout(@ack_timeout) do
       packet = MQTT::Packet.read(@socket)
       if packet.class != MQTT::Packet::Connack
-        raise MQTT::ProtocolException.new(
-          "Response wasn't a connection acknowledgement: #{packet.class}"
-        )
+        raise MQTT::ProtocolException, "Response wasn't a connection acknowledgement: #{packet.class}"
       end
 
       # Check the return code
@@ -525,7 +521,7 @@ private
         # 3.2.2.3 If a server sends a CONNACK packet containing a non-zero
         # return code it MUST then close the Network Connection
         @socket.close
-        raise MQTT::ProtocolException.new(packet.return_msg)
+        raise MQTT::ProtocolException, packet.return_msg
       end
     end
   end
