@@ -436,7 +436,7 @@ module MQTT
       send_packet(packet)
     end
 
-  private
+    private
 
     # Try to read a packet from the server
     # Also sends keep-alive ping packets.
