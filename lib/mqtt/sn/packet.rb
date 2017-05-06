@@ -157,10 +157,10 @@ module MQTT
         when :normal
           topic_name
         when :short
-          unless topic_name.nil?
-            topic_name
-          else
+          if topic_name.nil?
             topic_id
+          else
+            topic_name
           end
         when :predefined
           [topic_id].pack('n')
