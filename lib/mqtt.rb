@@ -48,6 +48,6 @@ module MQTT
     class ProtocolException < MQTT::Exception
     end
 
-    autoload :Packet,   'mqtt/sn/packet'
+    autoload :Packet, 'mqtt/sn/packet'
   end
 end
