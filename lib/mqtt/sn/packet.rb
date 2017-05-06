@@ -724,7 +724,6 @@ module MQTT::SN
         self.return_code, _ignore = buffer.unpack('C')
       end
     end
-
   end
 
 

@@ -603,5 +603,4 @@ private
   def remote_port=(args)
     self.port = args
   end
-
 end

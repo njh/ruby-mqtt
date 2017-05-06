@@ -291,7 +291,6 @@ module MQTT
 
     # Class representing an MQTT Publish message
     class Publish < MQTT::Packet
-
       # Duplicate delivery flag
       attr_accessor :duplicate
 
@@ -700,7 +699,6 @@ module MQTT
 
     # Class representing an MQTT Publish Release packet
     class Pubrel < MQTT::Packet
-
       # Default attribute values
       ATTR_DEFAULTS = {
         flags: [false, true, false, false],
