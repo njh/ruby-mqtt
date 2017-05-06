@@ -181,7 +181,7 @@ module MQTT
 
       # Check that that packet isn't too big
       body_length = body.bytesize
-      if body_length > 268435455
+      if body_length > 268_435_455
         raise 'Error serialising packet: body is more than 256MB'
       end
 

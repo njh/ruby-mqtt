@@ -34,7 +34,7 @@ class MQTT::Proxy
     @local_host = args[:local_host] || '0.0.0.0'
     @local_port = args[:local_port] || MQTT::DEFAULT_PORT
     @server_host = args[:server_host]
-    @server_port = args[:server_port] || 18830
+    @server_port = args[:server_port] || 18_830
     @select_timeout = args[:select_timeout] || 60
 
     # Setup a logger
