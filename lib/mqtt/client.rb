@@ -139,9 +139,7 @@ class MQTT::Client
     end
 
     if args.length == 0
-      if ENV['MQTT_SERVER']
-        attr.merge!(parse_uri(ENV['MQTT_SERVER']))
-      end
+      attr.merge!(parse_uri(ENV['MQTT_SERVER'])) if ENV['MQTT_SERVER']
     end
 
     if args.length >= 1
@@ -159,9 +157,7 @@ class MQTT::Client
       attr.merge!(port: args[1]) unless args[1].nil?
     end
 
-    if args.length >= 3
-      raise ArgumentError, 'Unsupported number of arguments'
-    end
+    raise ArgumentError, 'Unsupported number of arguments' if args.length >= 3
 
     # Merge arguments with default values for attributes
     ATTR_DEFAULTS.merge(attr).each_pair do |k,v|
@@ -214,9 +210,7 @@ class MQTT::Client
   # Set a path to a file containing a PEM-format CA certificate and enable peer verification
   def ca_file=(path)
     ssl_context.ca_file = path
-    unless path.nil?
-      ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
-    end
+    ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER unless path.nil?
   end
 
   # Set the Will for the client
@@ -233,9 +227,7 @@ class MQTT::Client
   # Connect to the MQTT server
   # If a block is given, then yield to that block and then disconnect again.
   def connect(clientid=nil)
-    unless clientid.nil?
-      @client_id = clientid
-    end
+    @client_id = clientid unless clientid.nil?
 
     if @client_id.nil? or @client_id.empty?
       if @clean_session
@@ -248,9 +240,7 @@ class MQTT::Client
       end
     end
 
-    if @host.nil?
-      raise 'No MQTT server host set when attempting to connect'
-    end
+    raise 'No MQTT server host set when attempting to connect' if @host.nil?
 
     if not connected?
       # Create network socket
@@ -258,17 +248,13 @@ class MQTT::Client
 
       if @ssl
         # Set the protocol version
-        if @ssl.is_a?(Symbol)
-          ssl_context.ssl_version = @ssl
-        end
+        ssl_context.ssl_version = @ssl if @ssl.is_a?(Symbol)
 
         @socket = OpenSSL::SSL::SSLSocket.new(tcp_socket, ssl_context)
         @socket.sync_close = true
 
         # Set hostname on secure socket for Server Name Indication (SNI)
-        if @socket.respond_to?(:hostname=)
-          @socket.hostname = @host
-        end
+        @socket.hostname = @host if @socket.respond_to?(:hostname=)
 
         @socket.connect
       else
@@ -457,9 +443,7 @@ class MQTT::Client
 
   # Send a unsubscribe message for one or more topics on the MQTT server
   def unsubscribe(*topics)
-    if topics.is_a?(Enumerable) and topics.count == 1
-      topics = topics.first
-    end
+    topics = topics.first if topics.is_a?(Enumerable) and topics.count == 1
 
     packet = MQTT::Packet::Unsubscribe.new(
       topics: topics,

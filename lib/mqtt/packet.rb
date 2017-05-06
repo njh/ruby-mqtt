@@ -131,9 +131,7 @@ module MQTT
     # Get the identifer for this packet type
     def type_id
       index = MQTT::PACKET_TYPES.index(self.class)
-      if index.nil?
-        raise "Invalid packet type: #{self.class}"
-      end
+      raise "Invalid packet type: #{self.class}" if index.nil?
       return index
     end
 
@@ -819,9 +817,7 @@ module MQTT
 
       # Get serialisation of packet's body
       def encode_body
-        if @topics.empty?
-          raise 'no topics given when serialising packet'
-        end
+        raise 'no topics given when serialising packet' if @topics.empty?
         body = encode_short(@id)
         topics.each do |item|
           body += encode_string(item[0])
@@ -951,9 +947,7 @@ module MQTT
 
       # Get serialisation of packet's body
       def encode_body
-        if @topics.empty?
-          raise 'no topics given when serialising packet'
-        end
+        raise 'no topics given when serialising packet' if @topics.empty?
         body = encode_short(@id)
         topics.each { |topic| body += encode_string(topic) }
         return body
