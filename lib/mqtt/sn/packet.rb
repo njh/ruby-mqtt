@@ -1,7 +1,6 @@
 # encoding: BINARY
 
 module MQTT::SN
-
   # Class representing a MQTT::SN Packet
   # Performs binary encoding and decoding of headers
   class Packet
@@ -759,5 +758,4 @@ module MQTT::SN
       0x1c => MQTT::SN::Packet::Willmsgupd,
       0x1d => MQTT::SN::Packet::Willmsgresp,
   }
-
 end

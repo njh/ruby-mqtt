@@ -1,7 +1,6 @@
 # encoding: BINARY
 
 module MQTT
-
   # Class representing a MQTT Packet
   # Performs binary encoding and decoding of headers
   class MQTT::Packet
@@ -1098,5 +1097,4 @@ module MQTT
     MQTT::Packet::Disconnect,
     nil
   ]
-
 end
