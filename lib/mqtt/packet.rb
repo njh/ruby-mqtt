@@ -524,13 +524,13 @@ module MQTT
 
       # Returns a human readable string, summarising the properties of the packet
       def inspect
-        str = "\#<#{self.class}: "
-        str += "keep_alive=#{keep_alive}"
+        str = "\#<#{self.class}: " \
+              "keep_alive=#{keep_alive}"
         str += ', clean' if clean_session
         str += ", client_id='#{client_id}'"
         str += ", username='#{username}'" unless username.nil?
         str += ', password=...' unless password.nil?
-        str += '>'
+        str + '>'
       end
 
       # ---- Deprecated attributes and methods  ---- #
