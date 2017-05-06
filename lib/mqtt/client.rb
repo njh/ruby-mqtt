@@ -325,7 +325,7 @@ module MQTT
       return if qos.zero?
 
       Timeout.timeout(@ack_timeout) do
-        while connected? do
+        while connected?
           @pubacks_semaphore.synchronize do
             return res if @pubacks.delete(packet.id)
           end
