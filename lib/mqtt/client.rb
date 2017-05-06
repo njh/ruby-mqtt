@@ -302,7 +302,7 @@ class MQTT::Client
 
   # Checks whether the client is connected to the server.
   def connected?
-    (!@socket.nil?) && (!@socket.closed?)
+    !@socket.nil? && !@socket.closed?
   end
 
   # Publish a message on a particular topic to the MQTT server.
