@@ -7,6 +7,8 @@ Style/FormatString:
 
 Lint/RescueException:
   Enabled: false
+Lint/InheritException:
+  Enabled: false
 
 AllCops:
   Include:
