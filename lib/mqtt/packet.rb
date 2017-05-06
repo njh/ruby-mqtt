@@ -314,7 +314,7 @@ module MQTT
 
       # Set the DUP flag (true/false)
       def duplicate=(arg)
-        @flags[3] = arg.kind_of?(Integer) ? (arg == 0x1) : arg
+        @flags[3] = arg.is_a?(Integer) ? (arg == 0x1) : arg
       end
 
       def retain
@@ -323,7 +323,7 @@ module MQTT
 
       # Set the retain flag (true/false)
       def retain=(arg)
-        @flags[0] = arg.kind_of?(Integer) ? (arg == 0x1) : arg
+        @flags[0] = arg.is_a?(Integer) ? (arg == 0x1) : arg
       end
 
       def qos
@@ -573,7 +573,7 @@ module MQTT
 
       # Set the Session Present flag
       def session_present=(arg)
-        @connack_flags[0] = arg.kind_of?(Integer) ? (arg == 0x1) : arg
+        @connack_flags[0] = arg.is_a?(Integer) ? (arg == 0x1) : arg
       end
 
       # Get a string message corresponding to a return code
