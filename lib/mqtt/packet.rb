@@ -35,12 +35,14 @@ module MQTT
       multiplier = 1
       body_length = 0
       pos = 1
-      begin
+
+      loop do
         digit = read_byte(socket)
         body_length += ((digit & 0x7F) * multiplier)
         multiplier *= 0x80
         pos += 1
-      end while ((digit & 0x80) != 0x00) && pos <= 4
+        break if ((digit & 0x80) == 0x00) || pos > 4
+      end
 
       # Store the expected body length in the packet
       packet.instance_variable_set('@body_length', body_length)
@@ -75,15 +77,18 @@ module MQTT
       body_length = 0
       multiplier = 1
       pos = 1
-      begin
+
+      loop do
         if buffer.bytesize <= pos
           raise ProtocolException, 'The packet length header is incomplete'
         end
+
         digit = bytes[pos]
         body_length += ((digit & 0x7F) * multiplier)
         multiplier *= 0x80
         pos += 1
-      end while ((digit & 0x80) != 0x00) && pos <= 4
+        break if ((digit & 0x80) == 0x00) || pos > 4
+      end
 
       # Store the expected body length in the packet
       packet.instance_variable_set('@body_length', body_length)
@@ -186,13 +191,14 @@ module MQTT
       end
 
       # Build up the body length field bytes
-      begin
+      loop do
         digit = (body_length % 128)
         body_length = body_length.div(128)
         # if there are more digits to encode, set the top bit of this digit
         digit |= 0x80 if body_length > 0
         header.push(digit)
-      end while (body_length > 0)
+        break if body_length <= 0
+      end
 
       # Convert header to binary and add on body
       header.pack('C*') + body
