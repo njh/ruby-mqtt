@@ -236,7 +236,7 @@ class MQTT::Client
 
     raise 'No MQTT server host set when attempting to connect' if @host.nil?
 
-    if not connected?
+    if !connected?
       # Create network socket
       tcp_socket = TCPSocket.new(@host, @port)
 
@@ -314,7 +314,7 @@ class MQTT::Client
 
   # Checks whether the client is connected to the server.
   def connected?
-    (not @socket.nil?) && (not @socket.closed?)
+    (!@socket.nil?) && (!@socket.closed?)
   end
 
   # Publish a message on a particular topic to the MQTT server.
@@ -524,7 +524,7 @@ private
   # Send a packet to server
   def send_packet(data)
     # Raise exception if we aren't connected
-    raise MQTT::NotConnectedException if not connected?
+    raise MQTT::NotConnectedException if !connected?
 
     # Only allow one thread to write to socket at a time
     @write_semaphore.synchronize do
