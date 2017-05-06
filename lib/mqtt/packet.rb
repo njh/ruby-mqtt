@@ -220,7 +220,7 @@ module MQTT
 
     # Encode an array of bits and return them
     def encode_bits(bits)
-      [bits.map{ |b| b ? '1' : '0' }.join].pack('b*')
+      [bits.map { |b| b ? '1' : '0' }.join].pack('b*')
     end
 
     # Encode a 16-bit unsigned integer and return it
@@ -885,7 +885,7 @@ module MQTT
 
       # Returns a human readable string, summarising the properties of the packet
       def inspect
-        "\#<#{self.class}: 0x%2.2X, rc=%s>" % [id, return_codes.map{ |rc| '0x%2.2X' % rc }.join(',')]
+        "\#<#{self.class}: 0x%2.2X, rc=%s>" % [id, return_codes.map { |rc| '0x%2.2X' % rc }.join(',')]
       end
 
       # ---- Deprecated attributes and methods  ---- #
