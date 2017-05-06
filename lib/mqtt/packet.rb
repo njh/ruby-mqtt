@@ -46,7 +46,7 @@ module MQTT
       packet.instance_variable_set('@body_length', body_length)
 
       # Read in the packet body
-      packet.parse_body( socket.read(body_length) )
+      packet.parse_body(socket.read(body_length))
 
       packet
     end

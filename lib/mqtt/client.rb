@@ -553,7 +553,7 @@ private
   end
 
   def next_packet_id
-    @last_packet_id = ( @last_packet_id || 0 ).next
+    @last_packet_id = (@last_packet_id || 0).next
   end
 
   # ---- Deprecated attributes and methods  ---- #
