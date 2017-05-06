@@ -98,13 +98,8 @@ class MQTT::Client
     str = prefix.dup
     length.times do
       num = rand(36)
-      if (num < 10)
-        # Number
-        num += 48
-      else
-        # Letter
-        num += 87
-      end
+      # Adjust based on number or letter.
+      num += num < 10 ? 48 : 87
       str += num.chr
     end
     str
@@ -130,35 +125,30 @@ class MQTT::Client
   #  client = MQTT::Client.new(:host => 'myserver.example.com', :keep_alive => 30)
   #
   def initialize(*args)
-    if args.last.is_a?(Hash)
-      attr = args.pop
-    else
-      attr = {}
-    end
+    attributes = args.last.is_a?(Hash) ? args.pop : {}
 
-    if args.length.zero?
-      attr.merge!(parse_uri(ENV['MQTT_SERVER'])) if ENV['MQTT_SERVER']
-    end
+    # Set server URI from environment if present
+    attributes.merge!(parse_uri(ENV['MQTT_SERVER'])) if args.length.zero? && ENV['MQTT_SERVER']
 
     if args.length >= 1
       case args[0]
       when URI
-        attr.merge!(parse_uri(args[0]))
+        attributes.merge!(parse_uri(args[0]))
       when %r|^mqtts?://|
-        attr.merge!(parse_uri(args[0]))
+        attributes.merge!(parse_uri(args[0]))
       else
-        attr.merge!(host: args[0])
+        attributes.merge!(host: args[0])
       end
     end
 
     if args.length >= 2
-      attr.merge!(port: args[1]) unless args[1].nil?
+      attributes.merge!(port: args[1]) unless args[1].nil?
     end
 
     raise ArgumentError, 'Unsupported number of arguments' if args.length >= 3
 
     # Merge arguments with default values for attributes
-    ATTR_DEFAULTS.merge(attr).each_pair do |k, v|
+    ATTR_DEFAULTS.merge(attributes).each_pair do |k, v|
       send("#{k}=", v)
     end
 

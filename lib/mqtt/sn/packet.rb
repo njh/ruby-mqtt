@@ -83,16 +83,18 @@ module MQTT::SN
       self.retain = ((flags & 0x10) >> 4) == 0x01
       self.request_will = ((flags & 0x08) >> 3) == 0x01
       self.clean_session = ((flags & 0x04) >> 2) == 0x01
-      case (flags & 0x03)
-      when 0x0
-        self.topic_id_type = :normal
-      when 0x1
-        self.topic_id_type = :predefined
-      when 0x2
-        self.topic_id_type = :short
-      else
-        self.topic_id_type = nil
-      end
+
+      self.topic_id_type =
+        case (flags & 0x03)
+        when 0x0
+          :normal
+        when 0x1
+          :predefined
+        when 0x2
+          :short
+        else
+          nil
+        end
     end
 
     # Get serialisation of packet's body (variable header and payload)
@@ -606,11 +608,12 @@ module MQTT::SN
       end
 
       def parse_body(buffer)
-        if buffer.length == 2
-          self.duration = buffer.unpack('n').first
-        else
-          self.duration = nil
-        end
+        self.duration =
+          if buffer.length == 2
+            buffer.unpack('n').first
+          else
+            nil
+          end
       end
     end
 

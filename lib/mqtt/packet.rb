@@ -314,11 +314,7 @@ module MQTT
 
       # Set the DUP flag (true/false)
       def duplicate=(arg)
-        if arg.kind_of?(Integer)
-          @flags[3] = (arg == 0x1)
-        else
-          @flags[3] = arg
-        end
+        @flags[3] = arg.kind_of?(Integer) ? (arg == 0x1) : arg
       end
 
       def retain
@@ -327,11 +323,7 @@ module MQTT
 
       # Set the retain flag (true/false)
       def retain=(arg)
-        if arg.kind_of?(Integer)
-          @flags[0] = (arg == 0x1)
-        else
-          @flags[0] = arg
-        end
+        @flags[0] = arg.kind_of?(Integer) ? (arg == 0x1) : arg
       end
 
       def qos
@@ -581,11 +573,7 @@ module MQTT
 
       # Set the Session Present flag
       def session_present=(arg)
-        if arg.kind_of?(Integer)
-          @connack_flags[0] = (arg == 0x1)
-        else
-          @connack_flags[0] = arg
-        end
+        @connack_flags[0] = arg.kind_of?(Integer) ? (arg == 0x1) : arg
       end
 
       # Get a string message corresponding to a return code
@@ -770,11 +758,7 @@ module MQTT
       #
       def topics=(value)
         # Get input into a consistent state
-        if value.is_a?(Array)
-          input = value.flatten
-        else
-          input = [value]
-        end
+        input = value.is_a?(Array) ? value.flatten : [value]
 
         @topics = []
         while (input.length > 0)
@@ -920,11 +904,7 @@ module MQTT
 
       # Set one or more topic paths to unsubscribe from
       def topics=(value)
-        if value.is_a?(Array)
-          @topics = value
-        else
-          @topics = [value]
-        end
+        @topics = value.is_a?(Array) ? value : [value]
       end
 
       # Get serialisation of packet's body
