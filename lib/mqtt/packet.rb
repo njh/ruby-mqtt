@@ -40,7 +40,7 @@ module MQTT
         body_length += ((digit & 0x7F) * multiplier)
         multiplier *= 0x80
         pos += 1
-      end while ((digit & 0x80) != 0x00) && pos <=(4)
+      end while ((digit & 0x80) != 0x00) && pos <= (4)
 
       # Store the expected body length in the packet
       packet.instance_variable_set('@body_length', body_length)
@@ -83,7 +83,7 @@ module MQTT
         body_length += ((digit & 0x7F) * multiplier)
         multiplier *= 0x80
         pos += 1
-      end while ((digit & 0x80) != 0x00) && pos <=(4)
+      end while ((digit & 0x80) != 0x00) && pos <= (4)
 
       # Store the expected body length in the packet
       packet.instance_variable_set('@body_length', body_length)
@@ -104,7 +104,7 @@ module MQTT
       end
 
       # Convert the last 4 bits of byte into array of true/false
-      flags = (0..3).map { |i| byte & (2 ** i) != 0 }
+      flags = (0..3).map { |i| byte & (2**i) != 0 }
 
       # Create a new packet object
       packet_class.new(flags: flags)
@@ -341,7 +341,7 @@ module MQTT
       # Set the Quality of Service level (0/1/2)
       def qos=(arg)
         @qos = arg.to_i
-        raise "Invalid QoS value: #{@qos}" if @qos <(0) || @qos >(2)
+        raise "Invalid QoS value: #{@qos}" if @qos < (0) || @qos > (2)
 
         @flags[1] = (arg & 0x01 == 0x01)
         @flags[2] = (arg & 0x02 == 0x02)
@@ -389,7 +389,7 @@ module MQTT
 
       def inspect_payload
         str = payload.to_s
-        if str.bytesize <(16) && str =~(/^[ -~]*$/)
+        if str.bytesize < (16) && str =~ (/^[ -~]*$/)
           "'#{str}'"
         else
           "... (#{str.bytesize} bytes)"
@@ -449,7 +449,7 @@ module MQTT
       def initialize(args = {})
         super(ATTR_DEFAULTS.merge(args))
 
-        if version ==('3.1.0') || version ==('3.1')
+        if version == ('3.1.0') || version == ('3.1')
           self.protocol_name ||= 'MQIsdp'
           self.protocol_level ||= 0x03
         elsif version == '3.1.1'
@@ -465,7 +465,7 @@ module MQTT
         body = ''
 
         if @version == '3.1.0'
-          raise 'Client identifier too short while serialising packet' if @client_id.nil? || @client_id.bytesize <(1)
+          raise 'Client identifier too short while serialising packet' if @client_id.nil? || @client_id.bytesize < (1)
           raise 'Client identifier too long when serialising packet' if @client_id.bytesize > 23
         end
 
@@ -503,9 +503,9 @@ module MQTT
         super(buffer)
         @protocol_name = shift_string(buffer)
         @protocol_level = shift_byte(buffer).to_i
-        if @protocol_name ==('MQIsdp') && @protocol_level ==(3)
+        if @protocol_name == ('MQIsdp') && @protocol_level == (3)
           @version = '3.1.0'
-        elsif @protocol_name ==('MQTT') && @protocol_level ==(4)
+        elsif @protocol_name == ('MQTT') && @protocol_level == (4)
           @version = '3.1.1'
         else
           raise ProtocolException, "Unsupported protocol: #{@protocol_name}/#{@protocol_level}"
@@ -523,10 +523,10 @@ module MQTT
           # The MQTT v3.1 specification says that the payload is a UTF-8 string
           @will_payload = shift_string(buffer)
         end
-        if ((@connect_flags & 0x80) >> 7) ==(0x01) && buffer.bytesize >(0)
+        if ((@connect_flags & 0x80) >> 7) == (0x01) && buffer.bytesize > (0)
           @username = shift_string(buffer)
         end
-        if ((@connect_flags & 0x40) >> 6) ==(0x01) && buffer.bytesize >(0) # rubocop: disable Style/GuardClause
+        if ((@connect_flags & 0x40) >> 6) == (0x01) && buffer.bytesize > (0) # rubocop: disable Style/GuardClause
           @password = shift_string(buffer)
         end
       end
@@ -777,7 +777,7 @@ module MQTT
         end
 
         @topics = []
-        while(input.length>0)
+        while(input.length > 0)
           item = input.shift
           if item.is_a?(Hash)
             # Convert hash into an ordered array of arrays
@@ -814,7 +814,7 @@ module MQTT
         super(buffer)
         @id = shift_short(buffer)
         @topics = []
-        while(buffer.bytesize>0)
+        while(buffer.bytesize > 0)
           topic_name = shift_string(buffer)
           topic_qos = shift_byte(buffer)
           @topics << [topic_name, topic_qos]
@@ -878,7 +878,7 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         @id = shift_short(buffer)
-        while(buffer.bytesize>0)
+        while(buffer.bytesize > 0)
           @return_codes << shift_byte(buffer)
         end
       end
@@ -939,7 +939,7 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         @id = shift_short(buffer)
-        while(buffer.bytesize>0)
+        while(buffer.bytesize > 0)
           @topics << shift_string(buffer)
         end
       end

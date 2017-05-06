@@ -98,7 +98,7 @@ class MQTT::Client
     str = prefix.dup
     length.times do
       num = rand(36)
-      if (num<10)
+      if (num < 10)
         # Number
         num += 48
       else
@@ -438,7 +438,7 @@ class MQTT::Client
 
   # Send a unsubscribe message for one or more topics on the MQTT server
   def unsubscribe(*topics)
-    topics = topics.first if topics.is_a?(Enumerable) && topics.count ==(1)
+    topics = topics.first if topics.is_a?(Enumerable) && topics.count == (1)
 
     packet = MQTT::Packet::Unsubscribe.new(
       topics: topics,
