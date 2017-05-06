@@ -228,14 +228,10 @@ class MQTT::Client
     @client_id = clientid unless clientid.nil?
 
     if @client_id.nil? or @client_id.empty?
-      if @clean_session
-        if @version == '3.1.0'
-          # Empty client id is not allowed for version 3.1.0
-          @client_id = MQTT::Client.generate_client_id
-        end
-      else
-        raise 'Must provide a client_id if clean_session is set to false'
-      end
+      raise 'Must provide a client_id if clean_session is set to false' unless @clean_session
+
+      # Empty client id is not allowed for version 3.1.0
+      @client_id = MQTT::Client.generate_client_id if @version == '3.1.0'
     end
 
     raise 'No MQTT server host set when attempting to connect' if @host.nil?
@@ -288,13 +284,13 @@ class MQTT::Client
       end
     end
 
+    return unless block_given?
+
     # If a block is given, then yield and disconnect
-    if block_given?
-      begin
-        yield(self)
-      ensure
-        disconnect
-      end
+    begin
+      yield(self)
+    ensure
+      disconnect
     end
   end
 
@@ -305,15 +301,15 @@ class MQTT::Client
     @read_thread.kill if @read_thread and @read_thread.alive?
     @read_thread = nil
 
+    return unless connected?
+
     # Close the socket if it is open
-    if connected?
-      if send_msg
-        packet = MQTT::Packet::Disconnect.new
-        send_packet(packet)
-      end
-      @socket.close unless @socket.nil?
-      @socket = nil
+    if send_msg
+      packet = MQTT::Packet::Disconnect.new
+      send_packet(packet)
     end
+    @socket.close unless @socket.nil?
+    @socket = nil
   end
 
   # Checks whether the client is connected to the server.
@@ -337,19 +333,20 @@ class MQTT::Client
     # Send the packet
     res = send_packet(packet)
 
-    if packet.qos > 0
-      Timeout.timeout(@ack_timeout) do
-        while connected? do
-          @pubacks_semaphore.synchronize do
-            return res if @pubacks.delete(packet.id)
-          end
-          # FIXME: make threads communicate with each other, instead of polling
-          # (using a pipe and select ?)
-          sleep 0.01
+    return if qos.zero?
+
+    Timeout.timeout(@ack_timeout) do
+      while connected? do
+        @pubacks_semaphore.synchronize do
+          return res if @pubacks.delete(packet.id)
         end
+        # FIXME: make threads communicate with each other, instead of polling
+        # (using a pipe and select ?)
+        sleep 0.01
       end
-      return -1
     end
+
+    -1
   end
 
   # Send a subscribe message for one or more topics on the MQTT server.
@@ -490,15 +487,15 @@ private
   end
 
   def keep_alive!
-    if @keep_alive > 0 && connected?
-      response_timeout = (@keep_alive * 1.5).ceil
-      if Time.now >= @last_ping_request + @keep_alive
-        packet = MQTT::Packet::Pingreq.new
-        send_packet(packet)
-        @last_ping_request = Time.now
-      elsif Time.now > @last_ping_response + response_timeout
-        raise MQTT::ProtocolException, "No Ping Response received for #{response_timeout} seconds"
-      end
+    return unless @keep_alive > 0 && connected?
+
+    response_timeout = (@keep_alive * 1.5).ceil
+    if Time.now >= @last_ping_request + @keep_alive
+      packet = MQTT::Packet::Pingreq.new
+      send_packet(packet)
+      @last_ping_request = Time.now
+    elsif Time.now > @last_ping_response + response_timeout
+      raise MQTT::ProtocolException, "No Ping Response received for #{response_timeout} seconds"
     end
   end
 

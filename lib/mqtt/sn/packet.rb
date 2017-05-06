@@ -62,9 +62,9 @@ module MQTT::SN
 
       # Build up the body length field bytes
       body_length = body.length
-      if body_length > 65_531
-        raise 'MQTT-SN Packet is too big, maximum packet body size is 65531'
-      elsif body_length > 253
+      raise 'MQTT-SN Packet is too big, maximum packet body size is 65531' if body_length > 65_531
+
+      if body_length > 253
         [0x01, body_length + 4, type_id].pack('CnC') + body
       else
         [body_length + 2, type_id].pack('CC') + body

@@ -88,30 +88,29 @@ class MQTT::Proxy
     loop do
       # Wait for some data on either socket
       selected = IO.select([client_socket, server_socket], nil, nil, @select_timeout)
-      if selected.nil?
-        # Timeout
-        raise 'Timeout in select'
-      else
-        # Iterate through each of the sockets with data to read
-        if selected[0].include?(client_socket)
-          packet = MQTT::Packet.read(client_socket)
-          logger.debug "client -> <#{packet.type_name}>"
-          packet = @client_filter.call(packet) unless @client_filter.nil?
-          unless packet.nil?
-            server_socket.write(packet)
-            logger.debug "<#{packet.type_name}> -> server"
-          end
-        elsif selected[0].include?(server_socket)
-          packet = MQTT::Packet.read(server_socket)
-          logger.debug "server -> <#{packet.type_name}>"
-          packet = @server_filter.call(packet) unless @server_filter.nil?
-          unless packet.nil?
-            client_socket.write(packet)
-            logger.debug "<#{packet.type_name}> -> client"
-          end
-        else
-          logger.error 'Problem with select: socket is neither server or client'
+
+      # Timeout
+      raise 'Timeout in select' if selected.nil?
+
+      # Iterate through each of the sockets with data to read
+      if selected[0].include?(client_socket)
+        packet = MQTT::Packet.read(client_socket)
+        logger.debug "client -> <#{packet.type_name}>"
+        packet = @client_filter.call(packet) unless @client_filter.nil?
+        unless packet.nil?
+          server_socket.write(packet)
+          logger.debug "<#{packet.type_name}> -> server"
         end
+      elsif selected[0].include?(server_socket)
+        packet = MQTT::Packet.read(server_socket)
+        logger.debug "server -> <#{packet.type_name}>"
+        packet = @server_filter.call(packet) unless @server_filter.nil?
+        unless packet.nil?
+          client_socket.write(packet)
+          logger.debug "<#{packet.type_name}> -> client"
+        end
+      else
+        logger.error 'Problem with select: socket is neither server or client'
       end
     end
   end
