@@ -30,7 +30,7 @@ class MQTT::Proxy
   #  :logger          Ruby Logger object to send informational messages to.
   #
   # NOTE: be careful not to connect to yourself!
-  def initialize(args={})
+  def initialize(args = {})
     @local_host = args[:local_host] || '0.0.0.0'
     @local_port = args[:local_port] || MQTT::DEFAULT_PORT
     @server_host = args[:server_host]

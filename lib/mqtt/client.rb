@@ -94,7 +94,7 @@ class MQTT::Client
 
   # Generate a random client identifier
   # (using the characters 0-9 and a-z)
-  def self.generate_client_id(prefix='ruby', length=16)
+  def self.generate_client_id(prefix = 'ruby', length = 16)
     str = prefix.dup
     length.times do
       num = rand(36)
@@ -215,7 +215,7 @@ class MQTT::Client
   #
   # The will is a message that will be delivered by the server when the client dies.
   # The Will must be set before establishing a connection to the server
-  def set_will(topic, payload, retain=false, qos=0)
+  def set_will(topic, payload, retain = false, qos = 0)
     self.will_topic = topic
     self.will_payload = payload
     self.will_retain = retain
@@ -224,7 +224,7 @@ class MQTT::Client
 
   # Connect to the MQTT server
   # If a block is given, then yield to that block and then disconnect again.
-  def connect(clientid=nil)
+  def connect(clientid = nil)
     @client_id = clientid unless clientid.nil?
 
     if @client_id.nil? or @client_id.empty?
@@ -300,7 +300,7 @@ class MQTT::Client
 
   # Disconnect from the MQTT server.
   # If you don't want to say goodbye to the server, set send_msg to false.
-  def disconnect(send_msg=true)
+  def disconnect(send_msg = true)
     # Stop reading packets from the socket first
     @read_thread.kill if @read_thread and @read_thread.alive?
     @read_thread = nil
@@ -322,7 +322,7 @@ class MQTT::Client
   end
 
   # Publish a message on a particular topic to the MQTT server.
-  def publish(topic, payload='', retain=false, qos=0)
+  def publish(topic, payload = '', retain = false, qos = 0)
     raise ArgumentError, 'Topic name cannot be nil' if topic.nil?
     raise ArgumentError, 'Topic name cannot be empty' if topic.empty?
 
@@ -383,7 +383,7 @@ class MQTT::Client
   #     # Do stuff here
   #   end
   #
-  def get(topic=nil, options={})
+  def get(topic = nil, options = {})
     if block_given?
       get_packet(topic) do |packet|
         yield(packet.topic, packet.payload) unless packet.retain && options[:omit_retained]
@@ -410,7 +410,7 @@ class MQTT::Client
   #     puts packet.topic
   #   end
   #
-  def get_packet(topic=nil)
+  def get_packet(topic = nil)
     # Subscribe to a topic, if an argument is given
     subscribe(topic) unless topic.nil?
 

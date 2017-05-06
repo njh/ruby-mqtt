@@ -37,11 +37,11 @@ module MQTT::SN
     end
 
     # Create a new empty packet
-    def initialize(args={})
+    def initialize(args = {})
       update_attributes(self.class::DEFAULTS.merge(args))
     end
 
-    def update_attributes(attr={})
+    def update_attributes(attr = {})
       attr.each_pair do |k, v|
         send("#{k}=", v)
       end

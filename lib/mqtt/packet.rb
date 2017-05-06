@@ -111,14 +111,14 @@ module MQTT
     end
 
     # Create a new empty packet
-    def initialize(args={})
+    def initialize(args = {})
       # We must set flags before the other values
       @flags = [false, false, false, false]
       update_attributes(ATTR_DEFAULTS.merge(args))
     end
 
     # Set packet attributes from a hash of attribute names and values
-    def update_attributes(attr={})
+    def update_attributes(attr = {})
       attr.each_pair do |k, v|
         if v.is_a?(Array) or v.is_a?(Hash)
           send("#{k}=", v.dup)
@@ -304,7 +304,7 @@ module MQTT
       }
 
       # Create a new Publish packet
-      def initialize(args={})
+      def initialize(args = {})
         super(ATTR_DEFAULTS.merge(args))
       end
 
@@ -452,7 +452,7 @@ module MQTT
       }
 
       # Create a new Client Connect packet
-      def initialize(args={})
+      def initialize(args = {})
         super(ATTR_DEFAULTS.merge(args))
 
         if version == '3.1.0' or version == '3.1'
@@ -575,7 +575,7 @@ module MQTT
       ATTR_DEFAULTS = {return_code: 0x00}
 
       # Create a new Client Connect packet
-      def initialize(args={})
+      def initialize(args = {})
         # We must set flags before other attributes
         @connack_flags = [false, false, false, false, false, false, false, false]
         super(ATTR_DEFAULTS.merge(args))
@@ -694,7 +694,7 @@ module MQTT
       }
 
       # Create a new Pubrel packet
-      def initialize(args={})
+      def initialize(args = {})
         super(ATTR_DEFAULTS.merge(args))
       end
 
@@ -760,7 +760,7 @@ module MQTT
       }
 
       # Create a new Subscribe packet
-      def initialize(args={})
+      def initialize(args = {})
         super(ATTR_DEFAULTS.merge(args))
       end
 
@@ -857,7 +857,7 @@ module MQTT
       }
 
       # Create a new Subscribe Acknowledgment packet
-      def initialize(args={})
+      def initialize(args = {})
         super(ATTR_DEFAULTS.merge(args))
       end
 
@@ -923,7 +923,7 @@ module MQTT
       }
 
       # Create a new Unsubscribe packet
-      def initialize(args={})
+      def initialize(args = {})
         super(ATTR_DEFAULTS.merge(args))
       end
 
@@ -973,7 +973,7 @@ module MQTT
     # Class representing an MQTT Unsubscribe Acknowledgment packet
     class Unsuback < MQTT::Packet
       # Create a new Unsubscribe Acknowledgment packet
-      def initialize(args={})
+      def initialize(args = {})
         super(args)
       end
 
@@ -1000,7 +1000,7 @@ module MQTT
     # Class representing an MQTT Ping Request packet
     class Pingreq < MQTT::Packet
       # Create a new Ping Request packet
-      def initialize(args={})
+      def initialize(args = {})
         super(args)
       end
 
@@ -1016,7 +1016,7 @@ module MQTT
     # Class representing an MQTT Ping Response packet
     class Pingresp < MQTT::Packet
       # Create a new Ping Response packet
-      def initialize(args={})
+      def initialize(args = {})
         super(args)
       end
 
@@ -1032,7 +1032,7 @@ module MQTT
     # Class representing an MQTT Client Disconnect packet
     class Disconnect < MQTT::Packet
       # Create a new Client Disconnect packet
-      def initialize(args={})
+      def initialize(args = {})
         super(args)
       end
 
