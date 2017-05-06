@@ -175,7 +175,7 @@ module MQTT
           self.topic_name = topic
         when :short
           self.topic_name = topic
-            self.topic_id = topic
+          self.topic_id = topic
         when :predefined
           self.topic_id = topic.unpack('n').first
         end
