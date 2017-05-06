@@ -190,7 +190,7 @@ module MQTT
         digit = (body_length % 128)
         body_length = body_length.div(128)
         # if there are more digits to encode, set the top bit of this digit
-        digit |= 0x80 if (body_length > 0)
+        digit |= 0x80 if body_length > 0
         header.push(digit)
       end while (body_length > 0)
 
@@ -761,7 +761,7 @@ module MQTT
         input = value.is_a?(Array) ? value.flatten : [value]
 
         @topics = []
-        while (input.length > 0)
+        while input.length > 0
           item = input.shift
           if item.is_a?(Hash)
             # Convert hash into an ordered array of arrays
@@ -798,7 +798,7 @@ module MQTT
         super(buffer)
         @id = shift_short(buffer)
         @topics = []
-        while (buffer.bytesize > 0)
+        while buffer.bytesize > 0
           topic_name = shift_string(buffer)
           topic_qos = shift_byte(buffer)
           @topics << [topic_name, topic_qos]
@@ -862,7 +862,7 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         @id = shift_short(buffer)
-        while (buffer.bytesize > 0)
+        while buffer.bytesize > 0
           @return_codes << shift_byte(buffer)
         end
       end
@@ -919,7 +919,7 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         @id = shift_short(buffer)
-        while (buffer.bytesize > 0)
+        while buffer.bytesize > 0
           @topics << shift_string(buffer)
         end
       end
