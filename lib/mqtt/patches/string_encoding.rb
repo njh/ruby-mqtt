@@ -29,6 +29,6 @@ class Encoding
     @name
   end
 
-  UTF_8 = Encoding.new("UTF-8")
-  ASCII_8BIT = Encoding.new("ASCII-8BIT")
+  UTF_8 = Encoding.new('UTF-8')
+  ASCII_8BIT = Encoding.new('ASCII-8BIT')
 end

@@ -24,7 +24,7 @@ module MQTT::SN
 
       # Double-check the length
       if buffer.length != length
-        raise ProtocolException.new("Length of packet is not the same as the length header")
+        raise ProtocolException.new('Length of packet is not the same as the length header')
       end
 
       packet_class = PACKET_TYPES[type_id]
@@ -66,7 +66,7 @@ module MQTT::SN
       # Build up the body length field bytes
       body_length = body.length
       if body_length > 65531
-        raise "MQTT-SN Packet is too big, maximum packet body size is 65531"
+        raise 'MQTT-SN Packet is too big, maximum packet body size is 65531'
       elsif body_length > 253
         [0x01, body_length + 4, type_id].pack('CnC') + body
       else
@@ -250,7 +250,7 @@ module MQTT::SN
       # Get serialisation of packet's body
       def encode_body
         if @client_id.nil? or @client_id.length < 1 or @client_id.length > 23
-          raise "Invalid client identifier when serialising packet"
+          raise 'Invalid client identifier when serialising packet'
         end
 
         [encode_flags, 0x01, keep_alive, client_id].pack('CCna*')
@@ -274,13 +274,13 @@ module MQTT::SN
       def return_msg
         case return_code
           when 0x00
-            "Accepted"
+            'Accepted'
           when 0x01
-            "Rejected: congestion"
+            'Rejected: congestion'
           when 0x02
-            "Rejected: invalid topic ID"
+            'Rejected: invalid topic ID'
           when 0x03
-            "Rejected: not supported"
+            'Rejected: not supported'
           else
             "Rejected: error code #{return_code}"
         end
@@ -288,7 +288,7 @@ module MQTT::SN
 
       def encode_body
         unless return_code.is_a?(Integer)
-          raise "return_code must be an Integer"
+          raise 'return_code must be an Integer'
         end
 
         [return_code].pack('C')
@@ -359,11 +359,11 @@ module MQTT::SN
 
       def encode_body
         unless id.is_a?(Integer)
-          raise "id must be an Integer"
+          raise 'id must be an Integer'
         end
 
         unless topic_id.is_a?(Integer)
-          raise "topic_id must be an Integer"
+          raise 'topic_id must be an Integer'
         end
 
         [topic_id, id, topic_name].pack('nna*')
@@ -387,11 +387,11 @@ module MQTT::SN
 
       def encode_body
         unless id.is_a?(Integer)
-          raise "id must be an Integer"
+          raise 'id must be an Integer'
         end
 
         unless topic_id.is_a?(Integer)
-          raise "topic_id must be an Integer"
+          raise 'topic_id must be an Integer'
         end
 
         [topic_id, id, return_code].pack('nnC')
@@ -417,7 +417,7 @@ module MQTT::SN
 
       def encode_body
         unless id.is_a?(Integer)
-          raise "id must be an Integer"
+          raise 'id must be an Integer'
         end
 
         [encode_flags, encode_topic_id, id, data].pack('Cnna*')
@@ -443,11 +443,11 @@ module MQTT::SN
 
       def encode_body
         unless id.is_a?(Integer)
-          raise "id must be an Integer"
+          raise 'id must be an Integer'
         end
 
         unless topic_id.is_a?(Integer)
-          raise "topic_id must be an Integer"
+          raise 'topic_id must be an Integer'
         end
 
         [topic_id, id, return_code].pack('nnC')
@@ -467,7 +467,7 @@ module MQTT::SN
 
       def encode_body
         unless id.is_a?(Integer)
-          raise "id must be an Integer"
+          raise 'id must be an Integer'
         end
 
         [id].pack('n')
@@ -487,7 +487,7 @@ module MQTT::SN
 
       def encode_body
         unless id.is_a?(Integer)
-          raise "id must be an Integer"
+          raise 'id must be an Integer'
         end
 
         [id].pack('n')
@@ -507,7 +507,7 @@ module MQTT::SN
 
       def encode_body
         unless id.is_a?(Integer)
-          raise "id must be an Integer"
+          raise 'id must be an Integer'
         end
 
         [id].pack('n')
@@ -530,7 +530,7 @@ module MQTT::SN
 
       def encode_body
         unless id.is_a?(Integer)
-          raise "id must be an Integer"
+          raise 'id must be an Integer'
         end
 
         [encode_flags, id, encode_topic].pack('Cna*')
@@ -557,7 +557,7 @@ module MQTT::SN
 
       def encode_body
         unless id.is_a?(Integer)
-          raise "id must be an Integer"
+          raise 'id must be an Integer'
         end
 
         [encode_flags, encode_topic_id, id, return_code].pack('CnnC')
@@ -582,7 +582,7 @@ module MQTT::SN
 
       def encode_body
         unless id.is_a?(Integer)
-          raise "id must be an Integer"
+          raise 'id must be an Integer'
         end
 
         [encode_flags, id, encode_topic].pack('Cna*')
@@ -604,7 +604,7 @@ module MQTT::SN
 
       def encode_body
         unless id.is_a?(Integer)
-          raise "id must be an Integer"
+          raise 'id must be an Integer'
         end
 
         [id].pack('n')
@@ -683,7 +683,7 @@ module MQTT::SN
 
       def encode_body
         unless return_code.is_a?(Integer)
-          raise "return_code must be an Integer"
+          raise 'return_code must be an Integer'
         end
 
         [return_code].pack('C')
@@ -715,7 +715,7 @@ module MQTT::SN
 
       def encode_body
         unless return_code.is_a?(Integer)
-          raise "return_code must be an Integer"
+          raise 'return_code must be an Integer'
         end
 
         [return_code].pack('C')

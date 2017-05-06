@@ -160,7 +160,7 @@ class MQTT::Client
     end
 
     if args.length >= 3
-      raise ArgumentError, "Unsupported number of arguments"
+      raise ArgumentError, 'Unsupported number of arguments'
     end
 
     # Merge arguments with default values for attributes
@@ -339,8 +339,8 @@ class MQTT::Client
 
   # Publish a message on a particular topic to the MQTT server.
   def publish(topic, payload='', retain=false, qos=0)
-    raise ArgumentError.new("Topic name cannot be nil") if topic.nil?
-    raise ArgumentError.new("Topic name cannot be empty") if topic.empty?
+    raise ArgumentError.new('Topic name cannot be nil') if topic.nil?
+    raise ArgumentError.new('Topic name cannot be empty') if topic.empty?
 
     packet = MQTT::Packet::Publish.new(
       :id => next_packet_id,
@@ -565,7 +565,7 @@ private
     elsif uri.scheme == 'mqtts'
       ssl = true
     else
-      raise "Only the mqtt:// and mqtts:// schemes are supported"
+      raise 'Only the mqtt:// and mqtts:// schemes are supported'
     end
 
     {

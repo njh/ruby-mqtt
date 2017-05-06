@@ -90,7 +90,7 @@ class MQTT::Proxy
       selected = IO.select([client_socket,server_socket], nil, nil, @select_timeout)
       if selected.nil?
         # Timeout
-        raise "Timeout in select"
+        raise 'Timeout in select'
       else
         # Iterate through each of the sockets with data to read
         if selected[0].include?(client_socket)
@@ -110,7 +110,7 @@ class MQTT::Proxy
             logger.debug "<#{packet.type_name}> -> client"
           end
         else
-          logger.error "Problem with select: socket is neither server or client"
+          logger.error 'Problem with select: socket is neither server or client'
         end
       end
     end

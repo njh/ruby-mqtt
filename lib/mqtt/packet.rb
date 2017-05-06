@@ -64,11 +64,11 @@ module MQTT
     def self.parse_header(buffer)
       # Check that the packet is a long as the minimum packet size
       if buffer.bytesize < 2
-        raise ProtocolException.new("Invalid packet: less than 2 bytes long")
+        raise ProtocolException.new('Invalid packet: less than 2 bytes long')
       end
 
       # Create a new packet object
-      bytes = buffer.unpack("C5")
+      bytes = buffer.unpack('C5')
       packet = create_from_header(bytes.first)
       packet.validate_flags
 
@@ -78,7 +78,7 @@ module MQTT
       pos = 1
       begin
         if buffer.bytesize <= pos
-          raise ProtocolException.new("The packet length header is incomplete")
+          raise ProtocolException.new('The packet length header is incomplete')
         end
         digit = bytes[pos]
         body_length += ((digit & 0x7F) * multiplier)
@@ -188,7 +188,7 @@ module MQTT
       # Check that that packet isn't too big
       body_length = body.bytesize
       if body_length > 268435455
-        raise "Error serialising packet: body is more than 256MB"
+        raise 'Error serialising packet: body is more than 256MB'
       end
 
       # Build up the body length field bytes
@@ -280,7 +280,7 @@ module MQTT
     def self.read_byte(socket)
       byte = socket.read(1)
       if byte.nil?
-        raise ProtocolException.new("Failed to read byte from socket")
+        raise ProtocolException.new('Failed to read byte from socket')
       end
       byte.unpack('C').first
     end
@@ -364,7 +364,7 @@ module MQTT
       def encode_body
         body = ''
         if @topic.nil? or @topic.to_s.empty?
-          raise "Invalid topic name when serialising packet"
+          raise 'Invalid topic name when serialising packet'
         end
         body += encode_string(@topic)
         body += encode_short(@id) unless qos == 0
@@ -384,10 +384,10 @@ module MQTT
       # @private
       def validate_flags
         if qos == 3
-          raise ProtocolException.new("Invalid packet: QoS value of 3 is not allowed")
+          raise ProtocolException.new('Invalid packet: QoS value of 3 is not allowed')
         end
         if qos == 0 and duplicate
-          raise ProtocolException.new("Invalid packet: DUP cannot be set for QoS 0")
+          raise ProtocolException.new('Invalid packet: DUP cannot be set for QoS 0')
         end
       end
 
@@ -482,16 +482,16 @@ module MQTT
         body = ''
         if @version == '3.1.0'
           if @client_id.nil? or @client_id.bytesize < 1
-            raise "Client identifier too short while serialising packet"
+            raise 'Client identifier too short while serialising packet'
           elsif @client_id.bytesize > 23
-            raise "Client identifier too long when serialising packet"
+            raise 'Client identifier too long when serialising packet'
           end
         end
         body += encode_string(@protocol_name)
         body += encode_bytes(@protocol_level.to_i)
 
         if @keep_alive < 0
-          raise "Invalid keep-alive value: cannot be less than 0"
+          raise 'Invalid keep-alive value: cannot be less than 0'
         end
 
         # Set the Connect flags
@@ -555,11 +555,11 @@ module MQTT
       def inspect
         str = "\#<#{self.class}: "
         str += "keep_alive=#{keep_alive}"
-        str += ", clean" if clean_session
+        str += ', clean' if clean_session
         str += ", client_id='#{client_id}'"
         str += ", username='#{username}'" unless username.nil?
-        str += ", password=..." unless password.nil?
-        str += ">"
+        str += ', password=...' unless password.nil?
+        str += '>'
       end
 
       # ---- Deprecated attributes and methods  ---- #
@@ -612,17 +612,17 @@ module MQTT
       def return_msg
         case return_code
           when 0x00
-            "Connection Accepted"
+            'Connection Accepted'
           when 0x01
-            "Connection refused: unacceptable protocol version"
+            'Connection refused: unacceptable protocol version'
           when 0x02
-            "Connection refused: client identifier rejected"
+            'Connection refused: client identifier rejected'
           when 0x03
-            "Connection refused: server unavailable"
+            'Connection refused: server unavailable'
           when 0x04
-            "Connection refused: bad user name or password"
+            'Connection refused: bad user name or password'
           when 0x05
-            "Connection refused: not authorised"
+            'Connection refused: not authorised'
           else
             "Connection refused: error code #{return_code}"
         end
@@ -641,11 +641,11 @@ module MQTT
         super(buffer)
         @connack_flags = shift_bits(buffer)
         unless @connack_flags[1,7] == [false, false, false, false, false, false, false]
-          raise ProtocolException.new("Invalid flags in Connack variable header")
+          raise ProtocolException.new('Invalid flags in Connack variable header')
         end
         @return_code = shift_byte(buffer)
         unless buffer.empty?
-          raise ProtocolException.new("Extra bytes at end of Connect Acknowledgment packet")
+          raise ProtocolException.new('Extra bytes at end of Connect Acknowledgment packet')
         end
       end
 
@@ -667,7 +667,7 @@ module MQTT
         super(buffer)
         @id = shift_short(buffer)
         unless buffer.empty?
-          raise ProtocolException.new("Extra bytes at end of Publish Acknowledgment packet")
+          raise ProtocolException.new('Extra bytes at end of Publish Acknowledgment packet')
         end
       end
 
@@ -689,7 +689,7 @@ module MQTT
         super(buffer)
         @id = shift_short(buffer)
         unless buffer.empty?
-          raise ProtocolException.new("Extra bytes at end of Publish Received packet")
+          raise ProtocolException.new('Extra bytes at end of Publish Received packet')
         end
       end
 
@@ -722,7 +722,7 @@ module MQTT
         super(buffer)
         @id = shift_short(buffer)
         unless buffer.empty?
-          raise ProtocolException.new("Extra bytes at end of Publish Release packet")
+          raise ProtocolException.new('Extra bytes at end of Publish Release packet')
         end
       end
 
@@ -730,7 +730,7 @@ module MQTT
       # @private
       def validate_flags
         if @flags != [false, true, false, false]
-          raise ProtocolException.new("Invalid flags in PUBREL packet header")
+          raise ProtocolException.new('Invalid flags in PUBREL packet header')
         end
       end
 
@@ -752,7 +752,7 @@ module MQTT
         super(buffer)
         @id = shift_short(buffer)
         unless buffer.empty?
-          raise ProtocolException.new("Extra bytes at end of Publish Complete packet")
+          raise ProtocolException.new('Extra bytes at end of Publish Complete packet')
         end
       end
 
@@ -823,7 +823,7 @@ module MQTT
       # Get serialisation of packet's body
       def encode_body
         if @topics.empty?
-          raise "no topics given when serialising packet"
+          raise 'no topics given when serialising packet'
         end
         body = encode_short(@id)
         topics.each do |item|
@@ -849,7 +849,7 @@ module MQTT
       # @private
       def validate_flags
         if @flags != [false, true, false, false]
-          raise ProtocolException.new("Invalid flags in SUBSCRIBE packet header")
+          raise ProtocolException.new('Invalid flags in SUBSCRIBE packet header')
         end
       end
 
@@ -885,14 +885,14 @@ module MQTT
         elsif value.is_a?(Integer)
           @return_codes = [value]
         else
-          raise "return_codes should be an integer or an array of return codes"
+          raise 'return_codes should be an integer or an array of return codes'
         end
       end
 
       # Get serialisation of packet's body
       def encode_body
         if @return_codes.empty?
-          raise "no granted QoS given when serialising packet"
+          raise 'no granted QoS given when serialising packet'
         end
         body = encode_short(@id)
         return_codes.each { |qos| body += encode_bytes(qos) }
@@ -910,7 +910,7 @@ module MQTT
 
       # Returns a human readable string, summarising the properties of the packet
       def inspect
-        "\#<#{self.class}: 0x%2.2X, rc=%s>" % [id, return_codes.map{|rc| "0x%2.2X" % rc}.join(',')]
+        "\#<#{self.class}: 0x%2.2X, rc=%s>" % [id, return_codes.map{|rc| '0x%2.2X' % rc}.join(',')]
       end
 
       # ---- Deprecated attributes and methods  ---- #
@@ -955,7 +955,7 @@ module MQTT
       # Get serialisation of packet's body
       def encode_body
         if @topics.empty?
-          raise "no topics given when serialising packet"
+          raise 'no topics given when serialising packet'
         end
         body = encode_short(@id)
         topics.each { |topic| body += encode_string(topic) }
@@ -975,7 +975,7 @@ module MQTT
       # @private
       def validate_flags
         if @flags != [false, true, false, false]
-          raise ProtocolException.new("Invalid flags in UNSUBSCRIBE packet header")
+          raise ProtocolException.new('Invalid flags in UNSUBSCRIBE packet header')
         end
       end
 
@@ -1005,7 +1005,7 @@ module MQTT
         super(buffer)
         @id = shift_short(buffer)
         unless buffer.empty?
-          raise ProtocolException.new("Extra bytes at end of Unsubscribe Acknowledgment packet")
+          raise ProtocolException.new('Extra bytes at end of Unsubscribe Acknowledgment packet')
         end
       end
 
@@ -1026,7 +1026,7 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         unless buffer.empty?
-          raise ProtocolException.new("Extra bytes at end of Ping Request packet")
+          raise ProtocolException.new('Extra bytes at end of Ping Request packet')
         end
       end
     end
@@ -1042,7 +1042,7 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         unless buffer.empty?
-          raise ProtocolException.new("Extra bytes at end of Ping Response packet")
+          raise ProtocolException.new('Extra bytes at end of Ping Response packet')
         end
       end
     end
@@ -1058,7 +1058,7 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         unless buffer.empty?
-          raise ProtocolException.new("Extra bytes at end of Disconnect packet")
+          raise ProtocolException.new('Extra bytes at end of Disconnect packet')
         end
       end
     end
