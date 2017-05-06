@@ -565,7 +565,7 @@ module MQTT
       attr_accessor :return_code
 
       # Default attribute values
-      ATTR_DEFAULTS = {return_code: 0x00}
+      ATTR_DEFAULTS = { return_code: 0x00 }
 
       # Create a new Client Connect packet
       def initialize(args = {})
