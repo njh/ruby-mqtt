@@ -159,7 +159,7 @@ class MQTT::Client
 
     # Merge arguments with default values for attributes
     ATTR_DEFAULTS.merge(attr).each_pair do |k, v|
-      self.send("#{k}=", v)
+      send("#{k}=", v)
     end
 
     # Set a default port number

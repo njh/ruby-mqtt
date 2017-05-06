@@ -177,7 +177,7 @@ module MQTT
       ]
 
       # Get the packet's variable header and payload
-      body = self.encode_body
+      body = encode_body
 
       # Check that that packet isn't too big
       body_length = body.bytesize

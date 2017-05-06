@@ -11,7 +11,7 @@ class String
   end
 
   def encode(encoding)
-    new = self.dup
+    new = dup
     new.force_encoding(encoding)
   end
 end

@@ -58,7 +58,7 @@ module MQTT::SN
     # Serialise the packet
     def to_s
       # Get the packet's variable header and payload
-      body = self.encode_body
+      body = encode_body
 
       # Build up the body length field bytes
       body_length = body.length
@@ -79,7 +79,7 @@ module MQTT::SN
     def parse_flags(flags)
       self.duplicate = ((flags & 0x80) >> 7) == 0x01
       self.qos = (flags & 0x60) >> 5
-      self.qos = -1 if self.qos == 3
+      self.qos = -1 if qos == 3
       self.retain = ((flags & 0x10) >> 4) == 0x01
       self.request_will = ((flags & 0x08) >> 3) == 0x01
       self.clean_session = ((flags & 0x04) >> 2) == 0x01
