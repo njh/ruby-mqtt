@@ -41,7 +41,7 @@ module MQTT
         body_length += ((digit & 0x7F) * multiplier)
         multiplier *= 0x80
         pos += 1
-        break if ((digit & 0x80) == 0x00) || pos > 4
+        break if (digit & 0x80).zero? || pos > 4
       end
 
       # Store the expected body length in the packet
@@ -87,7 +87,7 @@ module MQTT
         body_length += ((digit & 0x7F) * multiplier)
         multiplier *= 0x80
         pos += 1
-        break if ((digit & 0x80) == 0x00) || pos > 4
+        break if (digit & 0x80).zero? || pos > 4
       end
 
       # Store the expected body length in the packet
