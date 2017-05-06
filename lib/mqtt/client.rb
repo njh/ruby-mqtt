@@ -227,7 +227,7 @@ class MQTT::Client
   def connect(clientid = nil)
     @client_id = clientid unless clientid.nil?
 
-    if @client_id.nil? or @client_id.empty?
+    if @client_id.nil? || @client_id.empty?
       raise 'Must provide a client_id if clean_session is set to false' unless @clean_session
 
       # Empty client id is not allowed for version 3.1.0
@@ -298,7 +298,7 @@ class MQTT::Client
   # If you don't want to say goodbye to the server, set send_msg to false.
   def disconnect(send_msg = true)
     # Stop reading packets from the socket first
-    @read_thread.kill if @read_thread and @read_thread.alive?
+    @read_thread.kill if @read_thread && @read_thread.alive?
     @read_thread = nil
 
     return unless connected?
@@ -314,7 +314,7 @@ class MQTT::Client
 
   # Checks whether the client is connected to the server.
   def connected?
-    (not @socket.nil?) and (not @socket.closed?)
+    (not @socket.nil?) && (not @socket.closed?)
   end
 
   # Publish a message on a particular topic to the MQTT server.
@@ -438,7 +438,7 @@ class MQTT::Client
 
   # Send a unsubscribe message for one or more topics on the MQTT server
   def unsubscribe(*topics)
-    topics = topics.first if topics.is_a?(Enumerable) and topics.count == 1
+    topics = topics.first if topics.is_a?(Enumerable) && topics.count ==(1)
 
     packet = MQTT::Packet::Unsubscribe.new(
       topics: topics,

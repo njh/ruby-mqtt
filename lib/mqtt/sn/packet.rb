@@ -246,7 +246,7 @@ module MQTT::SN
 
       # Get serialisation of packet's body
       def encode_body
-        if @client_id.nil? or @client_id.length < 1 or @client_id.length > 23
+        if @client_id.nil? || @client_id.length <(1) || @client_id.length >(23)
           raise 'Invalid client identifier when serialising packet'
         end
 
@@ -308,7 +308,7 @@ module MQTT::SN
       }
 
       def encode_body
-        if topic_name.nil? or topic_name.empty?
+        if topic_name.nil? || topic_name.empty?
           ''
         else
           [encode_flags, topic_name].pack('Ca*')
@@ -598,7 +598,7 @@ module MQTT::SN
       }
 
       def encode_body
-        if duration.nil? or duration.zero?
+        if duration.nil? || duration.zero?
           ''
         else
           [duration].pack('n')
@@ -624,7 +624,7 @@ module MQTT::SN
       }
 
       def encode_body
-        if topic_name.nil? or topic_name.empty?
+        if topic_name.nil? || topic_name.empty?
           ''
         else
           [encode_flags, topic_name].pack('Ca*')
