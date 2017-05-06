@@ -437,7 +437,7 @@ module MQTT::SN
       DEFAULTS = {
         id: 0x00,
         topic_id: nil,
-        return_code: 0x00,
+        return_code: 0x00
       }
 
       def encode_body
@@ -598,7 +598,7 @@ module MQTT::SN
       attr_accessor :id
 
       DEFAULTS = {
-        id: 0x00,
+        id: 0x00
       }
 
       def encode_body
@@ -755,6 +755,6 @@ module MQTT::SN
       0x1a => MQTT::SN::Packet::Willtopicupd,
       0x1b => MQTT::SN::Packet::Willtopicresp,
       0x1c => MQTT::SN::Packet::Willmsgupd,
-      0x1d => MQTT::SN::Packet::Willmsgresp,
+      0x1d => MQTT::SN::Packet::Willmsgresp
   }
 end
