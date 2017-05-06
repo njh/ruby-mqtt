@@ -3,7 +3,7 @@
 module MQTT
   # Class representing a MQTT Packet
   # Performs binary encoding and decoding of headers
-  class MQTT::Packet
+  class Packet
     # The version number of the MQTT protocol to use (default 3.1.0)
     attr_accessor :version
 
