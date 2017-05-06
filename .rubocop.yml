@@ -5,6 +5,9 @@ Style/MutableConstant:
 Style/FormatString:
   Enabled: false
 
+Lint/RescueException:
+  Enabled: false
+
 AllCops:
   Include:
     - 'lib/**/*'
