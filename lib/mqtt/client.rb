@@ -138,12 +138,12 @@ module MQTT
         when %r{^mqtts?://}
           attributes.merge!(parse_uri(args[0]))
         else
-          attributes.merge!(host: args[0])
+          attributes[:host] = args[0]
         end
       end
 
       if args.length >= 2
-        attributes.merge!(port: args[1]) unless args[1].nil?
+        attributes[:port] = args[1] unless args[1].nil?
       end
 
       raise ArgumentError, 'Unsupported number of arguments' if args.length >= 3
