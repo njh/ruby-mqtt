@@ -441,23 +441,21 @@ module MQTT
     # Try to read a packet from the server
     # Also sends keep-alive ping packets.
     def receive_packet
-      begin
-        # Poll socket - is there data waiting?
-        result = IO.select([@socket], [], [], SELECT_TIMEOUT)
-        unless result.nil?
-          # Yes - read in the packet
-          packet = MQTT::Packet.read(@socket)
-          handle_packet packet
-        end
-        keep_alive!
-      # Pass exceptions up to parent thread
-      rescue Exception => exp
-        unless @socket.nil?
-          @socket.close
-          @socket = nil
-        end
-        Thread.current[:parent].raise(exp)
+      # Poll socket - is there data waiting?
+      result = IO.select([@socket], [], [], SELECT_TIMEOUT)
+      unless result.nil?
+        # Yes - read in the packet
+        packet = MQTT::Packet.read(@socket)
+        handle_packet packet
       end
+      keep_alive!
+    # Pass exceptions up to parent thread
+    rescue Exception => exp
+      unless @socket.nil?
+        @socket.close
+        @socket = nil
+      end
+      Thread.current[:parent].raise(exp)
     end
 
     def handle_packet(packet)
