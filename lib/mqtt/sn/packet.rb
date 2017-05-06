@@ -92,8 +92,6 @@ module MQTT
             :predefined
           when 0x2
             :short
-          else
-            nil
           end
       end
 
@@ -608,12 +606,7 @@ module MQTT
         end
 
         def parse_body(buffer)
-          self.duration =
-            if buffer.length == 2
-              buffer.unpack('n').first
-            else
-              nil
-            end
+          self.duration = buffer.length == 2 ? buffer.unpack('n').first : nil
         end
       end
 
