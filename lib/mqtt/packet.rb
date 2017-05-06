@@ -165,7 +165,6 @@ module MQTT
       '' # No body by default
     end
 
-
     # Serialise the packet
     def to_s
       # Encode the fixed header
@@ -268,7 +267,6 @@ module MQTT
       str.force_encoding('UTF-8')
     end
 
-
     private
 
     # Read and unpack a single byte from a socket
@@ -280,10 +278,7 @@ module MQTT
       byte.unpack('C').first
     end
 
-
-
     ## PACKET SUBCLASSES ##
-
 
     # Class representing an MQTT Publish message
     class Publish < MQTT::Packet
@@ -1050,7 +1045,6 @@ module MQTT
       end
     end
 
-
     # ---- Deprecated attributes and methods  ---- #
     public
 
@@ -1064,7 +1058,6 @@ module MQTT
       self.id = args
     end
   end
-
 
   # An enumeration of the MQTT packet types
   PACKET_TYPES = [

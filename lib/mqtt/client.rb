@@ -1,7 +1,6 @@
 autoload :OpenSSL, 'openssl'
 autoload :URI, 'uri'
 
-
 # Client class for talking to an MQTT server
 class MQTT::Client
   # Hostname of the remote server
@@ -55,7 +54,6 @@ class MQTT::Client
 
   # Last ping response time
   attr_reader :last_ping_response
-
 
   # Timeout between select polls (in seconds)
   SELECT_TIMEOUT = 0.5

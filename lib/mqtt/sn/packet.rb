@@ -690,7 +690,6 @@ module MQTT::SN
     end
   end
 
-
   # An enumeration of the MQTT-SN packet types
   PACKET_TYPES = {
       0x00 => MQTT::SN::Packet::Advertise,
