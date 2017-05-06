@@ -135,7 +135,7 @@ module MQTT
         case args[0]
         when URI
           attributes.merge!(parse_uri(args[0]))
-        when %r|^mqtts?://|
+        when %r{^mqtts?://}
           attributes.merge!(parse_uri(args[0]))
         else
           attributes.merge!(host: args[0])
