@@ -49,7 +49,7 @@ class MQTT::Proxy
     @server_filter = nil
 
     # Create TCP server socket
-    @server = TCPServer.open(@local_host,@local_port)
+    @server = TCPServer.open(@local_host, @local_port)
     @logger.info "MQTT::Proxy listening on #{@local_host}:#{@local_port}"
   end
 
@@ -69,9 +69,9 @@ class MQTT::Proxy
       # Wait for a client to connect and then create a thread for it
       Thread.new(@server.accept) do |client_socket|
         logger.info "Accepted client: #{client_socket.peeraddr.join(':')}"
-        server_socket = TCPSocket.new(@server_host,@server_port)
+        server_socket = TCPSocket.new(@server_host, @server_port)
         begin
-          process_packets(client_socket,server_socket)
+          process_packets(client_socket, server_socket)
         rescue Exception => exp
           logger.error exp.to_s
         end
@@ -84,10 +84,10 @@ class MQTT::Proxy
 
   private
 
-  def process_packets(client_socket,server_socket)
+  def process_packets(client_socket, server_socket)
     loop do
       # Wait for some data on either socket
-      selected = IO.select([client_socket,server_socket], nil, nil, @select_timeout)
+      selected = IO.select([client_socket, server_socket], nil, nil, @select_timeout)
       if selected.nil?
         # Timeout
         raise 'Timeout in select'

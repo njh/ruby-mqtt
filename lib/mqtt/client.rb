@@ -158,7 +158,7 @@ class MQTT::Client
     raise ArgumentError, 'Unsupported number of arguments' if args.length >= 3
 
     # Merge arguments with default values for attributes
-    ATTR_DEFAULTS.merge(attr).each_pair do |k,v|
+    ATTR_DEFAULTS.merge(attr).each_pair do |k, v|
       self.send("#{k}=", v)
     end
 

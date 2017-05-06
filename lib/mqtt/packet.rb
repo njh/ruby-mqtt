@@ -119,7 +119,7 @@ module MQTT
 
     # Set packet attributes from a hash of attribute names and values
     def update_attributes(attr={})
-      attr.each_pair do |k,v|
+      attr.each_pair do |k, v|
         if v.is_a?(Array) or v.is_a?(Hash)
           send("#{k}=", v.dup)
         else
@@ -255,14 +255,14 @@ module MQTT
     end
 
     # Remove n bytes from the front of buffer
-    def shift_data(buffer,bytes)
+    def shift_data(buffer, bytes)
       buffer.slice!(0...bytes)
     end
 
     # Remove string from the front of buffer
     def shift_string(buffer)
       len = shift_short(buffer)
-      str = shift_data(buffer,len)
+      str = shift_data(buffer, len)
       # Strings in MQTT v3.1 are all UTF-8
       str.force_encoding('UTF-8')
     end
@@ -627,7 +627,7 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         @connack_flags = shift_bits(buffer)
-        unless @connack_flags[1,7] == [false, false, false, false, false, false, false]
+        unless @connack_flags[1, 7] == [false, false, false, false, false, false, false]
           raise ProtocolException, 'Invalid flags in Connack variable header'
         end
         @return_code = shift_byte(buffer)
@@ -794,9 +794,9 @@ module MQTT
             # Peek at the next item in the array, and remove it if it is an integer
             if input.first.is_a?(Integer)
               qos = input.shift
-              @topics << [item,qos]
+              @topics << [item, qos]
             else
-              @topics << [item,0]
+              @topics << [item, 0]
             end
           else
             # Meh?
@@ -825,7 +825,7 @@ module MQTT
         while(buffer.bytesize>0)
           topic_name = shift_string(buffer)
           topic_qos = shift_byte(buffer)
-          @topics << [topic_name,topic_qos]
+          @topics << [topic_name, topic_qos]
         end
       end
 

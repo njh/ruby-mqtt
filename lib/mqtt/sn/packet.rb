@@ -16,8 +16,8 @@ module MQTT::SN
     # Parse buffer into new packet object
     def self.parse(buffer)
       # Parse the fixed header (length and type)
-      length,type_id,body = buffer.unpack('CCa*')
-      length,type_id,body = buffer.unpack('xnCa*') if length == 1
+      length, type_id, body = buffer.unpack('CCa*')
+      length, type_id, body = buffer.unpack('xnCa*') if length == 1
 
       # Double-check the length
       if buffer.length != length
@@ -42,7 +42,7 @@ module MQTT::SN
     end
 
     def update_attributes(attr={})
-      attr.each_pair do |k,v|
+      attr.each_pair do |k, v|
         send("#{k}=", v)
       end
     end
@@ -221,7 +221,7 @@ module MQTT::SN
       }
 
       def encode_body
-        [gateway_id,gateway_address].pack('Ca*')
+        [gateway_id, gateway_address].pack('Ca*')
       end
 
       def parse_body(buffer)
