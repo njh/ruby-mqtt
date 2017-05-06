@@ -520,6 +520,7 @@ module MQTT
     end
 
     private
+
     def parse_uri(uri)
       uri = URI.parse(uri) unless uri.is_a?(URI)
       if uri.scheme == 'mqtt'
