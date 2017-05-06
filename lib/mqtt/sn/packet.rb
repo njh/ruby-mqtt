@@ -84,11 +84,11 @@ module MQTT::SN
       self.request_will = ((flags & 0x08) >> 3) == 0x01
       self.clean_session = ((flags & 0x04) >> 2) == 0x01
       case (flags & 0x03)
-        when 0x0
+      when 0x0
           self.topic_id_type = :normal
-        when 0x1
+      when 0x1
           self.topic_id_type = :predefined
-        when 0x2
+      when 0x2
           self.topic_id_type = :short
         else
           self.topic_id_type = nil
@@ -104,22 +104,22 @@ module MQTT::SN
       flags = 0x00
       flags += 0x80 if duplicate
       case qos
-        when -1
+      when -1
           flags += 0x60
-        when 1
+      when 1
           flags += 0x20
-        when 2
+      when 2
           flags += 0x40
       end
       flags += 0x10 if retain
       flags += 0x08 if request_will
       flags += 0x04 if clean_session
       case topic_id_type
-        when :normal
+      when :normal
           flags += 0x0
-        when :predefined
+      when :predefined
           flags += 0x1
-        when :short
+      when :short
           flags += 0x2
       end
       return flags
@@ -152,15 +152,15 @@ module MQTT::SN
     # (the Subscribe and Unsubscribe packet types)
     def encode_topic
       case topic_id_type
-        when :normal
+      when :normal
           topic_name
-        when :short
+      when :short
           unless topic_name.nil?
             topic_name
           else
             topic_id
           end
-        when :predefined
+      when :predefined
           [topic_id].pack('n')
       end
     end
@@ -169,12 +169,12 @@ module MQTT::SN
     # (the Subscribe and Unsubscribe packet types)
     def parse_topic(topic)
       case topic_id_type
-        when :normal
+      when :normal
           self.topic_name = topic
-        when :short
+      when :short
           self.topic_name = topic
           self.topic_id = topic
-        when :predefined
+      when :predefined
           self.topic_id = topic.unpack('n').first
       end
     end
@@ -270,13 +270,13 @@ module MQTT::SN
       # Get a string message corresponding to a return code
       def return_msg
         case return_code
-          when 0x00
+        when 0x00
             'Accepted'
-          when 0x01
+        when 0x01
             'Rejected: congestion'
-          when 0x02
+        when 0x02
             'Rejected: invalid topic ID'
-          when 0x03
+        when 0x03
             'Rejected: not supported'
           else
             "Rejected: error code #{return_code}"
