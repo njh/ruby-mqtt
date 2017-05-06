@@ -136,7 +136,7 @@ class MQTT::Client
       attr = {}
     end
 
-    if args.length == 0
+    if args.length.zero?
       attr.merge!(parse_uri(ENV['MQTT_SERVER'])) if ENV['MQTT_SERVER']
     end
 

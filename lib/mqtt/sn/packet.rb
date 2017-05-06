@@ -598,7 +598,7 @@ module MQTT::SN
       }
 
       def encode_body
-        if duration.nil? or duration == 0
+        if duration.nil? or duration.zero?
           ''
         else
           [duration].pack('n')

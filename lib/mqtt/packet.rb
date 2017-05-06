@@ -356,7 +356,7 @@ module MQTT
           raise 'Invalid topic name when serialising packet'
         end
         body += encode_string(@topic)
-        body += encode_short(@id) unless qos == 0
+        body += encode_short(@id) unless qos.zero?
         body += payload.to_s.dup.force_encoding('ASCII-8BIT')
         return body
       end
@@ -365,7 +365,7 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         @topic = shift_string(buffer)
-        @id = shift_short(buffer) unless qos == 0
+        @id = shift_short(buffer) unless qos.zero?
         @payload = buffer
       end
 
@@ -375,7 +375,7 @@ module MQTT
         if qos == 3
           raise ProtocolException, 'Invalid packet: QoS value of 3 is not allowed'
         end
-        if qos == 0 and duplicate
+        if qos.zero? and duplicate
           raise ProtocolException, 'Invalid packet: DUP cannot be set for QoS 0'
         end
       end
