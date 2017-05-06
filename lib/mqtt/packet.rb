@@ -48,14 +48,14 @@ module MQTT
       # Read in the packet body
       packet.parse_body( socket.read(body_length) )
 
-      return packet
+      packet
     end
 
     # Parse buffer into new packet object
     def self.parse(buffer)
       packet = parse_header(buffer)
       packet.parse_body(buffer)
-      return packet
+      packet
     end
 
     # Parse the header and create a new packet object of the correct type
@@ -91,7 +91,7 @@ module MQTT
       # Delete the fixed header from the raw packet passed in
       buffer.slice!(0...pos)
 
-      return packet
+      packet
     end
 
     # Create a new packet object from the first byte of a MQTT packet
@@ -132,7 +132,7 @@ module MQTT
     def type_id
       index = MQTT::PACKET_TYPES.index(self.class)
       raise "Invalid packet type: #{self.class}" if index.nil?
-      return index
+      index
     end
 
     # Get the name of the packet type as a string in capitals
@@ -358,7 +358,7 @@ module MQTT
         body += encode_string(@topic)
         body += encode_short(@id) unless qos.zero?
         body += payload.to_s.dup.force_encoding('ASCII-8BIT')
-        return body
+        body
       end
 
       # Parse the body (variable header and payload) of a Publish packet
@@ -502,7 +502,7 @@ module MQTT
         end
         body += encode_string(@username) unless @username.nil?
         body += encode_string(@password) unless @password.nil?
-        return body
+        body
       end
 
       # Parse the body (variable header and payload) of a Connect packet
@@ -620,7 +620,7 @@ module MQTT
         body = ''
         body += encode_bits(@connack_flags)
         body += encode_bytes(@return_code.to_i)
-        return body
+        body
       end
 
       # Parse the body (variable header and payload) of a Connect Acknowledgment packet
@@ -814,7 +814,7 @@ module MQTT
           body += encode_string(item[0])
           body += encode_bytes(item[1])
         end
-        return body
+        body
       end
 
       # Parse the body (variable header and payload) of a packet
@@ -880,7 +880,7 @@ module MQTT
         end
         body = encode_short(@id)
         return_codes.each { |qos| body += encode_bytes(qos) }
-        return body
+        body
       end
 
       # Parse the body (variable header and payload) of a packet
@@ -941,7 +941,7 @@ module MQTT
         raise 'no topics given when serialising packet' if @topics.empty?
         body = encode_short(@id)
         topics.each { |topic| body += encode_string(topic) }
-        return body
+        body
       end
 
       # Parse the body (variable header and payload) of a packet

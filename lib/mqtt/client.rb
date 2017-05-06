@@ -89,7 +89,7 @@ class MQTT::Client
   def self.connect(*args, &block)
     client = MQTT::Client.new(*args)
     client.connect(&block)
-    return client
+    client
   end
 
   # Generate a random client identifier
@@ -107,7 +107,7 @@ class MQTT::Client
       end
       str += num.chr
     end
-    return str
+    str
   end
 
   # Create a new MQTT Client instance

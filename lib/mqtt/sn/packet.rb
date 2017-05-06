@@ -33,7 +33,7 @@ module MQTT::SN
       packet = packet_class.new
       packet.parse_body(body)
 
-      return packet
+      packet
     end
 
     # Create a new empty packet
@@ -122,7 +122,7 @@ module MQTT::SN
       when :short
         flags += 0x2
       end
-      return flags
+      flags
     end
 
     def encode_topic_id
