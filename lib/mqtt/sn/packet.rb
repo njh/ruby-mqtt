@@ -186,8 +186,8 @@ module MQTT::SN
       attr_accessor :duration
 
       DEFAULTS = {
-        :gateway_id => 0x00,
-        :duration => 0
+        gateway_id: 0x00,
+        duration: 0
       }
 
       def encode_body
@@ -202,7 +202,7 @@ module MQTT::SN
     class Searchgw < Packet
       attr_accessor :radius
       DEFAULTS = {
-        :radius => 1
+        radius: 1
       }
 
       def encode_body
@@ -218,8 +218,8 @@ module MQTT::SN
       attr_accessor :gateway_id
       attr_accessor :gateway_address
       DEFAULTS = {
-        :gateway_id => 0,
-        :gateway_address => nil
+        gateway_id: 0,
+        gateway_address: nil
       }
 
       def encode_body
@@ -241,9 +241,9 @@ module MQTT::SN
       attr_accessor :client_id
 
       DEFAULTS = {
-        :request_will => false,
-        :clean_session => true,
-        :keep_alive => 15
+        request_will: false,
+        clean_session: true,
+        keep_alive: 15
       }
 
       # Get serialisation of packet's body
@@ -306,9 +306,9 @@ module MQTT::SN
       attr_accessor :topic_name
 
       DEFAULTS = {
-        :qos => 0,
-        :retain => false,
-        :topic_name => nil
+        qos: 0,
+        retain: false,
+        topic_name: nil
       }
 
       def encode_body
@@ -352,8 +352,8 @@ module MQTT::SN
       attr_accessor :topic_name
 
       DEFAULTS = {
-        :id => 0x00,
-        :topic_id_type => :normal
+        id: 0x00,
+        topic_id_type: :normal
       }
 
       def encode_body
@@ -379,9 +379,9 @@ module MQTT::SN
       attr_accessor :return_code
 
       DEFAULTS = {
-        :id => 0x00,
-        :topic_id => 0x00,
-        :topic_id_type => :normal
+        id: 0x00,
+        topic_id: 0x00,
+        topic_id_type: :normal
       }
 
       def encode_body
@@ -407,11 +407,11 @@ module MQTT::SN
       attr_accessor :data
 
       DEFAULTS = {
-        :id => 0x00,
-        :duplicate => false,
-        :qos => 0,
-        :retain => false,
-        :topic_id_type => :normal
+        id: 0x00,
+        duplicate: false,
+        qos: 0,
+        retain: false,
+        topic_id_type: :normal
       }
 
       def encode_body
@@ -435,9 +435,9 @@ module MQTT::SN
       attr_accessor :return_code
 
       DEFAULTS = {
-        :id => 0x00,
-        :topic_id => nil,
-        :return_code => 0x00,
+        id: 0x00,
+        topic_id: nil,
+        return_code: 0x00,
       }
 
       def encode_body
@@ -461,7 +461,7 @@ module MQTT::SN
       attr_accessor :id
 
       DEFAULTS = {
-        :id => 0x00
+        id: 0x00
       }
 
       def encode_body
@@ -481,7 +481,7 @@ module MQTT::SN
       attr_accessor :id
 
       DEFAULTS = {
-        :id => 0x00
+        id: 0x00
       }
 
       def encode_body
@@ -501,7 +501,7 @@ module MQTT::SN
       attr_accessor :id
 
       DEFAULTS = {
-        :id => 0x00
+        id: 0x00
       }
 
       def encode_body
@@ -523,8 +523,8 @@ module MQTT::SN
       attr_accessor :topic_name
 
       DEFAULTS = {
-        :id => 0x00,
-        :topic_id_type => :normal
+        id: 0x00,
+        topic_id_type: :normal
       }
 
       def encode_body
@@ -548,10 +548,10 @@ module MQTT::SN
       attr_accessor :return_code
 
       DEFAULTS = {
-        :qos => 0,
-        :id => 0x00,
-        :topic_id => 0x00,
-        :topic_id_type => :normal
+        qos: 0,
+        id: 0x00,
+        topic_id: 0x00,
+        topic_id_type: :normal
       }
 
       def encode_body
@@ -575,8 +575,8 @@ module MQTT::SN
       attr_accessor :topic_name
 
       DEFAULTS = {
-        :id => 0x00,
-        :topic_id_type => :normal
+        id: 0x00,
+        topic_id_type: :normal
       }
 
       def encode_body
@@ -598,7 +598,7 @@ module MQTT::SN
       attr_accessor :id
 
       DEFAULTS = {
-        :id => 0x00,
+        id: 0x00,
       }
 
       def encode_body
@@ -626,7 +626,7 @@ module MQTT::SN
       attr_accessor :duration
 
       DEFAULTS = {
-        :duration => nil
+        duration: nil
       }
 
       def encode_body
@@ -650,9 +650,9 @@ module MQTT::SN
       attr_accessor :topic_name
 
       DEFAULTS = {
-        :qos => 0,
-        :retain => false,
-        :topic_name => nil
+        qos: 0,
+        retain: false,
+        topic_name: nil
       }
 
       def encode_body
@@ -677,7 +677,7 @@ module MQTT::SN
       attr_accessor :return_code
 
       DEFAULTS = {
-        :return_code => 0x00
+        return_code: 0x00
       }
 
       def encode_body
@@ -709,7 +709,7 @@ module MQTT::SN
       attr_accessor :return_code
 
       DEFAULTS = {
-        :return_code => 0x00
+        return_code: 0x00
       }
 
       def encode_body

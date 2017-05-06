@@ -18,9 +18,9 @@ module MQTT
 
     # Default attribute values
     ATTR_DEFAULTS = {
-      :version => '3.1.0',
-      :id => 0,
-      :body_length => nil
+      version: '3.1.0',
+      id: 0,
+      body_length: nil
     }
 
     # Read in a packet from a socket
@@ -107,7 +107,7 @@ module MQTT
       flags = (0..3).map { |i| byte & (2 ** i) != 0 }
 
       # Create a new packet object
-      packet_class.new(:flags => flags)
+      packet_class.new(flags: flags)
     end
 
     # Create a new empty packet
@@ -309,8 +309,8 @@ module MQTT
 
       # Default attribute values
       ATTR_DEFAULTS = {
-        :topic => nil,
-        :payload => ''
+        topic: nil,
+        payload: ''
       }
 
       # Create a new Publish packet
@@ -450,15 +450,15 @@ module MQTT
 
       # Default attribute values
       ATTR_DEFAULTS = {
-        :client_id => nil,
-        :clean_session => true,
-        :keep_alive => 15,
-        :will_topic => nil,
-        :will_qos => 0,
-        :will_retain => false,
-        :will_payload => '',
-        :username => nil,
-        :password => nil,
+        client_id: nil,
+        clean_session: true,
+        keep_alive: 15,
+        will_topic: nil,
+        will_qos: 0,
+        will_retain: false,
+        will_payload: '',
+        username: nil,
+        password: nil,
       }
 
       # Create a new Client Connect packet
@@ -584,7 +584,7 @@ module MQTT
       attr_accessor :return_code
 
       # Default attribute values
-      ATTR_DEFAULTS = {:return_code => 0x00}
+      ATTR_DEFAULTS = {return_code: 0x00}
 
       # Create a new Client Connect packet
       def initialize(args={})
@@ -703,7 +703,7 @@ module MQTT
 
       # Default attribute values
       ATTR_DEFAULTS = {
-        :flags => [false, true, false, false],
+        flags: [false, true, false, false],
       }
 
       # Create a new Pubrel packet
@@ -768,8 +768,8 @@ module MQTT
 
       # Default attribute values
       ATTR_DEFAULTS = {
-        :topics => [],
-        :flags => [false, true, false, false],
+        topics: [],
+        flags: [false, true, false, false],
       }
 
       # Create a new Subscribe packet
@@ -868,7 +868,7 @@ module MQTT
 
       # Default attribute values
       ATTR_DEFAULTS = {
-        :return_codes => [],
+        return_codes: [],
       }
 
       # Create a new Subscribe Acknowledgment packet
@@ -933,8 +933,8 @@ module MQTT
 
       # Default attribute values
       ATTR_DEFAULTS = {
-        :topics => [],
-        :flags => [false, true, false, false],
+        topics: [],
+        flags: [false, true, false, false],
       }
 
       # Create a new Unsubscribe packet

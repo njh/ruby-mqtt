@@ -62,20 +62,20 @@ class MQTT::Client
 
   # Default attribute values
   ATTR_DEFAULTS = {
-    :host => nil,
-    :port => nil,
-    :version => '3.1.1',
-    :keep_alive => 15,
-    :clean_session => true,
-    :client_id => nil,
-    :ack_timeout => 5,
-    :username => nil,
-    :password => nil,
-    :will_topic => nil,
-    :will_payload => nil,
-    :will_qos => 0,
-    :will_retain => false,
-    :ssl => false
+    host: nil,
+    port: nil,
+    version: '3.1.1',
+    keep_alive: 15,
+    clean_session: true,
+    client_id: nil,
+    ack_timeout: 5,
+    username: nil,
+    password: nil,
+    will_topic: nil,
+    will_payload: nil,
+    will_qos: 0,
+    will_retain: false,
+    ssl: false
   }
 
   # Create and connect a new MQTT Client
@@ -151,12 +151,12 @@ class MQTT::Client
         when %r|^mqtts?://|
           attr.merge!(parse_uri(args[0]))
         else
-          attr.merge!(:host => args[0])
+          attr.merge!(host: args[0])
       end
     end
 
     if args.length >= 2
-      attr.merge!(:port => args[1]) unless args[1].nil?
+      attr.merge!(port: args[1]) unless args[1].nil?
     end
 
     if args.length >= 3
@@ -277,16 +277,16 @@ class MQTT::Client
 
       # Construct a connect packet
       packet = MQTT::Packet::Connect.new(
-        :version => @version,
-        :clean_session => @clean_session,
-        :keep_alive => @keep_alive,
-        :client_id => @client_id,
-        :username => @username,
-        :password => @password,
-        :will_topic => @will_topic,
-        :will_payload => @will_payload,
-        :will_qos => @will_qos,
-        :will_retain => @will_retain
+        version: @version,
+        clean_session: @clean_session,
+        keep_alive: @keep_alive,
+        client_id: @client_id,
+        username: @username,
+        password: @password,
+        will_topic: @will_topic,
+        will_payload: @will_payload,
+        will_qos: @will_qos,
+        will_retain: @will_retain
       )
 
       # Send packet
@@ -343,11 +343,11 @@ class MQTT::Client
     raise ArgumentError.new('Topic name cannot be empty') if topic.empty?
 
     packet = MQTT::Packet::Publish.new(
-      :id => next_packet_id,
-      :qos => qos,
-      :retain => retain,
-      :topic => topic,
-      :payload => payload
+      id: next_packet_id,
+      qos: qos,
+      retain: retain,
+      topic: topic,
+      payload: payload
     )
 
     # Send the packet
@@ -382,8 +382,8 @@ class MQTT::Client
   #
   def subscribe(*topics)
     packet = MQTT::Packet::Subscribe.new(
-      :id => next_packet_id,
-      :topics => topics
+      id: next_packet_id,
+      topics: topics
     )
     send_packet(packet)
   end
@@ -462,8 +462,8 @@ class MQTT::Client
     end
 
     packet = MQTT::Packet::Unsubscribe.new(
-      :topics => topics,
-      :id => next_packet_id
+      topics: topics,
+      id: next_packet_id
     )
     send_packet(packet)
   end
@@ -523,7 +523,7 @@ private
   end
 
   def puback_packet(packet)
-    send_packet(MQTT::Packet::Puback.new :id => packet.id)
+    send_packet(MQTT::Packet::Puback.new id: packet.id)
   end
 
   # Read and check a connection acknowledgement packet
@@ -569,11 +569,11 @@ private
     end
 
     {
-      :host => uri.host,
-      :port => uri.port || nil,
-      :username => uri.user ? URI.unescape(uri.user) : nil,
-      :password => uri.password ? URI.unescape(uri.password) : nil,
-      :ssl => ssl
+      host: uri.host,
+      port: uri.port || nil,
+      username: uri.user ? URI.unescape(uri.user) : nil,
+      password: uri.password ? URI.unescape(uri.password) : nil,
+      ssl: ssl
     }
   end
 
