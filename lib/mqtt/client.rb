@@ -268,9 +268,7 @@ class MQTT::Client
       # Start packet reading thread
       @read_thread = Thread.new(Thread.current) do |parent|
         Thread.current[:parent] = parent
-        while connected? do
-          receive_packet
-        end
+        receive_packet while connected?
       end
     end
 

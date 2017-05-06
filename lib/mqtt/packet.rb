@@ -862,9 +862,7 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         @id = shift_short(buffer)
-        while buffer.bytesize > 0
-          @return_codes << shift_byte(buffer)
-        end
+        @return_codes << shift_byte(buffer) while buffer.bytesize > 0
       end
 
       # Returns a human readable string, summarising the properties of the packet
@@ -919,9 +917,7 @@ module MQTT
       def parse_body(buffer)
         super(buffer)
         @id = shift_short(buffer)
-        while buffer.bytesize > 0
-          @topics << shift_string(buffer)
-        end
+        @topics << shift_string(buffer) while buffer.bytesize > 0
       end
 
       # Check that fixed header flags are valid for this packet type
