@@ -40,5 +40,6 @@ Gem::Specification.new do |gem|
   else
     raise "#{Gem.ruby_version} is an unsupported version of ruby"
   end
+  gem.add_development_dependency 'rubocop',  '~> 0.48.0'
 
 end

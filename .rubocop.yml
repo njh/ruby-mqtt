@@ -1,0 +1,9 @@
+AllCops:
+  Include:
+    - 'lib/**/*'
+  Exclude:
+    - 'Gemfile'
+    - 'Rakefile'
+    - 'mqtt.gemspec'
+    - 'examples/**'
+    - 'spec/**/*'
