@@ -217,6 +217,14 @@ module MQTT
       "\#<#{self.class}>"
     end
 
+    # Read and unpack a single byte from a socket
+    def self.read_byte(socket)
+      byte = socket.read(1)
+      raise ProtocolException, 'Failed to read byte from socket' if byte.nil?
+
+      byte.unpack('C').first
+    end
+
     protected
 
     # Encode an array of bytes and return them
@@ -271,14 +279,6 @@ module MQTT
       str = shift_data(buffer, len)
       # Strings in MQTT v3.1 are all UTF-8
       str.force_encoding('UTF-8')
-    end
-
-    # Read and unpack a single byte from a socket
-    def self.read_byte(socket)
-      byte = socket.read(1)
-      raise ProtocolException, 'Failed to read byte from socket' if byte.nil?
-
-      byte.unpack('C').first
     end
 
     ## PACKET SUBCLASSES ##
