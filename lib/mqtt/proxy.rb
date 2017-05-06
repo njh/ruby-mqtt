@@ -18,6 +18,12 @@ class MQTT::Proxy
   # Ruby Logger object to send informational messages to
   attr_reader :logger
 
+  # A filter Proc for packets coming from the client (to the server).
+  attr_writer :client_filter
+
+  # A filter Proc for packets coming from the server (to the client).
+  attr_writer :server_filter
+
   # Create a new MQTT Proxy instance.
   #
   # Possible argument keys:
@@ -51,16 +57,6 @@ class MQTT::Proxy
     # Create TCP server socket
     @server = TCPServer.open(@local_host, @local_port)
     @logger.info "MQTT::Proxy listening on #{@local_host}:#{@local_port}"
-  end
-
-  # Set a filter Proc for packets coming from the client (to the server).
-  def client_filter=(proc)
-    @client_filter = proc
-  end
-
-  # Set a filter Proc for packets coming from the server (to the client).
-  def server_filter=(proc)
-    @server_filter = proc
   end
 
   # Start accepting connections and processing packets.
