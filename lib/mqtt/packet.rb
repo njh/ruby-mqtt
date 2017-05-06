@@ -376,12 +376,12 @@ module MQTT
 
       # Returns a human readable string, summarising the properties of the packet
       def inspect
-        "\#<#{self.class}: " +
-          "d#{duplicate ? '1' : '0'}, " +
-          "q#{qos}, " +
-          "r#{retain ? '1' : '0'}, " +
-          "m#{id}, " +
-          "'#{topic}', " +
+        "\#<#{self.class}: " \
+          "d#{duplicate ? '1' : '0'}, " \
+          "q#{qos}, " \
+          "r#{retain ? '1' : '0'}, " \
+          "m#{id}, " \
+          "'#{topic}', " \
           "#{inspect_payload}>"
       end
 
