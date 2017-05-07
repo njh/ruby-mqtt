@@ -1,5 +1,7 @@
 Style/Documentation:
   Enabled: false
+Style/HashSyntax:
+  Enabled: false        # Disabled to support older ruby versions
 Style/MutableConstant:
   Enabled: false
 Style/FormatString:

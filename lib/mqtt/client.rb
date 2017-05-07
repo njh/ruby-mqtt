@@ -61,20 +61,20 @@ module MQTT
 
     # Default attribute values
     ATTR_DEFAULTS = {
-      host: nil,
-      port: nil,
-      version: '3.1.1',
-      keep_alive: 15,
-      clean_session: true,
-      client_id: nil,
-      ack_timeout: 5,
-      username: nil,
-      password: nil,
-      will_topic: nil,
-      will_payload: nil,
-      will_qos: 0,
-      will_retain: false,
-      ssl: false
+      :host => nil,
+      :port => nil,
+      :version => '3.1.1',
+      :keep_alive => 15,
+      :clean_session => true,
+      :client_id => nil,
+      :ack_timeout => 5,
+      :username => nil,
+      :password => nil,
+      :will_topic => nil,
+      :will_payload => nil,
+      :will_qos => 0,
+      :will_retain => false,
+      :ssl => false
     }
 
     # Create and connect a new MQTT Client
@@ -248,16 +248,16 @@ module MQTT
 
         # Construct a connect packet
         packet = MQTT::Packet::Connect.new(
-          version: @version,
-          clean_session: @clean_session,
-          keep_alive: @keep_alive,
-          client_id: @client_id,
-          username: @username,
-          password: @password,
-          will_topic: @will_topic,
-          will_payload: @will_payload,
-          will_qos: @will_qos,
-          will_retain: @will_retain
+          :version => @version,
+          :clean_session => @clean_session,
+          :keep_alive => @keep_alive,
+          :client_id => @client_id,
+          :username => @username,
+          :password => @password,
+          :will_topic => @will_topic,
+          :will_payload => @will_payload,
+          :will_qos => @will_qos,
+          :will_retain => @will_retain
         )
 
         # Send packet
@@ -312,11 +312,11 @@ module MQTT
       raise ArgumentError, 'Topic name cannot be empty' if topic.empty?
 
       packet = MQTT::Packet::Publish.new(
-        id: next_packet_id,
-        qos: qos,
-        retain: retain,
-        topic: topic,
-        payload: payload
+        :id => next_packet_id,
+        :qos => qos,
+        :retain => retain,
+        :topic => topic,
+        :payload => payload
       )
 
       # Send the packet
@@ -352,8 +352,8 @@ module MQTT
     #
     def subscribe(*topics)
       packet = MQTT::Packet::Subscribe.new(
-        id: next_packet_id,
-        topics: topics
+        :id => next_packet_id,
+        :topics => topics
       )
       send_packet(packet)
     end
@@ -430,8 +430,8 @@ module MQTT
       topics = topics.first if topics.is_a?(Enumerable) && topics.count == 1
 
       packet = MQTT::Packet::Unsubscribe.new(
-        topics: topics,
-        id: next_packet_id
+        :topics => topics,
+        :id => next_packet_id
       )
       send_packet(packet)
     end
@@ -487,7 +487,7 @@ module MQTT
     end
 
     def puback_packet(packet)
-      send_packet(MQTT::Packet::Puback.new(id: packet.id))
+      send_packet(MQTT::Packet::Puback.new(:id => packet.id))
     end
 
     # Read and check a connection acknowledgement packet
@@ -530,11 +530,11 @@ module MQTT
       end
 
       {
-        host: uri.host,
-        port: uri.port || nil,
-        username: uri.user ? URI.unescape(uri.user) : nil,
-        password: uri.password ? URI.unescape(uri.password) : nil,
-        ssl: ssl
+        :host => uri.host,
+        :port => uri.port || nil,
+        :username => uri.user ? URI.unescape(uri.user) : nil,
+        :password => uri.password ? URI.unescape(uri.password) : nil,
+        :ssl => ssl
       }
     end
 
