@@ -6,13 +6,8 @@ require 'rubygems'
 require 'yard'
 require 'rspec/core/rake_task'
 require "bundler/gem_tasks"
-require 'rubocop/rake_task'
 
 RSpec::Core::RakeTask.new(:spec)
-
-RuboCop::RakeTask.new do |task|
-  task.options = ["-DS"]
-end
 
 namespace :spec do
   desc 'Run RSpec code examples in specdoc mode'
@@ -32,4 +27,15 @@ end
 
 task :test => :spec
 task :specs => :spec
-task :default => %i[spec rubocop]
+
+if Gem.ruby_version > Gem::Version.new('2.0')
+  require 'rubocop/rake_task'
+
+  RuboCop::RakeTask.new do |task|
+    task.options = ["-DS"]
+  end
+
+  task :default => [:spec, :rubocop]
+else
+  task :default => :spec
+end
