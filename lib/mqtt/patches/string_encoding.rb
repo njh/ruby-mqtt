@@ -11,12 +11,14 @@ class String
   end
 
   def encode(encoding)
-    new = self.dup
+    new = dup
     new.force_encoding(encoding)
   end
 end
 
 class Encoding
+  attr_reader :name
+
   def initialize(name)
     @name = name
   end
@@ -24,11 +26,7 @@ class Encoding
   def to_s
     @name
   end
-  
-  def name
-    @name
-  end
 
-  UTF_8 = Encoding.new("UTF-8")
-  ASCII_8BIT = Encoding.new("ASCII-8BIT")
+  UTF_8 = Encoding.new('UTF-8')
+  ASCII_8BIT = Encoding.new('ASCII-8BIT')
 end

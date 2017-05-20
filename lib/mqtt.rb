@@ -13,7 +13,6 @@ unless String.method_defined?(:force_encoding)
 end
 
 module MQTT
-
   # Default port number for unencrypted connections
   DEFAULT_PORT = 1883
 
@@ -41,7 +40,6 @@ module MQTT
 
   # MQTT-SN
   module SN
-
     # Default port number for unencrypted connections
     DEFAULT_PORT = 1883
 
@@ -50,6 +48,6 @@ module MQTT
     class ProtocolException < MQTT::Exception
     end
 
-    autoload :Packet,   'mqtt/sn/packet'
+    autoload :Packet, 'mqtt/sn/packet'
   end
 end

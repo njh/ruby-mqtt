@@ -19,7 +19,7 @@ end
 namespace :doc do
   YARD::Rake::YardocTask.new
 
-  desc "Generate HTML report specs"
+  desc 'Generate HTML report specs'
   RSpec::Core::RakeTask.new("spec") do |spec|
     spec.rspec_opts = ["--format", "html", "-o", "doc/spec.html"]
   end
@@ -27,4 +27,15 @@ end
 
 task :test => :spec
 task :specs => :spec
-task :default => :spec
+
+if Gem.ruby_version > Gem::Version.new('2.0')
+  require 'rubocop/rake_task'
+
+  RuboCop::RakeTask.new do |task|
+    task.options = ["-DS"]
+  end
+
+  task :default => [:spec, :rubocop]
+else
+  task :default => :spec
+end

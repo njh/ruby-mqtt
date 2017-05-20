@@ -1,0 +1,27 @@
+Style/Documentation:
+  Enabled: false
+Style/HashSyntax:
+  Enabled: false        # Disabled to support older ruby versions
+Style/MutableConstant:
+  Enabled: false
+Style/FormatString:
+  Enabled: false
+
+Lint/RescueException:
+  Enabled: false
+Lint/InheritException:
+  Enabled: false
+
+# TODO: Enable this and fix offenses
+Metrics:
+  Enabled: false
+
+AllCops:
+  Include:
+    - 'lib/**/*'
+  Exclude:
+    - 'Gemfile'
+    - 'Rakefile'
+    - 'mqtt.gemspec'
+    - 'examples/**'
+    - 'spec/**/*'
