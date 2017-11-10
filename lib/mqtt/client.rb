@@ -441,11 +441,24 @@ module MQTT
     # Try to read a packet from the server
     # Also sends keep-alive ping packets.
     def receive_packet
-      # Poll socket - is there data waiting?
-      result = IO.select([@socket], [], [], SELECT_TIMEOUT)
-      unless result.nil?
+      first_byte_in_packet = nil
+      data_available_to_read = false
+      begin
+        # Poll socket - is there data waiting?
+        result = @socket.read_nonblock(1)
+        if result && result.length == 1
+          first_byte_in_packet = result.unpack('C').first
+          data_available_to_read = true
+        end
+      rescue IO::WaitReadable
+        # Wait for data to be available
+        data_available_to_read = !IO.select(
+          [@socket], [], [], SELECT_TIMEOUT
+        ).nil?
+      end
+      if data_available_to_read
         # Yes - read in the packet
-        packet = MQTT::Packet.read(@socket)
+        packet = MQTT::Packet.read(@socket, first_byte_in_packet)
         handle_packet packet
       end
       keep_alive!
