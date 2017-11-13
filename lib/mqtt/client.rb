@@ -165,7 +165,7 @@ module MQTT
       @read_queue = Queue.new
       @pubacks = {}
       @read_thread = nil
-      @write_semaphore = Mutex.new
+      @socket_semaphore = Mutex.new
       @pubacks_semaphore = Mutex.new
     end
 
@@ -445,7 +445,12 @@ module MQTT
       result = IO.select([@socket], [], [], SELECT_TIMEOUT)
       unless result.nil?
         # Yes - read in the packet
-        packet = MQTT::Packet.read(@socket)
+        packet = nil
+        # Only allow one thread to do writes and/or blocking reads to the
+        # socket at a time. Threads could otherwise deadlock.
+        @socket_semaphore.synchronize do
+          packet = MQTT::Packet.read(@socket)
+        end
         handle_packet packet
       end
       keep_alive!
@@ -513,8 +518,10 @@ module MQTT
       # Raise exception if we aren't connected
       raise MQTT::NotConnectedException unless connected?
 
-      # Only allow one thread to write to socket at a time
-      @write_semaphore.synchronize do
+      # Only allow one thread to do writes and/or blocking reads to the
+      # socket at a time. Threads could otherwise deadlock or, in the case
+      # of concurrent writes, interleave data inappropriately.
+      @socket_semaphore.synchronize do
         @socket.write(data.to_s)
       end
     end
