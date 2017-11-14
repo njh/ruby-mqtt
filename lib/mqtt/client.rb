@@ -167,6 +167,14 @@ module MQTT
       @read_thread = nil
       @write_semaphore = Mutex.new
       @pubacks_semaphore = Mutex.new
+
+      @wait_for_read_func = method(
+        if OpenSSL::SSL::SSLSocket.method_defined?(:read_nonblock)
+          :nonblocking_read_before_select
+        else
+          :select_without_nonblocking_read
+        end
+      )
     end
 
     # Get the OpenSSL context, that is used if SSL/TLS is enabled
@@ -438,9 +446,12 @@ module MQTT
 
     private
 
-    # Try to read a packet from the server
-    # Also sends keep-alive ping packets.
-    def receive_packet
+    def select_without_nonblocking_read
+      # Poll socket - is there data waiting?
+      [nil, !IO.select([@socket], [], [], SELECT_TIMEOUT).nil?]
+    end
+
+    def nonblocking_read_before_select
       first_byte_in_packet = nil
       data_available_to_read = false
       begin
@@ -456,6 +467,13 @@ module MQTT
           [@socket], [], [], SELECT_TIMEOUT
         ).nil?
       end
+      [first_byte_in_packet, data_available_to_read]
+    end
+
+    # Try to read a packet from the server
+    # Also sends keep-alive ping packets.
+    def receive_packet
+      first_byte_in_packet, data_available_to_read = @wait_for_read_func.call
       if data_available_to_read
         # Yes - read in the packet
         packet = MQTT::Packet.read(@socket, first_byte_in_packet)

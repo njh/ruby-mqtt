@@ -845,11 +845,9 @@ describe MQTT::Client do
       expect(@read_queue.size).to eq(1)
     end
 
-    it "should put PUBLISH messages on to the read queue following a wait readable exception" do
-      wait_readable_exception = Class.new(StandardError) do
-        include IO::WaitReadable
-      end
-      allow(socket).to receive(:read_nonblock).and_raise(wait_readable_exception)
+    it "should put PUBLISH messages on to the read queue following an IO::WaitReadable exception",
+      :if => OpenSSL::SSL::SSLSocket.respond_to?(:read_nonblock) do
+      allow(socket).to receive(:read_nonblock).and_raise(IO::WaitReadable)
       socket.write("\x30\x0e\x00\x05topicpayload")
       socket.rewind
       client.send(:receive_packet)
