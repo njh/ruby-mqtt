@@ -690,6 +690,15 @@ describe MQTT::Client do
     end
   end
 
+  describe "when calling the 'clear_queue' method" do
+    it "should clear the waiting incoming messages" do
+      inject_packet(:topic => 'topic0', :payload => 'payload0', :qos => 0)
+      expect(client.queue_length).to eq(1)
+      client.clear_queue
+      expect(client.queue_length).to eq(0)
+    end
+  end
+
   describe "when calling the 'get' method" do
     before(:each) do
       client.instance_variable_set('@socket', socket)
