@@ -425,6 +425,11 @@ module MQTT
       @read_queue.length
     end
 
+    # Clear the incoming message queue.
+    def clear_queue
+      @read_queue.clear
+    end
+
     # Send a unsubscribe message for one or more topics on the MQTT server
     def unsubscribe(*topics)
       topics = topics.first if topics.is_a?(Enumerable) && topics.count == 1
