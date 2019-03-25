@@ -49,6 +49,14 @@ describe MQTT::Packet do
       expect(data.encoding.to_s).to eq("ASCII-8BIT")
     end
 
+    it "should raise an error if too big argument for encode_short" do
+      expect {
+        data = packet.send(:encode_short, 0x10000)
+      }.to raise_error(
+        'Value too big for short'
+      )
+    end
+
     it "should provide a add_string method to get a string preceeded by its length" do
       data = packet.send(:encode_string, 'quack')
       expect(data).to eq("\x00\x05quack")
