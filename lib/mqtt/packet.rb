@@ -239,6 +239,7 @@ module MQTT
 
     # Encode a 16-bit unsigned integer and return it
     def encode_short(val)
+      raise 'Value too big for short' if val > 0xffff
       [val.to_i].pack('n')
     end
 

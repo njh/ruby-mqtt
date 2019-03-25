@@ -591,6 +591,19 @@ describe MQTT::Client do
       expect(socket.string).to eq("\x32\x10\x00\x05topic\x00\x01payload")
     end
 
+    it "should wrap the packet id after 65535" do
+      0xffff.times do |n|
+        inject_puback(n + 1)
+        client.publish('topic','payload', false, 1)
+      end
+      expect(client.instance_variable_get(:@last_packet_id)).to eq(0xffff)
+
+      socket.string = ""
+      inject_puback(1)
+      client.publish('topic','payload', false, 1)
+      expect(socket.string).to eq("\x32\x10\x00\x05topic\x00\x01payload")
+    end
+
     it "should write a valid PUBLISH packet to the socket with the QoS set to 2" do
       inject_puback(1)
       client.publish('topic','payload', false, 2)

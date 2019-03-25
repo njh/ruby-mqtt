@@ -545,6 +545,8 @@ module MQTT
 
     def next_packet_id
       @last_packet_id = (@last_packet_id || 0).next
+      @last_packet_id = 1 if @last_packet_id > 0xffff
+      @last_packet_id
     end
 
     # ---- Deprecated attributes and methods  ---- #
