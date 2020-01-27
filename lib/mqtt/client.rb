@@ -329,15 +329,13 @@ module MQTT
 
       wait_for_puback packet.id, queue
 
-      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + @ack_timeout
+      deadline = current_time + @ack_timeout
 
       loop do
         response = queue.pop
         case response
         when :read_timeout
-          if Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
-            return -1
-          end
+          return -1 if current_time > deadline
         when :close
           return -1
         else
@@ -507,6 +505,17 @@ module MQTT
     def handle_close
       @pubacks_semaphore.synchronize do
         @pubacks.each_value { |q| q << :close }
+      end
+    end
+
+    if Process.const_defined? :CLOCK_MONOTONIC
+      def current_time
+        Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      end
+    else
+      # Support older Ruby
+      def current_time
+        Time.now.to_i
       end
     end
 
