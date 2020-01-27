@@ -571,6 +571,26 @@ describe MQTT::Client do
   end
 
   describe "when calling the 'publish' method" do
+    class ClientWithPubackInjection < MQTT::Client
+      def initialize
+        super(:host => 'localhost')
+        @injected_pubacks = {}
+      end
+
+      def inject_puback(packet)
+        @injected_pubacks[packet.id] = packet
+      end
+
+      def wait_for_puback(id, queue)
+        packet = @injected_pubacks.fetch(id) {
+          return super
+        }
+        queue << packet
+      end
+    end
+
+    let(:client) { ClientWithPubackInjection.new }
+
     before(:each) do
       client.instance_variable_set('@socket', socket)
     end
@@ -973,7 +993,7 @@ describe MQTT::Client do
 
   def inject_puback(packet_id)
     packet = MQTT::Packet::Puback.new(:id => packet_id)
-    client.instance_variable_get('@pubacks')[packet_id] = packet
+    client.inject_puback packet
   end
 
 end

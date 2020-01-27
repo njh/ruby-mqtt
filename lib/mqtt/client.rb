@@ -298,6 +298,7 @@ module MQTT
         send_packet(packet)
       end
       @socket.close unless @socket.nil?
+      handle_close
       @socket = nil
     end
 
@@ -324,18 +325,30 @@ module MQTT
 
       return if qos.zero?
 
-      Timeout.timeout(@ack_timeout) do
-        while connected?
-          @pubacks_semaphore.synchronize do
-            return res if @pubacks.delete(packet.id)
+      queue = Queue.new
+
+      wait_for_puback packet.id, queue
+
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + @ack_timeout
+
+      loop do
+        response = queue.pop
+        case response
+        when :read_timeout
+          if Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
+            return -1
           end
-          # FIXME: make threads communicate with each other, instead of polling
-          # (using a pipe and select ?)
-          sleep 0.01
+        when :close
+          return -1
+        else
+          @pubacks_semaphore.synchronize do
+            @pubacks.delete packet.id
+          end
+          break
         end
       end
 
-      -1
+      res
     end
 
     # Send a subscribe message for one or more topics on the MQTT server.
@@ -459,8 +472,15 @@ module MQTT
       unless @socket.nil?
         @socket.close
         @socket = nil
+        handle_close
       end
       Thread.current[:parent].raise(exp)
+    end
+
+    def wait_for_puback(id, queue)
+      @pubacks_semaphore.synchronize do
+        @pubacks[id] = queue
+      end
     end
 
     def handle_packet(packet)
@@ -471,11 +491,23 @@ module MQTT
         @last_ping_response = Time.now
       elsif packet.class == MQTT::Packet::Puback
         @pubacks_semaphore.synchronize do
-          @pubacks[packet.id] = packet
+          @pubacks[packet.id] << packet
         end
       end
       # Ignore all other packets
       # FIXME: implement responses for QoS  2
+    end
+
+    def handle_timeouts
+      @pubacks_semaphore.synchronize do
+        @pubacks.each_value { |q| q << :read_timeout }
+      end
+    end
+
+    def handle_close
+      @pubacks_semaphore.synchronize do
+        @pubacks.each_value { |q| q << :close }
+      end
     end
 
     def keep_alive!
