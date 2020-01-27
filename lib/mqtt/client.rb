@@ -459,6 +459,7 @@ module MQTT
     def receive_packet
       # Poll socket - is there data waiting?
       result = IO.select([@socket], [], [], SELECT_TIMEOUT)
+      handle_timeouts
       unless result.nil?
         # Yes - read in the packet
         packet = MQTT::Packet.read(@socket)

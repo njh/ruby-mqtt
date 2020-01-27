@@ -595,6 +595,35 @@ describe MQTT::Client do
       client.instance_variable_set('@socket', socket)
     end
 
+    it "should respect timeouts" do
+      require "socket"
+      rd, wr = UNIXSocket.pair
+      client = MQTT::Client.new(:host => 'localhost', :ack_timeout => 1.0)
+      client.instance_variable_set('@socket', rd)
+      t = Thread.new {
+        Thread.current[:parent] = Thread.main
+        loop do
+          client.send :receive_packet
+        end
+      }
+      start = now
+      expect(client.publish('topic','payload', false, 1)).to eq(-1)
+      elapsed = now - start
+      t.kill
+      expect(elapsed).to be_within(0.1).of(1.0)
+    end
+
+    if Process.const_defined? :CLOCK_MONOTONIC
+      def now
+        Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      end
+    else
+      # Support older Ruby
+      def now
+        Time.now.to_i
+      end
+    end
+
     it "should write a valid PUBLISH packet to the socket without the retain flag" do
       client.publish('topic','payload', false, 0)
       expect(socket.string).to eq("\x30\x0e\x00\x05topicpayload")
