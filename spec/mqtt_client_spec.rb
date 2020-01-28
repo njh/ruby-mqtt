@@ -620,7 +620,7 @@ describe MQTT::Client do
     else
       # Support older Ruby
       def now
-        Time.now.to_i
+        Time.now.to_f
       end
     end
 
