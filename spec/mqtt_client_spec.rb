@@ -860,7 +860,16 @@ describe MQTT::Client do
       allow(@parent_thread).to receive(:raise)
     end
 
-    it "should put PUBLISH messages on to the read queue" do
+    it "should put PUBLISH messages on to the read queue when data can be immediately read" do
+      socket.write("\x30\x0e\x00\x05topicpayload")
+      socket.rewind
+      client.send(:receive_packet)
+      expect(@read_queue.size).to eq(1)
+    end
+
+    it "should put PUBLISH messages on to the read queue following an IO::WaitReadable exception",
+      :if => OpenSSL::SSL::SSLSocket.respond_to?(:read_nonblock) do
+      allow(socket).to receive(:read_nonblock).and_raise(IO::WaitReadable)
       socket.write("\x30\x0e\x00\x05topicpayload")
       socket.rewind
       client.send(:receive_packet)
@@ -875,18 +884,24 @@ describe MQTT::Client do
     end
 
     it "should close the socket if there is an exception" do
+      socket.write("\x20")
+      socket.rewind
       expect(socket).to receive(:close).once
       allow(MQTT::Packet).to receive(:read).and_raise(MQTT::Exception)
       client.send(:receive_packet)
     end
 
     it "should pass exceptions up to parent thread" do
+      socket.write("\x20")
+      socket.rewind
       expect(@parent_thread).to receive(:raise).once
       allow(MQTT::Packet).to receive(:read).and_raise(MQTT::Exception)
       client.send(:receive_packet)
     end
 
     it "should update last_ping_response when receiving a Pingresp" do
+      socket.write("\x20")
+      socket.rewind
       allow(MQTT::Packet).to receive(:read).and_return MQTT::Packet::Pingresp.new
       client.instance_variable_set '@last_ping_response', Time.at(0)
       client.send :receive_packet

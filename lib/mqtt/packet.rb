@@ -24,10 +24,10 @@ module MQTT
     }
 
     # Read in a packet from a socket
-    def self.read(socket)
+    def self.read(socket, first_byte_in_packet = nil)
       # Read in the packet header and create a new packet object
       packet = create_from_header(
-        read_byte(socket)
+        first_byte_in_packet || read_byte(socket)
       )
       packet.validate_flags
 

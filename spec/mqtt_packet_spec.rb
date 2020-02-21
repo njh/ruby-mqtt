@@ -442,6 +442,20 @@ describe MQTT::Packet::Publish do
     end
   end
 
+  describe "reading a packet from a socket with a separate first byte parameter" do
+    let(:socket) { StringIO.new("\x11\x00\x04testhello world") }
+    let(:packet) { MQTT::Packet.read(socket, 48) }
+
+    it "should correctly create the right type of packet object" do
+      expect(packet.class).to eq(MQTT::Packet::Publish)
+    end
+
+    it "should set the payload correctly" do
+      expect(packet.payload).to eq('hello world')
+      expect(packet.payload.encoding.to_s).to eq('ASCII-8BIT')
+    end
+  end
+
   describe "when calling the inspect method" do
     it "should output the payload, if it is less than 16 bytes" do
       packet = MQTT::Packet::Publish.new( :topic => "topic", :payload => "payload" )
