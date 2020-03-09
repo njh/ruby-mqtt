@@ -298,6 +298,7 @@ module MQTT
         send_packet(packet)
       end
       @socket.close unless @socket.nil?
+      handle_close
       @socket = nil
     end
 
@@ -324,18 +325,28 @@ module MQTT
 
       return if qos.zero?
 
-      Timeout.timeout(@ack_timeout) do
-        while connected?
+      queue = Queue.new
+
+      wait_for_puback packet.id, queue
+
+      deadline = current_time + @ack_timeout
+
+      loop do
+        response = queue.pop
+        case response
+        when :read_timeout
+          return -1 if current_time > deadline
+        when :close
+          return -1
+        else
           @pubacks_semaphore.synchronize do
-            return res if @pubacks.delete(packet.id)
+            @pubacks.delete packet.id
           end
-          # FIXME: make threads communicate with each other, instead of polling
-          # (using a pipe and select ?)
-          sleep 0.01
+          break
         end
       end
 
-      -1
+      res
     end
 
     # Send a subscribe message for one or more topics on the MQTT server.
@@ -448,6 +459,7 @@ module MQTT
     def receive_packet
       # Poll socket - is there data waiting?
       result = IO.select([@socket], [], [], SELECT_TIMEOUT)
+      handle_timeouts
       unless result.nil?
         # Yes - read in the packet
         packet = MQTT::Packet.read(@socket)
@@ -459,8 +471,15 @@ module MQTT
       unless @socket.nil?
         @socket.close
         @socket = nil
+        handle_close
       end
       Thread.current[:parent].raise(exp)
+    end
+
+    def wait_for_puback(id, queue)
+      @pubacks_semaphore.synchronize do
+        @pubacks[id] = queue
+      end
     end
 
     def handle_packet(packet)
@@ -471,11 +490,34 @@ module MQTT
         @last_ping_response = Time.now
       elsif packet.class == MQTT::Packet::Puback
         @pubacks_semaphore.synchronize do
-          @pubacks[packet.id] = packet
+          @pubacks[packet.id] << packet
         end
       end
       # Ignore all other packets
       # FIXME: implement responses for QoS  2
+    end
+
+    def handle_timeouts
+      @pubacks_semaphore.synchronize do
+        @pubacks.each_value { |q| q << :read_timeout }
+      end
+    end
+
+    def handle_close
+      @pubacks_semaphore.synchronize do
+        @pubacks.each_value { |q| q << :close }
+      end
+    end
+
+    if Process.const_defined? :CLOCK_MONOTONIC
+      def current_time
+        Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      end
+    else
+      # Support older Ruby
+      def current_time
+        Time.now.to_f
+      end
     end
 
     def keep_alive!
