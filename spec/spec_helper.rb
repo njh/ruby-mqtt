@@ -6,7 +6,9 @@ require 'bundler'
 Bundler.require(:default, :development)
 
 unless RUBY_VERSION =~ /^1\.8/
-  SimpleCov.start
+  SimpleCov.start do
+    add_filter '/spec/'
+  end
 end
 
 
