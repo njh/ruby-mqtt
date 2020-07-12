@@ -55,6 +55,9 @@ module MQTT
 
     # Last ping response time
     attr_reader :last_ping_response
+    
+    # SSL Verify Mode
+    attr_reader :ssl_verify
 
     # Timeout between select polls (in seconds)
     SELECT_TIMEOUT = 0.5
@@ -74,7 +77,8 @@ module MQTT
       :will_payload => nil,
       :will_qos => 0,
       :will_retain => false,
-      :ssl => false
+      :ssl => false,
+      :ssl_verify => OpenSSL::SSL::VERIFY_PEER 
     }
 
     # Create and connect a new MQTT Client
@@ -199,7 +203,11 @@ module MQTT
     # Set a path to a file containing a PEM-format CA certificate and enable peer verification
     def ca_file=(path)
       ssl_context.ca_file = path
-      ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER unless path.nil?
+    end
+    
+    # Set the SSL verify mode
+    def ssl_verify=(mode)
+       ssl_context.verify_mode = mode unless mode.nil?
     end
 
     # Set the Will for the client
