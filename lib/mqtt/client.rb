@@ -78,7 +78,7 @@ module MQTT
       :will_qos => 0,
       :will_retain => false,
       :ssl => false,
-      :ssl_verify => OpenSSL::SSL::VERIFY_PEER 
+      :ssl_verify => OpenSSL::SSL::VERIFY_PEER
     }
 
     # Create and connect a new MQTT Client
@@ -207,7 +207,7 @@ module MQTT
     
     # Set the SSL verify mode
     def ssl_verify=(mode)
-       ssl_context.verify_mode = mode unless mode.nil?
+      ssl_context.verify_mode = mode unless mode.nil?
     end
 
     # Set the Will for the client
