@@ -55,7 +55,7 @@ module MQTT
 
     # Last ping response time
     attr_reader :last_ping_response
-    
+
     # SSL Verify Mode
     attr_reader :ssl_verify
 
@@ -204,7 +204,7 @@ module MQTT
     def ca_file=(path)
       ssl_context.ca_file = path
     end
-    
+
     # Set the SSL verify mode
     def ssl_verify=(mode)
       ssl_context.verify_mode = mode unless mode.nil?
