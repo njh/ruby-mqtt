@@ -571,8 +571,57 @@ describe MQTT::Client do
   end
 
   describe "when calling the 'publish' method" do
+    class ClientWithPubackInjection < MQTT::Client
+      def initialize
+        super(:host => 'localhost')
+        @injected_pubacks = {}
+      end
+
+      def inject_puback(packet)
+        @injected_pubacks[packet.id] = packet
+      end
+
+      def wait_for_puback(id, queue)
+        packet = @injected_pubacks.fetch(id) {
+          return super
+        }
+        queue << packet
+      end
+    end
+
+    let(:client) { ClientWithPubackInjection.new }
+
     before(:each) do
       client.instance_variable_set('@socket', socket)
+    end
+
+    it "should respect timeouts" do
+      require "socket"
+      rd, wr = UNIXSocket.pair
+      client = MQTT::Client.new(:host => 'localhost', :ack_timeout => 1.0)
+      client.instance_variable_set('@socket', rd)
+      t = Thread.new {
+        Thread.current[:parent] = Thread.main
+        loop do
+          client.send :receive_packet
+        end
+      }
+      start = now
+      expect(client.publish('topic','payload', false, 1)).to eq(-1)
+      elapsed = now - start
+      t.kill
+      expect(elapsed).to be_within(0.1).of(1.0)
+    end
+
+    if Process.const_defined? :CLOCK_MONOTONIC
+      def now
+        Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      end
+    else
+      # Support older Ruby
+      def now
+        Time.now.to_f
+      end
     end
 
     it "should write a valid PUBLISH packet to the socket without the retain flag" do
@@ -973,7 +1022,7 @@ describe MQTT::Client do
 
   def inject_puback(packet_id)
     packet = MQTT::Packet::Puback.new(:id => packet_id)
-    client.instance_variable_get('@pubacks')[packet_id] = packet
+    client.inject_puback packet
   end
 
 end
