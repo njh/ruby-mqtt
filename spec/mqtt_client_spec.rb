@@ -395,6 +395,7 @@ describe MQTT::Client do
       it "should use ssl if it enabled using the :ssl => true parameter" do
         expect(OpenSSL::SSL::SSLSocket).to receive(:new).and_return(ssl_socket)
         expect(ssl_socket).to receive(:connect)
+        expect(ssl_socket).to receive(:post_connection_check).with('mqtt.example.com')
 
         client = MQTT::Client.new('mqtt.example.com', :ssl => true)
         allow(client).to receive(:receive_connack)
@@ -404,6 +405,7 @@ describe MQTT::Client do
       it "should use ssl if it enabled using the mqtts:// scheme" do
         expect(OpenSSL::SSL::SSLSocket).to receive(:new).and_return(ssl_socket)
         expect(ssl_socket).to receive(:connect)
+        expect(ssl_socket).to receive(:post_connection_check).with('mqtt.example.com')
 
         client = MQTT::Client.new('mqtts://mqtt.example.com')
         allow(client).to receive(:receive_connack)
@@ -413,6 +415,7 @@ describe MQTT::Client do
       it "should use set the SSL version, if the :ssl parameter is a symbol" do
         expect(OpenSSL::SSL::SSLSocket).to receive(:new).and_return(ssl_socket)
         expect(ssl_socket).to receive(:connect)
+        expect(ssl_socket).to receive(:post_connection_check).with('mqtt.example.com')
 
         client = MQTT::Client.new('mqtt.example.com', :ssl => :TLSv1)
         expect(client.ssl_context).to receive('ssl_version=').with(:TLSv1)
@@ -423,8 +426,18 @@ describe MQTT::Client do
       it "should use set hostname on the SSL socket for SNI" do
         expect(OpenSSL::SSL::SSLSocket).to receive(:new).and_return(ssl_socket)
         expect(ssl_socket).to receive(:hostname=).with('mqtt.example.com')
+        expect(ssl_socket).to receive(:post_connection_check).with('mqtt.example.com')
 
         client = MQTT::Client.new('mqtts://mqtt.example.com')
+        allow(client).to receive(:receive_connack)
+        client.connect
+      end
+
+      it "should skip host verification" do
+        expect(OpenSSL::SSL::SSLSocket).to receive(:new).and_return(ssl_socket)
+        expect(ssl_socket).to receive(:connect)
+
+        client = MQTT::Client.new('mqtt.example.com', :ssl => true, :verify_host => false)
         allow(client).to receive(:receive_connack)
         client.connect
       end

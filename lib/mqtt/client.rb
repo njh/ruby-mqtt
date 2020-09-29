@@ -23,6 +23,9 @@ module MQTT
     # @see OpenSSL::SSL::SSLContext::METHODS
     attr_accessor :ssl
 
+    # Set to false to skip tls hostname verification
+    attr_accessor :verify_host
+
     # Time (in seconds) between pings to remote server (default is 15 seconds)
     attr_accessor :keep_alive
 
@@ -74,7 +77,8 @@ module MQTT
       :will_payload => nil,
       :will_qos => 0,
       :will_retain => false,
-      :ssl => false
+      :ssl => false,
+      :verify_host => true,
     }
 
     # Create and connect a new MQTT Client
@@ -242,6 +246,8 @@ module MQTT
           @socket.hostname = @host if @socket.respond_to?(:hostname=)
 
           @socket.connect
+
+          @socket.post_connection_check(@host) if @verify_host
         else
           @socket = tcp_socket
         end
