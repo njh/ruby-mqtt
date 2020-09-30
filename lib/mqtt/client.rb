@@ -78,7 +78,7 @@ module MQTT
       :will_qos => 0,
       :will_retain => false,
       :ssl => false,
-      :verify_host => true,
+      :verify_host => true
     }
 
     # Create and connect a new MQTT Client
