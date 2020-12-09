@@ -165,7 +165,7 @@ module MQTT
       @read_queue = Queue.new
       @pubacks = {}
       @read_thread = nil
-      @write_semaphore = Mutex.new
+      @socket_semaphore = Mutex.new
       @pubacks_semaphore = Mutex.new
     end
 
@@ -227,23 +227,26 @@ module MQTT
 
       raise 'No MQTT server host set when attempting to connect' if @host.nil?
 
-      unless connected?
-        # Create network socket
-        tcp_socket = TCPSocket.new(@host, @port)
+      # Only allow one thread to check socket state at a time
+      unless @socket_semaphore.synchronize { connected? }
+        # Only allow one thread to assign socket at a time
+        @socket_semaphore.synchronize do
+          # Create network socket
+          tcp_socket = TCPSocket.new(@host, @port)
 
-        if @ssl
-          # Set the protocol version
-          ssl_context.ssl_version = @ssl if @ssl.is_a?(Symbol)
+          if @ssl
+            # Set the protocol version
+            ssl_context.ssl_version = @ssl if @ssl.is_a?(Symbol)
+            @socket = OpenSSL::SSL::SSLSocket.new(tcp_socket, ssl_context)
+            @socket.sync_close = true
 
-          @socket = OpenSSL::SSL::SSLSocket.new(tcp_socket, ssl_context)
-          @socket.sync_close = true
+            # Set hostname on secure socket for Server Name Indication (SNI)
+            @socket.hostname = @host if @socket.respond_to?(:hostname=)
 
-          # Set hostname on secure socket for Server Name Indication (SNI)
-          @socket.hostname = @host if @socket.respond_to?(:hostname=)
-
-          @socket.connect
-        else
-          @socket = tcp_socket
+            @socket.connect
+          else
+            @socket = tcp_socket
+          end
         end
 
         # Construct a connect packet
@@ -269,7 +272,8 @@ module MQTT
         # Start packet reading thread
         @read_thread = Thread.new(Thread.current) do |parent|
           Thread.current[:parent] = parent
-          receive_packet while connected?
+          # Only allow one thread to check socket state at a time
+          receive_packet while @socket_semaphore.synchronize { connected? }
         end
       end
 
@@ -290,19 +294,29 @@ module MQTT
       @read_thread.kill if @read_thread && @read_thread.alive?
       @read_thread = nil
 
-      return unless connected?
+      # Only allow one thread to check socket state at a time
+      @socket_semaphore.synchronize do
+        return unless connected?
+      end
 
       # Close the socket if it is open
       if send_msg
         packet = MQTT::Packet::Disconnect.new
         send_packet(packet)
       end
-      @socket.close unless @socket.nil?
+      # Only allow one thread to close socket at a time
+      @socket_semaphore.synchronize do
+        @socket.close unless @socket.nil?
+      end
       handle_close
       @socket = nil
     end
 
     # Checks whether the client is connected to the server.
+    # @socket should protect with @socket_semaphore but
+    # locking in this method is too large scope due to
+    # cause deadlock.
+    # Use @socket_semaphore should be used outside this method.
     def connected?
       !@socket.nil? && !@socket.closed?
     end
@@ -469,7 +483,10 @@ module MQTT
     # Pass exceptions up to parent thread
     rescue Exception => exp
       unless @socket.nil?
-        @socket.close
+        # Only allow one thread to write to socket at a time
+        @socket_semaphore.synchronize do
+          @socket.close
+        end
         @socket = nil
         handle_close
       end
@@ -521,7 +538,8 @@ module MQTT
     end
 
     def keep_alive!
-      return unless @keep_alive > 0 && connected?
+      # Only allow one thread to check socket state at a time
+      return unless @keep_alive > 0 && @socket_semaphore.synchronize { connected? }
 
       response_timeout = (@keep_alive * 1.5).ceil
       if Time.now >= @last_ping_request + @keep_alive
@@ -549,7 +567,10 @@ module MQTT
         if packet.return_code != 0x00
           # 3.2.2.3 If a server sends a CONNACK packet containing a non-zero
           # return code it MUST then close the Network Connection
-          @socket.close
+          # Only allow one thread to close socket at a time
+          @socket_semaphore.synchronize do
+            @socket.close
+          end
           raise MQTT::ProtocolException, packet.return_msg
         end
       end
@@ -557,11 +578,11 @@ module MQTT
 
     # Send a packet to server
     def send_packet(data)
-      # Raise exception if we aren't connected
-      raise MQTT::NotConnectedException unless connected?
-
       # Only allow one thread to write to socket at a time
-      @write_semaphore.synchronize do
+      @socket_semaphore.synchronize do
+        # Raise exception if we aren't connected
+        raise MQTT::NotConnectedException unless connected?
+
         @socket.write(data.to_s)
       end
     end
