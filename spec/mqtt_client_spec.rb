@@ -30,6 +30,7 @@ describe MQTT::Client do
       expect(client.port).to eq(1883)
       expect(client.version).to eq('3.1.1')
       expect(client.keep_alive).to eq(15)
+      expect(client.assume_publish_response_as_pingresp).to be_falsey
     end
 
     it "with a single string argument, it should use it has the host" do
@@ -79,6 +80,15 @@ describe MQTT::Client do
       expect(client.host).to eq('localhost')
       expect(client.port).to eq(1888)
       expect(client.keep_alive).to eq(65)
+    end
+
+    it "with a combination of a host name, port and a hash of settings with different pattern" do
+      client = MQTT::Client.new('localhost', 1888, :keep_alive => 65,
+                                :assume_publish_response_as_pingresp => true)
+      expect(client.host).to eq('localhost')
+      expect(client.port).to eq(1888)
+      expect(client.keep_alive).to eq(65)
+      expect(client.assume_publish_response_as_pingresp).to be_truthy
     end
 
     it "with a mqtt:// URI containing just a hostname" do
