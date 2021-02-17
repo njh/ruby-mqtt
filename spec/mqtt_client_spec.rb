@@ -23,6 +23,17 @@ describe MQTT::Client do
     end
   end
 
+  if Process.const_defined? :CLOCK_MONOTONIC
+    def now
+      Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    end
+  else
+    # Support older Ruby
+    def now
+      Time.now.to_f
+    end
+  end
+
   describe "initializing a client" do
     it "with no arguments, it should use the defaults" do
       client = MQTT::Client.new
@@ -613,17 +624,6 @@ describe MQTT::Client do
       expect(elapsed).to be_within(0.1).of(1.0)
     end
 
-    if Process.const_defined? :CLOCK_MONOTONIC
-      def now
-        Process.clock_gettime(Process::CLOCK_MONOTONIC)
-      end
-    else
-      # Support older Ruby
-      def now
-        Time.now.to_f
-      end
-    end
-
     it "should write a valid PUBLISH packet to the socket without the retain flag" do
       client.publish('topic','payload', false, 0)
       expect(socket.string).to eq("\x30\x0e\x00\x05topicpayload")
@@ -939,7 +939,7 @@ describe MQTT::Client do
       allow(MQTT::Packet).to receive(:read).and_return MQTT::Packet::Pingresp.new
       client.instance_variable_set '@last_ping_response', Time.at(0)
       client.send :receive_packet
-      expect(client.last_ping_response).to be_within(1).of Time.now
+      expect(client.last_ping_response).to be_within(1).of now
     end
   end
 
@@ -949,20 +949,20 @@ describe MQTT::Client do
     end
 
     it "should send a ping packet if one is due" do
-      client.instance_variable_set('@last_ping_request', Time.at(0))
+      client.instance_variable_set('@last_ping_request', 0.0)
       client.send('keep_alive!')
       expect(socket.string).to eq("\xC0\x00")
     end
 
     it "should update the time a ping was last sent" do
-      client.instance_variable_set('@last_ping_request', Time.at(0))
+      client.instance_variable_set('@last_ping_request', 0.0)
       client.send('keep_alive!')
-      expect(client.instance_variable_get('@last_ping_request')).not_to eq(0)
+      expect(client.instance_variable_get('@last_ping_request')).to be_within(0.01).of(now)
     end
 
     it "should raise an exception if no ping response has been received" do
-      client.instance_variable_set('@last_ping_request', Time.now)
-      client.instance_variable_set('@last_ping_response', Time.at(0))
+      client.instance_variable_set('@last_ping_request', now)
+      client.instance_variable_set('@last_ping_response', 0.0)
       expect {
         client.send('keep_alive!')
       }.to raise_error(
