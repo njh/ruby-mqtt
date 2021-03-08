@@ -219,10 +219,10 @@ module MQTT
 
     # Read and unpack a single byte from a socket
     def self.read_byte(socket)
-      byte = socket.read(1)
+      byte = socket.getbyte
       raise ProtocolException, 'Failed to read byte from socket' if byte.nil?
 
-      byte.unpack('C').first
+      byte
     end
 
     protected
