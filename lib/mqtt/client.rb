@@ -1,5 +1,6 @@
 autoload :OpenSSL, 'openssl'
 autoload :URI, 'uri'
+autoload :CGI, 'cgi'
 
 # Client class for talking to an MQTT server
 module MQTT
@@ -163,8 +164,8 @@ module MQTT
       end
 
       # Initialise private instance variables
-      @last_ping_request = Time.now
-      @last_ping_response = Time.now
+      @last_ping_request = current_time
+      @last_ping_response = current_time
       @socket = nil
       @read_queue = Queue.new
       @pubacks = {}
@@ -495,7 +496,7 @@ module MQTT
         # Add to queue
         @read_queue.push(packet)
       elsif packet.class == MQTT::Packet::Pingresp
-        @last_ping_response = Time.now
+        @last_ping_response = current_time
       elsif packet.class == MQTT::Packet::Puback
         @pubacks_semaphore.synchronize do
           @pubacks[packet.id] << packet
@@ -532,11 +533,11 @@ module MQTT
       return unless @keep_alive > 0 && connected?
 
       response_timeout = (@keep_alive * 1.5).ceil
-      if Time.now >= @last_ping_request + @keep_alive
+      if current_time >= @last_ping_request + @keep_alive
         packet = MQTT::Packet::Pingreq.new
         send_packet(packet)
-        @last_ping_request = Time.now
-      elsif Time.now > @last_ping_response + response_timeout
+        @last_ping_request = current_time
+      elsif current_time > @last_ping_response + response_timeout
         raise MQTT::ProtocolException, "No Ping Response received for #{response_timeout} seconds"
       end
     end
@@ -587,8 +588,8 @@ module MQTT
       {
         :host => uri.host,
         :port => uri.port || nil,
-        :username => uri.user ? URI.unescape(uri.user) : nil,
-        :password => uri.password ? URI.unescape(uri.password) : nil,
+        :username => uri.user ? CGI.unescape(uri.user) : nil,
+        :password => uri.password ? CGI.unescape(uri.password) : nil,
         :ssl => ssl
       }
     end

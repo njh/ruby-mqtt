@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/njh/ruby-mqtt.svg)](https://travis-ci.org/njh/ruby-mqtt)
+[![Build Status](https://travis-ci.com/njh/ruby-mqtt.svg?branch=main)](https://travis-ci.com/njh/ruby-mqtt)
 
 ruby-mqtt
 =========
