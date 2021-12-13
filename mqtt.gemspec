@@ -8,7 +8,7 @@ Gem::Specification.new do |gem|
   gem.version     = MQTT::VERSION
   gem.author      = 'Nicholas J Humfrey'
   gem.email       = 'njh@aelius.com'
-  gem.homepage    = 'http://github.com/njh/ruby-mqtt'
+  gem.homepage    = 'https://github.com/njh/ruby-mqtt'
   gem.summary     = 'Implementation of the MQTT protocol'
   gem.description = 'Pure Ruby gem that implements the MQTT protocol, a lightweight protocol for publish/subscribe messaging.'
   gem.license     = 'MIT' if gem.respond_to?(:license=)
