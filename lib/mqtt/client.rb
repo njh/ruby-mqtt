@@ -163,6 +163,11 @@ module MQTT
         @port = @ssl ? MQTT::DEFAULT_SSL_PORT : MQTT::DEFAULT_PORT
       end
 
+      if @ssl
+        require 'openssl'
+        require 'mqtt/openssl_fix'
+      end
+
       # Initialise private instance variables
       @last_ping_request = current_time
       @last_ping_response = current_time
