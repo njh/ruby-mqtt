@@ -27,3 +27,4 @@ AllCops:
     - 'mqtt.gemspec'
     - 'examples/**'
     - 'spec/**/*'
+    - 'vendor/**/*'
