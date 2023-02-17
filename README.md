@@ -25,10 +25,11 @@ You may get the latest stable version from [Rubygems]:
 
     $ gem install mqtt
 
-Alternatively, to use a development snapshot from GitHub using [Bundler]:
+Alternatively, to use a development snapshot from GitHub using [Bundler], add this to your `Gemfile`:
 
-    gem 'mqtt', :git => 'https://github.com/njh/ruby-mqtt.git'
-
+~~~ ruby
+    gem 'mqtt', :github => 'njh/ruby-mqtt'
+~~~
 
 Quick Start
 -----------
