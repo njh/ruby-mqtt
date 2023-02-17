@@ -14,8 +14,7 @@ require 'mqtt'
 # List the supported SSL/TLS protocol versions
 p OpenSSL::SSL::SSLContext::METHODS
 
-# Ruby 1.8 / 1.9 only support TLSv1
-client = MQTT::Client.new('localhost', :ssl => :TLSv1)
+client = MQTT::Client.new('localhost', :ssl => :TLSv1_2)
 client.ca_file = './ca.pem'
 client.cert_file = './client.crt'
 client.key_file = './client.key'

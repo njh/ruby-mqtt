@@ -382,8 +382,7 @@ describe MQTT::Packet::Publish do
       expect(packet.topic.bytesize).to eq(8)
     end
 
-    it "should have the correct topic string length", :unless => RUBY_VERSION =~ /^1\.8/ do
-      # Ruby 1.8 doesn't support UTF-8 properly
+    it "should have the correct topic string length" do
       expect(packet.topic.length).to eq(6)
     end
 
@@ -391,8 +390,7 @@ describe MQTT::Packet::Publish do
       expect(packet.payload.bytesize).to eq(12)
     end
 
-    it "should have the correct payload string length", :unless => RUBY_VERSION =~ /^1\.8/ do
-      # Ruby 1.8 doesn't support UTF-8 properly
+    it "should have the correct payload string length" do
       expect(packet.payload.length).to eq(10)
     end
 
