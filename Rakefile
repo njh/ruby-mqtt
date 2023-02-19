@@ -2,7 +2,6 @@
 
 $:.push File.expand_path("./lib", __FILE__)
 
-require 'rubygems'
 require 'yard'
 require 'rspec/core/rake_task'
 require "bundler/gem_tasks"
