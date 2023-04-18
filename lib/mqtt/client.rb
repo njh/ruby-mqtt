@@ -57,6 +57,9 @@ module MQTT
     # Last ping response time
     attr_reader :last_ping_response
 
+    # Assume publish response as ping response
+    attr_accessor :assume_publish_response_as_pingresp
+
     # Timeout between select polls (in seconds)
     SELECT_TIMEOUT = 0.5
 
@@ -75,7 +78,8 @@ module MQTT
       :will_payload => nil,
       :will_qos => 0,
       :will_retain => false,
-      :ssl => false
+      :ssl => false,
+      :assume_publish_response_as_pingresp => false
     }
 
     # Create and connect a new MQTT Client
@@ -492,6 +496,7 @@ module MQTT
       if packet.class == MQTT::Packet::Publish
         # Add to queue
         @read_queue.push(packet)
+        @last_ping_response = Time.now if @assume_publish_response_as_pingresp
       elsif packet.class == MQTT::Packet::Pingresp
         @last_ping_response = current_time
       elsif packet.class == MQTT::Packet::Puback
