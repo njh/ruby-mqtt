@@ -285,7 +285,7 @@ describe MQTT::Client do
     end
 
     it "should not create a new TCP Socket if connected" do
-      allow(client).to receive(:connected?).and_return(true)
+      allow(client).to receive(:socket_alive?).and_return(true)
       expect(TCPSocket).to receive(:new).never
       client.connect('myclient')
     end
@@ -558,19 +558,19 @@ describe MQTT::Client do
     end
 
     it "should not do anything if the socket is already disconnected" do
-      allow(client).to receive(:connected?).and_return(false)
+      allow(client).to receive(:socket_alive?).and_return(false)
       client.disconnect(true)
       expect(socket.string).to eq("")
     end
 
     it "should write a valid DISCONNECT packet to the socket if connected and the send_msg=true an" do
-      allow(client).to receive(:connected?).and_return(true)
+      allow(client).to receive(:socket_alive?).and_return(true)
       client.disconnect(true)
       expect(socket.string).to eq("\xE0\x00")
     end
 
     it "should not write anything to the socket if the send_msg=false" do
-      allow(client).to receive(:connected?).and_return(true)
+      allow(client).to receive(:socket_alive?).and_return(true)
       client.disconnect(false)
       expect(socket.string).to be_empty
     end
