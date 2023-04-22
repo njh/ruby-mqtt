@@ -15,7 +15,7 @@ module MQTT
   DEFAULT_SSL_PORT = 8883
 
   # Super-class for other MQTT related exceptions
-  class Exception < ::Exception
+  class Exception < StandardError
   end
 
   # A ProtocolException will be raised if there is a
