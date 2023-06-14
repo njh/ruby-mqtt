@@ -592,11 +592,11 @@ describe MQTT::Client do
         @injected_pubacks[packet.id] = packet
       end
 
-      def wait_for_puback(id, queue)
+      def wait_for_puback(id)
         packet = @injected_pubacks.fetch(id) {
           return super
         }
-        queue << packet
+        Queue.new << packet
       end
     end
 
@@ -695,6 +695,20 @@ describe MQTT::Client do
       client.publish "topic", "message", false, 1
       expect(client).to receive(:send_packet) { |packet| expect(packet.id).to eq(2) }
       client.publish "topic", "message", false, 1
+    end
+
+    it "does not crash when receiving a PUBACK for a packet it never sent" do
+      expect { client.send(:handle_packet, MQTT::Packet::Puback.new(:id => 666)) }.to_not raise_error
+    end
+
+    it "does not crash with QoS 1 when the broker sends the PUBACK instantly" do
+      allow(client).to receive(:send_packet).and_wrap_original do |send_packet, packet, *args, **kwargs, &block|
+        send_packet.call(packet, *args, **kwargs, &block).tap do
+          client.send(:handle_packet, MQTT::Packet::Puback.new(:id => packet.id))
+        end
+      end
+
+      expect { client.publish("topic", "message", false, 1) }.to_not raise_error
     end
   end
 
