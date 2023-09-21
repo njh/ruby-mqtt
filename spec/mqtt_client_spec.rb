@@ -923,15 +923,29 @@ describe MQTT::Client do
       expect(@read_queue.size).to eq(0)
     end
 
-    it "should close the socket if there is an exception" do
+    it "should close the socket if there is an MQTT exception" do
       expect(socket).to receive(:close).once
       allow(MQTT::Packet).to receive(:read).and_raise(MQTT::Exception)
       client.send(:receive_packet)
     end
 
+    it "should close the socket if there is a system call error" do
+      expect(socket).to receive(:close).once
+      allow(MQTT::Packet).to receive(:read).and_raise(Errno::ECONNRESET)
+      client.send(:receive_packet)
+    end
+
     it "should pass exceptions up to parent thread" do
-      expect(@parent_thread).to receive(:raise).once
-      allow(MQTT::Packet).to receive(:read).and_raise(MQTT::Exception)
+      e = MQTT::Exception.new
+      expect(@parent_thread).to receive(:raise).with(e).once
+      allow(MQTT::Packet).to receive(:read).and_raise(e)
+      client.send(:receive_packet)
+    end
+
+    it "should pass a system call error up to parent thread" do
+      e = Errno::ECONNRESET.new
+      expect(@parent_thread).to receive(:raise).with(e).once
+      allow(MQTT::Packet).to receive(:read).and_raise(e)
       client.send(:receive_packet)
     end
 
