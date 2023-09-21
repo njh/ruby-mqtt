@@ -473,7 +473,7 @@ module MQTT
       end
       keep_alive!
     # Pass exceptions up to parent thread
-    rescue Exception => exp
+    rescue ::Exception => exp
       unless @socket.nil?
         @socket.close
         @socket = nil
