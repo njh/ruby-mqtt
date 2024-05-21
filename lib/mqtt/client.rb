@@ -605,17 +605,15 @@ module MQTT
     end
 
     def open_tcp_socket
-      if RUBY_VERSION.to_f >= 3.0
-        return TCPSocket.new(@host, @port, connect_timeout: @connect_timeout)
-      else
-       begin
-         Timeout.timeout(@connect_timeout) do
-           return TCPSocket.new(@host, @port)
-         end
-       rescue Timeout::Error
-         raise Errno::ETIMEDOUT.new("Connection timed out for \"#{@host}\" port #{@port}")
-       end
-     end
+      return TCPSocket.new @host, @port, connect_timeout: @connect_timeout if RUBY_VERSION.to_f >= 3.0
+
+      begin
+        Timeout.timeout(@connect_timeout) do
+          return TCPSocket.new(@host, @port)
+        end
+      rescue Timeout::Error
+        raise Errno::ETIMEDOUT, "Connection timed out for \"#{@host}\" port #{@port}"
+      end
     end
 
     # ---- Deprecated attributes and methods  ---- #
@@ -640,6 +638,5 @@ module MQTT
     def remote_port=(args)
       self.port = args
     end
-
   end
 end
