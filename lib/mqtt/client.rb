@@ -39,6 +39,9 @@ module MQTT
     # Number of seconds to wait for acknowledgement packets (default is 5 seconds)
     attr_accessor :ack_timeout
 
+    # Number of seconds to connect to the server (default is 90 seconds)
+    attr_accessor :connect_timeout
+
     # Username to authenticate to the server with
     attr_accessor :username
 
@@ -72,6 +75,7 @@ module MQTT
       :clean_session => true,
       :client_id => nil,
       :ack_timeout => 5,
+      :connect_timeout => 30,
       :username => nil,
       :password => nil,
       :will_topic => nil,
@@ -239,7 +243,7 @@ module MQTT
 
       unless connected?
         # Create network socket
-        tcp_socket = TCPSocket.new(@host, @port)
+        tcp_socket = open_tcp_socket
 
         if @ssl
           # Set the protocol version
@@ -598,6 +602,19 @@ module MQTT
       @last_packet_id = (@last_packet_id || 0).next
       @last_packet_id = 1 if @last_packet_id > 0xffff
       @last_packet_id
+    end
+
+    def open_tcp_socket
+      return TCPSocket.new @host, @port, connect_timeout: @connect_timeout if RUBY_VERSION.to_f >= 3.0
+
+      begin
+        Timeout.timeout(@connect_timeout) do
+          return TCPSocket.new(@host, @port)
+        end
+      rescue Timeout::Error
+        raise IO::TimeoutError, "Connection timed out for \"#{@host}\" port #{@port}" if defined? IO::TimeoutError
+        raise Errno::ETIMEDOUT, "Connection timed out for \"#{@host}\" port #{@port}"
+      end
     end
 
     # ---- Deprecated attributes and methods  ---- #
