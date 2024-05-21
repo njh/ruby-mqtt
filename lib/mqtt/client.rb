@@ -243,17 +243,7 @@ module MQTT
 
       unless connected?
         # Create network socket
-        tcp_socket = if RUBY_VERSION.to_f >= 3.0
-                       TCPSocket.new(@host, @port, connect_timeout: @connect_timeout)
-                     else
-                      begin
-                        Timeout.timeout(@connect_timeout) do
-                          TCPSocket.new(@host, @port)
-                        end
-                      rescue Timeout::Error
-                        raise Errno::ETIMEDOUT.new("Connection timed out for \"#{@host}\" port #{@port}")
-                      end
-                    end
+        tcp_socket = open_tcp_socket
 
         if @ssl
           # Set the protocol version
@@ -614,6 +604,20 @@ module MQTT
       @last_packet_id
     end
 
+    def open_tcp_socket
+      if RUBY_VERSION.to_f >= 3.0
+        return TCPSocket.new(@host, @port, connect_timeout: @connect_timeout)
+      else
+       begin
+         Timeout.timeout(@connect_timeout) do
+           return TCPSocket.new(@host, @port)
+         end
+       rescue Timeout::Error
+         raise Errno::ETIMEDOUT.new("Connection timed out for \"#{@host}\" port #{@port}")
+       end
+     end
+    end
+
     # ---- Deprecated attributes and methods  ---- #
     public
 
@@ -636,5 +640,6 @@ module MQTT
     def remote_port=(args)
       self.port = args
     end
+
   end
 end
