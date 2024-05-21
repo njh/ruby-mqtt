@@ -612,6 +612,7 @@ module MQTT
           return TCPSocket.new(@host, @port)
         end
       rescue Timeout::Error
+        raise IO::TimeoutError, "Connection timed out for \"#{@host}\" port #{@port}" if defined? IO::TimeoutError
         raise Errno::ETIMEDOUT, "Connection timed out for \"#{@host}\" port #{@port}"
       end
     end

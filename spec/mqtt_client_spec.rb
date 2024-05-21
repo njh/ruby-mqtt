@@ -655,6 +655,19 @@ describe MQTT::Client do
       client.instance_variable_set('@socket', socket)
     end
 
+    it "should respect connect_timeout" do
+      client = MQTT::Client.new(:host => '198.51.100.1', :connect_timeout => 0.1)
+      expect {
+        client.connect
+      }.to raise_error( 
+        if defined? IO::TimeoutError
+          IO::TimeoutError
+        else
+          Errno::ETIMEDOUT
+        end
+      )
+    end
+
     it "should respect timeouts" do
       require "socket"
       rd, wr = UNIXSocket.pair
