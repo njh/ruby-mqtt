@@ -445,7 +445,7 @@ module MQTT
       def initialize(args = {})
         super(ATTR_DEFAULTS.merge(args))
 
-        if version == '3.1.0' || version == '3.1'
+        if ['3.1.0', '3.1'].include?(version)
           self.protocol_name ||= 'MQIsdp'
           self.protocol_level ||= 0x03
         elsif version == '3.1.1'
