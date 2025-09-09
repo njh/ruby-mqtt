@@ -20,6 +20,8 @@ Gem::Specification.new do |gem|
   gem.executables   = %w()
   gem.require_paths = %w(lib)
 
+  gem.add_dependency 'logger'
+
   if Gem.ruby_version > Gem::Version.new('3.0')
     gem.add_development_dependency 'bundler',  '>= 1.11.2'
     gem.add_development_dependency 'rake',     '>= 10.2.2'
