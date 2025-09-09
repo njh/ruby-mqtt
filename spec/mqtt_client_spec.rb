@@ -751,8 +751,8 @@ describe MQTT::Client do
     end
 
     it "does not crash with QoS 1 when the broker sends the PUBACK instantly" do
-      allow(client).to receive(:send_packet).and_wrap_original do |send_packet, packet, *args, **kwargs, &block|
-        send_packet.call(packet, *args, **kwargs, &block).tap do
+      allow(client).to receive(:send_packet).and_wrap_original do |send_packet, packet, *args, &block|
+        send_packet.call(packet, *args, &block).tap do
           client.send(:handle_packet, MQTT::Packet::Puback.new(:id => packet.id))
         end
       end
