@@ -89,6 +89,15 @@ client.ca_file   = path_to('root-ca.pem')
 client.connect()
 ~~~
 
+The default timeout when opening a TCP Socket is 30 seconds. To specify it explicitly, use 'connect_timeout =>':
+
+~~~ ruby
+client = MQTT::Client.connect(
+  :host => 'myserver.example.com',
+  :connect_timeout => 15
+)
+~~~
+
 The connection can either be made without the use of a block:
 
 ~~~ ruby
