@@ -1,6 +1,20 @@
 Ruby MQTT NEWS
 ==============
 
+Ruby MQTT Version 0.6.0 (2023-02-17)
+------------------------------------
+
+* Add Rubocop and performed code cleanup
+* Updated yard minimum version to 
+* Added support for clearing the queue of waiting incoming messages (#117)
+* Wrap packet id after 0xffff (#118)
+* Use a queue to wait for Puback packets rather than polling (#120)
+* Filter out spec files from the coverage report
+* Improvements `Packet.read_byte` performance (#134)
+* Use monotonic clock instead of realtime for keep_alive (#132)
+* Switch to CGI.unescape instead of the deprecated URI.unescape (#136)
+
+
 Ruby MQTT Version 0.5.0 (2017-04-16)
 ------------------------------------
 
