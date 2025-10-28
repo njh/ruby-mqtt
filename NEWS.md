@@ -1,6 +1,17 @@
 Ruby MQTT NEWS
 ==============
 
+Ruby MQTT Version 0.7.0 (2025-10-28)
+------------------------------------
+
+* TLS hostname verification (#125)
+* Supporting private keys other than `RSA` (#148)
+* Removed support for ruby 1.8 and 1.9 (#156)
+* Handle instantaneous and unsolicited PUBACKs (#158)
+* Prevent deadlock due to system call error (#159)
+* Added support for timeout when opening a TCPSocket (#163)
+
+
 Ruby MQTT Version 0.6.0 (2023-02-17)
 ------------------------------------
 
