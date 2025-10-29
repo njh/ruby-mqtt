@@ -1,6 +1,5 @@
 autoload :OpenSSL, 'openssl'
 autoload :URI, 'uri'
-autoload :CGI, 'cgi'
 
 # Client class for talking to an MQTT server
 module MQTT
@@ -592,8 +591,8 @@ module MQTT
       {
         :host => uri.host,
         :port => uri.port || nil,
-        :username => uri.user ? CGI.unescape(uri.user) : nil,
-        :password => uri.password ? CGI.unescape(uri.password) : nil,
+        :username => uri.user ? URI::DEFAULT_PARSER.unescape(uri.user) : nil,
+        :password => uri.password ? URI::DEFAULT_PARSER.unescape(uri.password) : nil,
         :ssl => ssl
       }
     end
