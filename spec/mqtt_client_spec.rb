@@ -331,6 +331,16 @@ describe MQTT::Client do
       client.connect('myclient')
     end
 
+    it "should reset @last_ping_request and @last_ping_response" do
+      frozen_time = Time.now
+      expect(Time).to receive(:now).exactly(2).and_return(frozen_time)
+      client.instance_variable_set('@last_ping_request', Time.at(0))
+      client.instance_variable_set('@last_ping_response', Time.at(0))
+      client.connect('myclient')
+      expect(client.instance_variable_get('@last_ping_request')).to eq(frozen_time)
+      expect(client.instance_variable_get('@last_ping_response')).to eq(frozen_time)
+    end
+
     context "protocol version 3.1.0" do
       it "should write a valid CONNECT packet to the socket if not connected" do
         client.version = '3.1.0'
