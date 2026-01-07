@@ -39,7 +39,7 @@ describe MQTT::Client do
       client = MQTT::Client.new
       expect(client.host).to eq(nil)
       expect(client.port).to eq(1883)
-      expect(client.version).to eq('3.1.1')
+      expect(client.version).to eq('5.0')
       expect(client.keep_alive).to eq(15)
     end
 
@@ -382,6 +382,7 @@ describe MQTT::Client do
     end
 
     it "should include the username and password for an authenticated connection" do
+      client.version = '3.1.1'
       client.username = 'username'
       client.password = 'password'
       client.connect('myclient')
@@ -512,6 +513,7 @@ describe MQTT::Client do
       end
 
       it "should include the will in the CONNECT message" do
+        client.version = '3.1.1'
         client.connect('myclient')
         expect(socket.string).to eq(
           "\x10\x22"+
@@ -613,6 +615,7 @@ describe MQTT::Client do
     end
 
     it "should write a valid DISCONNECT packet to the socket if connected and the send_msg=true an" do
+      client.version = '3.1.1'
       allow(client).to receive(:connected?).and_return(true)
       client.disconnect(true)
       expect(socket.string).to eq("\xE0\x00")
@@ -687,22 +690,26 @@ describe MQTT::Client do
     end
 
     it "should write a valid PUBLISH packet to the socket without the retain flag" do
+      client.version = '3.1.1'
       client.publish('topic','payload', false, 0)
       expect(socket.string).to eq("\x30\x0e\x00\x05topicpayload")
     end
 
     it "should write a valid PUBLISH packet to the socket with the retain flag set" do
+      client.version = '3.1.1'
       client.publish('topic','payload', true, 0)
       expect(socket.string).to eq("\x31\x0e\x00\x05topicpayload")
     end
 
     it "should write a valid PUBLISH packet to the socket with the QoS set to 1" do
+      client.version = '3.1.1'
       inject_puback(1)
       client.publish('topic','payload', false, 1)
       expect(socket.string).to eq("\x32\x10\x00\x05topic\x00\x01payload")
     end
 
     it "should wrap the packet id after 65535" do
+      client.version = '3.1.1'
       0xffff.times do |n|
         inject_puback(n + 1)
         client.publish('topic','payload', false, 1)
@@ -716,17 +723,20 @@ describe MQTT::Client do
     end
 
     it "should write a valid PUBLISH packet to the socket with the QoS set to 2" do
+      client.version = '3.1.1'
       inject_puback(1)
       client.publish('topic','payload', false, 2)
       expect(socket.string).to eq("\x34\x10\x00\x05topic\x00\x01payload")
     end
 
     it "should write a valid PUBLISH packet with no payload" do
+      client.version = '3.1.1'
       client.publish('test')
       expect(socket.string).to eq("\x30\x06\x00\x04test")
     end
 
     it "should write a valid PUBLISH packet with frozen payload" do
+      client.version = '3.1.1'
       client.publish('topic', 'payload'.freeze, false, 0)
       expect(socket.string).to eq("\x30\x0e\x00\x05topicpayload")
     end
@@ -780,21 +790,25 @@ describe MQTT::Client do
     end
 
     it "should write a valid SUBSCRIBE packet to the socket if given a single topic String" do
+      client.version = '3.1.1'
       client.subscribe('a/b')
       expect(socket.string).to eq("\x82\x08\x00\x01\x00\x03a/b\x00")
     end
 
     it "should write a valid SUBSCRIBE packet to the socket if given a two topic Strings in an Array" do
+      client.version = '3.1.1'
       client.subscribe('a/b','c/d')
       expect(socket.string).to eq("\x82\x0e\x00\x01\x00\x03a/b\x00\x00\x03c/d\x00")
     end
 
     it "should write a valid SUBSCRIBE packet to the socket if given a two topic Strings with QoS in an Array" do
+      client.version = '3.1.1'
       client.subscribe(['a/b',0],['c/d',1])
       expect(socket.string).to eq("\x82\x0e\x00\x01\x00\x03a/b\x00\x00\x03c/d\x01")
     end
 
     it "should write a valid SUBSCRIBE packet to the socket if given a two topic Strings with QoS in a Hash" do
+      client.version = '3.1.1'
       client.subscribe('a/b' => 0,'c/d' => 1)
       expect(socket.string).to eq("\x82\x0e\x00\x01\x00\x03a/b\x00\x00\x03c/d\x01")
     end
@@ -961,16 +975,19 @@ describe MQTT::Client do
     end
 
     it "should write a valid UNSUBSCRIBE packet to the socket if given a single topic String" do
+      client.version = '3.1.1'
       client.unsubscribe('a/b')
       expect(socket.string).to eq("\xa2\x07\x00\x01\x00\x03a/b")
     end
 
     it "should write a valid UNSUBSCRIBE packet to the socket if given a two topic Strings" do
+      client.version = '3.1.1'
       client.unsubscribe('a/b','c/d')
       expect(socket.string).to eq("\xa2\x0c\x00\x01\x00\x03a/b\x00\x03c/d")
     end
 
     it "should write a valid UNSUBSCRIBE packet to the socket if given an array of Strings" do
+      client.version = '3.1.1'
       client.unsubscribe(['a/b','c/d'])
       expect(socket.string).to eq("\xa2\x0c\x00\x01\x00\x03a/b\x00\x03c/d")
     end

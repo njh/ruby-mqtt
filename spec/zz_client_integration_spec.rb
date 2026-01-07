@@ -15,7 +15,7 @@ describe "a client talking to a server" do
     @server.logger.level = Logger::WARN
     @server.start
 
-    @client = MQTT::Client.new(@server.address, @server.port)
+    @client = MQTT::Client.new(@server.address, @server.port, :version => '3.1.1')
   end
 
   after(:each) do

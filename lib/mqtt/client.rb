@@ -10,7 +10,7 @@ module MQTT
     # Port number of the remote server
     attr_accessor :port
 
-    # The version number of the MQTT protocol to use (default 3.1.1)
+    # The version number of the MQTT protocol to use (default 5.0)
     attr_accessor :version
 
     # Set to true to enable SSL/TLS encrypted communication
@@ -69,7 +69,7 @@ module MQTT
     ATTR_DEFAULTS = {
       :host => nil,
       :port => nil,
-      :version => '3.1.1',
+      :version => '5.0',
       :keep_alive => 15,
       :clean_session => true,
       :client_id => nil,
@@ -309,7 +309,7 @@ module MQTT
 
       # Close the socket if it is open
       if send_msg
-        packet = MQTT::Packet::Disconnect.new
+        packet = MQTT::Packet::Disconnect.new(:version => @version)
         send_packet(packet)
       end
       @socket.close unless @socket.nil?
@@ -328,6 +328,7 @@ module MQTT
       raise ArgumentError, 'Topic name cannot be empty' if topic.empty?
 
       packet = MQTT::Packet::Publish.new(
+        :version => @version,
         :id => next_packet_id,
         :qos => qos,
         :retain => retain,
@@ -375,6 +376,7 @@ module MQTT
     #
     def subscribe(*topics)
       packet = MQTT::Packet::Subscribe.new(
+        :version => @version,
         :id => next_packet_id,
         :topics => topics
       )
@@ -458,6 +460,7 @@ module MQTT
       topics = topics.first if topics.is_a?(Enumerable) && topics.count == 1
 
       packet = MQTT::Packet::Unsubscribe.new(
+        :version => @version,
         :topics => topics,
         :id => next_packet_id
       )
