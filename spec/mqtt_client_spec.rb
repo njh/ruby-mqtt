@@ -995,6 +995,7 @@ describe MQTT::Client do
 
   describe "when calling the 'receive_packet' method" do
     before(:each) do
+      client.version = '3.1.1'
       client.instance_variable_set('@socket', socket)
       allow(IO).to receive(:select).and_return([[socket], [], []])
       @read_queue = client.instance_variable_get('@read_queue')

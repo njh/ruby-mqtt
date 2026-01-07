@@ -23,8 +23,10 @@ module MQTT
       :body_length => nil
     }
 
-    # Read in a packet from a socket
-    def self.read(socket)
+    # Read a packet from a socket
+    # @param socket [IO] Socket to read from
+    # @param version [String] Optional MQTT version ('3.1.0', '3.1.1', '5.0') for context
+    def self.read(socket, version: nil)
       # Read in the packet header and create a new packet object
       packet = create_from_header(
         read_byte(socket)
@@ -46,6 +48,9 @@ module MQTT
 
       # Store the expected body length in the packet
       packet.instance_variable_set('@body_length', body_length)
+
+      # Set version before parsing body so properties are handled correctly
+      packet.version = version if version
 
       # Read in the packet body
       packet.parse_body(socket.read(body_length))

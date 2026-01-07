@@ -477,7 +477,7 @@ module MQTT
       handle_timeouts
       unless result.nil?
         # Yes - read in the packet
-        packet = MQTT::Packet.read(@socket)
+        packet = MQTT::Packet.read(@socket, version: @version)
         handle_packet packet
       end
       keep_alive!
