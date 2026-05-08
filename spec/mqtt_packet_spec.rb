@@ -1560,6 +1560,20 @@ describe MQTT::Packet::Subscribe do
       expect(packet.inspect).to eq("#<MQTT::Packet::Subscribe: 0x00, 'a':1, 'b':0, 'c':2>")
     end
   end
+
+  describe "#topic_failures" do
+    it "should return the names of topics whose subscription was rejected" do
+      subscribe = MQTT::Packet::Subscribe.new(:topics => [['a/b', 0], ['c/d', 1]])
+      suback = MQTT::Packet::Suback.new(:return_codes => [0, 0x80])
+      expect(subscribe.topic_failures(suback)).to eq(['c/d'])
+    end
+
+    it "should be empty when every topic was granted" do
+      subscribe = MQTT::Packet::Subscribe.new(:topics => [['a/b', 0], ['c/d', 1]])
+      suback = MQTT::Packet::Suback.new(:return_codes => [0, 1])
+      expect(subscribe.topic_failures(suback)).to eq([])
+    end
+  end
 end
 
 describe MQTT::Packet::Suback do
@@ -1655,6 +1669,18 @@ describe MQTT::Packet::Suback do
       packet.return_codes = [0,1,0]
       expect(packet.granted_qos).to eq([0,1,0])
       expect(packet.return_codes).to eq([0,1,0])
+    end
+  end
+
+  describe "#failures" do
+    it "should be a parallel array of booleans indicating which return codes were rejected" do
+      packet = MQTT::Packet::Suback.new(:return_codes => [0, 0x80, 1, 0x80])
+      expect(packet.failures).to eq([false, true, false, true])
+    end
+
+    it "should be empty when there are no return codes" do
+      packet = MQTT::Packet::Suback.new(:return_codes => [])
+      expect(packet.failures).to eq([])
     end
   end
 end
