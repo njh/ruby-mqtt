@@ -34,7 +34,7 @@ class MQTT::FakeServer
   #
   # If no port is given, bind to a random port number
   # If no bind address is given, bind to localhost
-  def initialize(port=nil, bind_address='127.0.0.1')
+  def initialize(port=0, bind_address='127.0.0.1')
     @port = port
     @address = bind_address
     @pings_received = 0
