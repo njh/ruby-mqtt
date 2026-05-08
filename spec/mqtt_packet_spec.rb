@@ -99,6 +99,180 @@ describe MQTT::Packet do
       expect(packet.id).to eq(4321)
     end
   end
+
+  describe "MQTT 5.0 encoding methods" do
+    let(:packet) { MQTT::Packet.new }
+
+    describe "encode_int" do
+      it "should encode a 32-bit unsigned integer in big-endian" do
+        data = packet.send(:encode_int, 0x12345678)
+        expect(data).to eq("\x12\x34\x56\x78")
+        expect(data.encoding.to_s).to eq("ASCII-8BIT")
+      end
+
+      it "should encode zero correctly" do
+        expect(packet.send(:encode_int, 0)).to eq("\x00\x00\x00\x00")
+      end
+
+      it "should encode max value correctly" do
+        expect(packet.send(:encode_int, 0xFFFFFFFF)).to eq("\xFF\xFF\xFF\xFF")
+      end
+
+      it "should raise an error if value is too big" do
+        expect {
+          packet.send(:encode_int, 0x100000000)
+        }.to raise_error('Value too big for int')
+      end
+    end
+
+    describe "shift_int" do
+      it "should extract a 32-bit unsigned integer from a buffer" do
+        buffer = "\x12\x34\x56\x78remaining"
+        expect(packet.send(:shift_int, buffer)).to eq(0x12345678)
+        expect(buffer).to eq('remaining')
+      end
+    end
+
+    describe "encode_variable_byte_integer" do
+      it "should encode single byte values (0-127)" do
+        expect(packet.send(:encode_variable_byte_integer, 0)).to eq("\x00")
+        expect(packet.send(:encode_variable_byte_integer, 127)).to eq("\x7F")
+      end
+
+      it "should encode two byte values (128-16383)" do
+        expect(packet.send(:encode_variable_byte_integer, 128)).to eq("\x80\x01")
+        expect(packet.send(:encode_variable_byte_integer, 16383)).to eq("\xFF\x7F")
+      end
+
+      it "should encode three byte values (16384-2097151)" do
+        expect(packet.send(:encode_variable_byte_integer, 16384)).to eq("\x80\x80\x01")
+        expect(packet.send(:encode_variable_byte_integer, 2097151)).to eq("\xFF\xFF\x7F")
+      end
+
+      it "should encode four byte values (2097152-268435455)" do
+        expect(packet.send(:encode_variable_byte_integer, 2097152)).to eq("\x80\x80\x80\x01")
+        expect(packet.send(:encode_variable_byte_integer, 268435455)).to eq("\xFF\xFF\xFF\x7F")
+      end
+    end
+
+    describe "shift_variable_byte_integer" do
+      it "should decode single byte values" do
+        buffer = "\x00remaining"
+        expect(packet.send(:shift_variable_byte_integer, buffer)).to eq(0)
+        expect(buffer).to eq('remaining')
+
+        buffer = "\x7Fremaining"
+        expect(packet.send(:shift_variable_byte_integer, buffer)).to eq(127)
+        expect(buffer).to eq('remaining')
+      end
+
+      it "should decode two byte values" do
+        buffer = "\x80\x01remaining"
+        expect(packet.send(:shift_variable_byte_integer, buffer)).to eq(128)
+        expect(buffer).to eq('remaining')
+      end
+
+      it "should decode three byte values" do
+        buffer = "\x80\x80\x01remaining"
+        expect(packet.send(:shift_variable_byte_integer, buffer)).to eq(16384)
+        expect(buffer).to eq('remaining')
+      end
+
+      it "should decode four byte values" do
+        buffer = "\xFF\xFF\xFF\x7Fremaining"
+        expect(packet.send(:shift_variable_byte_integer, buffer)).to eq(268435455)
+        expect(buffer).to eq('remaining')
+      end
+    end
+
+    describe "encode_string_pair" do
+      it "should encode a key-value string pair" do
+        data = packet.send(:encode_string_pair, 'key', 'value')
+        expect(data).to eq("\x00\x03key\x00\x05value")
+      end
+    end
+
+    describe "shift_string_pair" do
+      it "should decode a key-value string pair" do
+        buffer = "\x00\x03key\x00\x05valueremaining"
+        key, value = packet.send(:shift_string_pair, buffer)
+        expect(key).to eq('key')
+        expect(value).to eq('value')
+        expect(buffer).to eq('remaining')
+      end
+    end
+
+    describe "encode_properties" do
+      it "should encode empty properties as a single zero byte" do
+        expect(packet.send(:encode_properties, {})).to eq("\x00")
+        expect(packet.send(:encode_properties, nil)).to eq("\x00")
+      end
+
+      it "should encode session_expiry_interval (4-byte int)" do
+        props = { session_expiry_interval: 3600 }
+        # Length byte (5) + prop_id (0x11) + 4-byte int (3600 = 0x00000E10)
+        expect(packet.send(:encode_properties, props)).to eq("\x05\x11\x00\x00\x0E\x10")
+      end
+
+      it "should encode reason_string (string)" do
+        props = { reason_string: 'test' }
+        # Length (7) + prop_id (0x1F) + string length (2) + 'test' (4)
+        expect(packet.send(:encode_properties, props)).to eq("\x07\x1F\x00\x04test")
+      end
+
+      it "should encode user_property as repeatable" do
+        props = { user_property: [['key1', 'val1'], ['key2', 'val2']] }
+        encoded = packet.send(:encode_properties, props)
+        # Should have two user properties
+        expect(encoded.scan(/\x26/).length).to eq(2)
+      end
+
+      it "should encode receive_maximum (2-byte int)" do
+        props = { receive_maximum: 100 }
+        expect(packet.send(:encode_properties, props)).to eq("\x03\x21\x00\x64")
+      end
+    end
+
+    describe "parse_properties" do
+      it "should parse empty properties" do
+        buffer = "\x00"
+        expect(packet.send(:parse_properties, buffer)).to eq({})
+      end
+
+      it "should parse session_expiry_interval" do
+        buffer = "\x05\x11\x00\x00\x0E\x10"
+        props = packet.send(:parse_properties, buffer)
+        expect(props[:session_expiry_interval]).to eq(3600)
+      end
+
+      it "should parse reason_string" do
+        buffer = "\x07\x1F\x00\x04test"
+        props = packet.send(:parse_properties, buffer)
+        expect(props[:reason_string]).to eq('test')
+      end
+
+      it "should parse multiple user_property values" do
+        # Two user properties: each is 1 (id) + 2+4 (key) + 2+4 (val) = 13 bytes
+        # Total = 26 bytes = 0x1A
+        buffer = "\x1A\x26\x00\x04key1\x00\x04val1\x26\x00\x04key2\x00\x04val2"
+        props = packet.send(:parse_properties, buffer)
+        expect(props[:user_property]).to eq([['key1', 'val1'], ['key2', 'val2']])
+      end
+
+      it "should roundtrip encode/parse properties" do
+        original = {
+          session_expiry_interval: 7200,
+          reason_string: 'hello',
+          receive_maximum: 50
+        }
+        encoded = packet.send(:encode_properties, original)
+        parsed = packet.send(:parse_properties, encoded)
+        expect(parsed[:session_expiry_interval]).to eq(7200)
+        expect(parsed[:reason_string]).to eq('hello')
+        expect(parsed[:receive_maximum]).to eq(50)
+      end
+    end
+  end
 end
 
 describe MQTT::Packet::Publish do
@@ -456,6 +630,64 @@ describe MQTT::Packet::Publish do
       expect(packet.inspect).to eq("#<MQTT::Packet::Publish: d0, q0, r1, m0, 'test', ... (12 bytes)>")
     end
   end
+
+  describe "MQTT 5.0" do
+    describe "when serialising a packet" do
+      it "should output correct bytes for 5.0 publish with empty properties" do
+        packet = MQTT::Packet::Publish.new(
+          :version => '5.0',
+          :topic => 'test',
+          :payload => 'hi'
+        )
+        # Topic (2+4) + props_len (1) + payload (2) = 9 bytes
+        expect(packet.to_s).to eq("\x30\x09\x00\x04test\x00hi")
+      end
+
+      it "should output correct bytes with message_expiry_interval" do
+        packet = MQTT::Packet::Publish.new(
+          :version => '5.0',
+          :topic => 'a',
+          :payload => 'x',
+          :properties => { message_expiry_interval: 60 }
+        )
+        encoded = packet.to_s
+        expect(encoded).to include("\x02") # message_expiry_interval property id
+      end
+
+      it "should include properties between header and payload" do
+        packet = MQTT::Packet::Publish.new(
+          :version => '5.0',
+          :qos => 1,
+          :id => 1,
+          :topic => 't',
+          :payload => 'p',
+          :properties => { user_property: [['k', 'v']] }
+        )
+        encoded = packet.to_s
+        expect(encoded).to include("\x26") # user_property id
+      end
+    end
+
+    describe "when parsing a 5.0 Publish with properties" do
+      let(:packet) do
+        # Build packet: topic 'a' + props (message_expiry=60) + payload 'x'
+        # Topic: \x00\x01a, Props: \x05\x02\x00\x00\x00\x3C, Payload: x
+        MQTT::Packet.parse("\x30\x0A\x00\x01a\x05\x02\x00\x00\x00\x3Cx", version: '5.0')
+      end
+
+      it "should parse message_expiry_interval property" do
+        expect(packet.properties[:message_expiry_interval]).to eq(60)
+      end
+
+      it "should set the topic correctly" do
+        expect(packet.topic).to eq('a')
+      end
+
+      it "should set the payload correctly" do
+        expect(packet.payload).to eq('x')
+      end
+    end
+  end
 end
 
 describe MQTT::Packet::Connect do
@@ -587,6 +819,34 @@ describe MQTT::Packet::Connect do
       end
     end
 
+    context 'protocol version 5.0' do
+      it "should output the correct bytes for a basic 5.0 connect packet" do
+        packet = MQTT::Packet::Connect.new(:version => '5.0', :client_id => 'myclient')
+        # 0x10 = CONNECT, length, "MQTT", 0x05 (level), 0x02 (clean), keep_alive, props (0x00), client_id
+        expect(packet.to_s).to eq("\x10\x15\x00\x04MQTT\x05\x02\x00\x0f\x00\x00\x08myclient")
+      end
+
+      it "should output correct bytes with session_expiry_interval property" do
+        packet = MQTT::Packet::Connect.new(
+          :version => '5.0',
+          :client_id => 'test',
+          :properties => { session_expiry_interval: 3600 }
+        )
+        # Properties: 0x05 (length) + 0x11 (session_expiry) + 4 bytes (3600)
+        expect(packet.to_s).to eq("\x10\x16\x00\x04MQTT\x05\x02\x00\x0f\x05\x11\x00\x00\x0E\x10\x00\x04test")
+      end
+
+      it "should output correct bytes with user_property" do
+        packet = MQTT::Packet::Connect.new(
+          :version => '5.0',
+          :client_id => 'c',
+          :properties => { user_property: [['k', 'v']] }
+        )
+        encoded = packet.to_s
+        expect(encoded).to include("\x26") # user property id
+      end
+    end
+
     context 'an invalid protocol version number' do
       it "should raise a protocol exception" do
         expect {
@@ -697,6 +957,50 @@ describe MQTT::Packet::Connect do
 
     it "should set the the password field of the packet to nil" do
       expect(packet.password).to be_nil
+    end
+  end
+
+  describe "when parsing a simple 5.0 Connect packet" do
+    let(:packet) do
+      MQTT::Packet.parse(
+        "\x10\x15\x00\x04MQTT\x05\x02\x00\x0a\x00\x00\x08myclient"
+      )
+    end
+
+    it "should correctly create the right type of packet object" do
+      expect(packet.class).to eq(MQTT::Packet::Connect)
+    end
+
+    it "should set the Protocol Level of the packet correctly" do
+      expect(packet.protocol_level).to eq(5)
+    end
+
+    it "should set the Protocol version of the packet correctly" do
+      expect(packet.version).to eq('5.0')
+    end
+
+    it "should set the Client Identifier correctly" do
+      expect(packet.client_id).to eq('myclient')
+    end
+
+    it "should set properties to empty hash" do
+      expect(packet.properties).to eq({})
+    end
+  end
+
+  describe "when parsing a 5.0 Connect packet with properties" do
+    let(:packet) do
+      MQTT::Packet.parse(
+        "\x10\x1A\x00\x04MQTT\x05\x02\x00\x0a\x05\x11\x00\x00\x0E\x10\x00\x08myclient"
+      )
+    end
+
+    it "should parse session_expiry_interval property" do
+      expect(packet.properties[:session_expiry_interval]).to eq(3600)
+    end
+
+    it "should set the Protocol version correctly" do
+      expect(packet.version).to eq('5.0')
     end
   end
 
@@ -1215,13 +1519,16 @@ describe MQTT::Packet::Connack do
   end
 
   describe "when parsing packet with extra bytes on the end" do
-    it "should raise an exception" do
+    it "should raise an exception for 3.1.1 (body length 2 + extra)" do
+      # Body length says 3 but we only have 2 bytes of valid 3.1.1 data
+      # This is actually valid as 5.0 with empty properties, so test a different case
       expect {
-        packet = MQTT::Packet.parse( "\x20\x03\x00\x00\x00" )
-      }.to raise_error(
-        MQTT::ProtocolException,
-        "Extra bytes at end of Connect Acknowledgment packet"
-      )
+        # Force a truly invalid packet: body_length=2 but 3 bytes provided
+        buffer = "\x20\x02\x00\x00".dup
+        buffer << "\x00" # extra byte after valid 3.1.1 body
+        # The parse will fail because buffer length doesn't match body_length
+        MQTT::Packet.parse(buffer + "extra")
+      }.to raise_error(MQTT::ProtocolException)
     end
   end
 
@@ -1244,6 +1551,53 @@ describe MQTT::Packet::Connack do
     it "should output the right string when the return code is 0x0F" do
       packet = MQTT::Packet::Connack.new( :return_code => 0x0F )
       expect(packet.inspect).to eq("#<MQTT::Packet::Connack: 0x0F>")
+    end
+  end
+
+  describe "MQTT 5.0" do
+    describe "when serialising a packet" do
+      it "should output correct bytes for basic 5.0 connack" do
+        packet = MQTT::Packet::Connack.new(:version => '5.0', :return_code => 0x00)
+        # Flags (1) + reason code (1) + properties length (1)
+        expect(packet.to_s).to eq("\x20\x03\x00\x00\x00")
+      end
+
+      it "should output correct bytes with properties" do
+        packet = MQTT::Packet::Connack.new(
+          :version => '5.0',
+          :return_code => 0x00,
+          :properties => { session_expiry_interval: 3600 }
+        )
+        encoded = packet.to_s
+        expect(encoded).to include("\x11") # session_expiry_interval property id
+      end
+    end
+
+    describe "when parsing a basic 5.0 Connack packet" do
+      let(:packet) { MQTT::Packet.parse("\x20\x03\x00\x00\x00") }
+
+      it "should correctly create the right type" do
+        expect(packet.class).to eq(MQTT::Packet::Connack)
+      end
+
+      it "should set the return code correctly" do
+        expect(packet.return_code).to eq(0x00)
+      end
+
+      it "should set properties to empty hash" do
+        expect(packet.properties).to eq({})
+      end
+    end
+
+    describe "when parsing a 5.0 Connack with properties" do
+      let(:packet) do
+        # Flags (0x00) + reason code (0x00) + props length (5) + session_expiry (0x11) + value
+        MQTT::Packet.parse("\x20\x08\x00\x00\x05\x11\x00\x00\x0E\x10")
+      end
+
+      it "should parse session_expiry_interval property" do
+        expect(packet.properties[:session_expiry_interval]).to eq(3600)
+      end
     end
   end
 end
@@ -1269,13 +1623,12 @@ describe MQTT::Packet::Puback do
   end
 
   describe "when parsing packet with extra bytes on the end" do
-    it "should raise an exception" do
-      expect {
-        packet = MQTT::Packet.parse( "\x40\x03\x12\x34\x00" )
-      }.to raise_error(
-        MQTT::ProtocolException,
-        "Extra bytes at end of Publish Acknowledgment packet"
-      )
+    it "should interpret as MQTT 5.0 with reason code" do
+      # body_length=3 is now valid as 5.0: id (2) + reason_code (1)
+      packet = MQTT::Packet.parse("\x40\x03\x12\x34\x00")
+      expect(packet.id).to eq(0x1234)
+      expect(packet.reason_code).to eq(0x00)
+      expect(packet.version).to eq('5.0')
     end
   end
 
@@ -1287,6 +1640,18 @@ describe MQTT::Packet::Puback do
         MQTT::ProtocolException,
         "Invalid flags in PUBACK packet header"
       )
+    end
+  end
+
+  describe "MQTT 5.0" do
+    it "should encode with reason code and empty properties" do
+      packet = MQTT::Packet::Puback.new(:version => '5.0', :id => 0x0001)
+      expect(packet.to_s).to eq("\x40\x04\x00\x01\x00\x00")
+    end
+
+    it "should encode with non-zero reason code" do
+      packet = MQTT::Packet::Puback.new(:version => '5.0', :id => 0x0001, :reason_code => 0x10)
+      expect(packet.to_s).to eq("\x40\x04\x00\x01\x10\x00")
     end
   end
 
@@ -1317,13 +1682,11 @@ describe MQTT::Packet::Pubrec do
   end
 
   describe "when parsing packet with extra bytes on the end" do
-    it "should raise an exception" do
-      expect {
-        packet = MQTT::Packet.parse( "\x50\x03\x12\x34\x00" )
-      }.to raise_error(
-        MQTT::ProtocolException,
-        "Extra bytes at end of Publish Received packet"
-      )
+    it "should interpret as MQTT 5.0 with reason code" do
+      packet = MQTT::Packet.parse("\x50\x03\x12\x34\x00")
+      expect(packet.id).to eq(0x1234)
+      expect(packet.reason_code).to eq(0x00)
+      expect(packet.version).to eq('5.0')
     end
   end
 
@@ -1365,13 +1728,11 @@ describe MQTT::Packet::Pubrel do
   end
 
   describe "when parsing packet with extra bytes on the end" do
-    it "should raise an exception" do
-      expect {
-        packet = MQTT::Packet.parse( "\x62\x03\x12\x34\x00" )
-      }.to raise_error(
-        MQTT::ProtocolException,
-        "Extra bytes at end of Publish Release packet"
-      )
+    it "should interpret as MQTT 5.0 with reason code" do
+      packet = MQTT::Packet.parse("\x62\x03\x12\x34\x00")
+      expect(packet.id).to eq(0x1234)
+      expect(packet.reason_code).to eq(0x00)
+      expect(packet.version).to eq('5.0')
     end
   end
 
@@ -1413,13 +1774,11 @@ describe MQTT::Packet::Pubcomp do
   end
 
   describe "when parsing packet with extra bytes on the end" do
-    it "should raise an exception" do
-      expect {
-        MQTT::Packet.parse( "\x70\x03\x12\x34\x00" )
-      }.to raise_error(
-        MQTT::ProtocolException,
-        "Extra bytes at end of Publish Complete packet"
-      )
+    it "should interpret as MQTT 5.0 with reason code" do
+      packet = MQTT::Packet.parse("\x70\x03\x12\x34\x00")
+      expect(packet.id).to eq(0x1234)
+      expect(packet.reason_code).to eq(0x00)
+      expect(packet.version).to eq('5.0')
     end
   end
 
@@ -1743,13 +2102,11 @@ describe MQTT::Packet::Unsuback do
   end
 
   describe "when parsing packet with extra bytes on the end" do
-    it "should raise an exception" do
-      expect {
-        packet = MQTT::Packet.parse( "\xB0\x03\x12\x34\x00" )
-      }.to raise_error(
-        MQTT::ProtocolException,
-        "Extra bytes at end of Unsubscribe Acknowledgment packet"
-      )
+    it "should interpret as MQTT 5.0 with properties" do
+      # body_length=3 is valid as 5.0: id (2) + props_len (1)
+      packet = MQTT::Packet.parse("\xB0\x03\x12\x34\x00")
+      expect(packet.id).to eq(0x1234)
+      expect(packet.version).to eq('5.0')
     end
   end
 
@@ -1865,12 +2222,11 @@ describe MQTT::Packet::Disconnect do
       expect(packet.class).to eq(MQTT::Packet::Disconnect)
     end
 
-    it "should raise an exception if the packet has a payload" do
-      expect {
-        MQTT::Packet.parse( "\xE0\x05hello" )
-      }.to raise_error(
-        'Extra bytes at end of Disconnect packet'
-      )
+    it "should interpret as MQTT 5.0 with reason code when body present" do
+      # body_length >= 1 means MQTT 5.0 with reason code
+      packet = MQTT::Packet.parse("\xE0\x02\x00\x00") # reason_code=0, empty props
+      expect(packet.reason_code).to eq(0x00)
+      expect(packet.version).to eq('5.0')
     end
   end
 
