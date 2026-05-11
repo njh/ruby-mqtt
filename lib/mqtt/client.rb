@@ -38,6 +38,9 @@ module MQTT
     # Number of seconds to wait for acknowledgement packets (default is 5 seconds)
     attr_accessor :ack_timeout
 
+    # Block until subscriptions are successful and fail if not (default is false).
+    attr_accessor :verify_subscription
+
     # Number of seconds to connect to the server (default is 90 seconds)
     attr_accessor :connect_timeout
 
@@ -74,6 +77,7 @@ module MQTT
       :clean_session => true,
       :client_id => nil,
       :ack_timeout => 5,
+      :verify_subscription => false,
       :connect_timeout => 30,
       :username => nil,
       :password => nil,
@@ -176,10 +180,10 @@ module MQTT
       @last_ping_response = current_time
       @socket = nil
       @read_queue = Queue.new
-      @pubacks = {}
+      @pending_acks = {}
       @read_thread = nil
       @write_semaphore = Mutex.new
-      @pubacks_semaphore = Mutex.new
+      @pending_acks_semaphore = Mutex.new
     end
 
     # Get the OpenSSL context, that is used if SSL/TLS is enabled
@@ -335,30 +339,35 @@ module MQTT
         :payload => payload
       )
 
-      queue = qos.zero? ? nil : wait_for_puback(packet.id)
+      queue = qos.zero? ? nil : wait_for_ack(packet.id)
 
       res = send_packet(packet)
 
       return unless queue
 
-      deadline = current_time + @ack_timeout
+      case await_ack(packet.id, queue)
+      when :timeout, :close
+        -1
+      else
+        res
+      end
+    end
 
+    def await_ack(id, queue)
+      deadline = current_time + @ack_timeout
       loop do
         response = queue.pop
         case response
         when :read_timeout
-          return -1 if current_time > deadline
+          return :timeout if current_time > deadline
         when :close
-          return -1
+          return :close
         else
-          @pubacks_semaphore.synchronize do
-            @pubacks.delete packet.id
-          end
-          break
+          return response
         end
       end
-
-      res
+    ensure
+      @pending_acks_semaphore.synchronize { @pending_acks.delete id }
     end
 
     # Send a subscribe message for one or more topics on the MQTT server.
@@ -366,6 +375,9 @@ module MQTT
     # * String: subscribe to one topic with QoS 0
     # * Array: subscribe to multiple topics with QoS 0
     # * Hash: subscribe to multiple topics where the key is the topic and the value is the QoS level
+    #
+    # If {#verify_subscription} is set on the client, this method blocks until a
+    # SUBACK is received.
     #
     # For example:
     #   client.subscribe( 'a/b' )
@@ -378,7 +390,22 @@ module MQTT
         :id => next_packet_id,
         :topics => topics
       )
-      send_packet(packet)
+      queue = @verify_subscription ? wait_for_ack(packet.id) : nil
+      res = send_packet(packet)
+      return res unless queue
+
+      case (response = await_ack(packet.id, queue))
+      when :timeout
+        raise MQTT::ProtocolException, 'Timed out waiting for SUBACK'
+      when :close
+        raise MQTT::ProtocolException, 'Connection closed waiting for SUBACK'
+      else
+        rejected_topics = packet.topic_failures(response)
+        if rejected_topics.any?
+          raise MQTT::ProtocolException, "Subscription rejected by broker for topics: #{rejected_topics.inspect}"
+        end
+        res
+      end
     end
 
     # Return the next message received from the MQTT server.
@@ -488,9 +515,9 @@ module MQTT
       Thread.current[:parent].raise(exp)
     end
 
-    def wait_for_puback(id)
-      @pubacks_semaphore.synchronize do
-        @pubacks[id] = Queue.new
+    def wait_for_ack(id)
+      @pending_acks_semaphore.synchronize do
+        @pending_acks[id] = Queue.new
       end
     end
 
@@ -500,9 +527,9 @@ module MQTT
         @read_queue.push(packet)
       elsif packet.class == MQTT::Packet::Pingresp
         @last_ping_response = current_time
-      elsif packet.class == MQTT::Packet::Puback
-        @pubacks_semaphore.synchronize do
-          @pubacks[packet.id] << packet if @pubacks[packet.id]
+      elsif [MQTT::Packet::Puback, MQTT::Packet::Suback].include?(packet.class)
+        @pending_acks_semaphore.synchronize do
+          @pending_acks[packet.id] << packet if @pending_acks[packet.id]
         end
       end
       # Ignore all other packets
@@ -510,14 +537,14 @@ module MQTT
     end
 
     def handle_timeouts
-      @pubacks_semaphore.synchronize do
-        @pubacks.each_value { |q| q << :read_timeout }
+      @pending_acks_semaphore.synchronize do
+        @pending_acks.each_value { |q| q << :read_timeout }
       end
     end
 
     def handle_close
-      @pubacks_semaphore.synchronize do
-        @pubacks.each_value { |q| q << :close }
+      @pending_acks_semaphore.synchronize do
+        @pending_acks.each_value { |q| q << :close }
       end
     end
 

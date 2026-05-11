@@ -747,6 +747,11 @@ module MQTT
         super(ATTR_DEFAULTS.merge(args))
       end
 
+      # Returns the names of topics whose subscription was rejected, given a Suback response
+      def topic_failures(suback)
+        topics.zip(suback.failures).select { |_, failed| failed }.map { |topic, _| topic.first }
+      end
+
       # Set one or more topic filters for the Subscribe packet
       # The topics parameter should be one of the following:
       # * String: subscribe to one topic with QoS 0
@@ -829,6 +834,9 @@ module MQTT
       # An array of return codes, ordered by the topics that were subscribed to
       attr_accessor :return_codes
 
+      # Return codes greater than or equal to this value indicate a failure
+      FAILURE_RETURN_CODE = 0x80
+
       # Default attribute values
       ATTR_DEFAULTS = {
         :return_codes => []
@@ -866,6 +874,11 @@ module MQTT
         super(buffer)
         @id = shift_short(buffer)
         @return_codes << shift_byte(buffer) while buffer.bytesize > 0
+      end
+
+      # Returns an array of booleans (parallel to return_codes) indicating whether each subscription was rejected
+      def failures
+        return_codes.map { |rc| rc >= FAILURE_RETURN_CODE }
       end
 
       # Returns a human readable string, summarising the properties of the packet

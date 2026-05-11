@@ -631,25 +631,25 @@ describe MQTT::Client do
   end
 
   describe "when calling the 'publish' method" do
-    class ClientWithPubackInjection < MQTT::Client
-      def initialize
-        super(:host => 'localhost')
-        @injected_pubacks = {}
+    class ClientWithAckInjection < MQTT::Client
+      def initialize(**opts)
+        super(:host => 'localhost', **opts)
+        @injected_acks = {}
       end
 
-      def inject_puback(packet)
-        @injected_pubacks[packet.id] = packet
+      def inject_ack(packet)
+        @injected_acks[packet.id] = packet
       end
 
-      def wait_for_puback(id)
-        packet = @injected_pubacks.fetch(id) {
+      def wait_for_ack(id)
+        packet = @injected_acks.fetch(id) {
           return super
         }
         Queue.new << packet
       end
     end
 
-    let(:client) { ClientWithPubackInjection.new }
+    let(:client) { ClientWithAckInjection.new }
 
     before(:each) do
       client.instance_variable_set('@socket', socket)
@@ -659,7 +659,7 @@ describe MQTT::Client do
       client = MQTT::Client.new(:host => '198.51.100.1', :connect_timeout => 0.1)
       expect {
         client.connect
-      }.to raise_error( 
+      }.to raise_error(
         if defined? IO::TimeoutError
           IO::TimeoutError
         else
@@ -797,6 +797,64 @@ describe MQTT::Client do
     it "should write a valid SUBSCRIBE packet to the socket if given a two topic Strings with QoS in a Hash" do
       client.subscribe('a/b' => 0,'c/d' => 1)
       expect(socket.string).to eq("\x82\x0e\x00\x01\x00\x03a/b\x00\x00\x03c/d\x01")
+    end
+  end
+
+  describe "when verify_subscription is true" do
+    let(:client) { ClientWithAckInjection.new(:verify_subscription => true) }
+
+    before(:each) do
+      client.instance_variable_set('@socket', socket)
+    end
+
+    it "should write a valid SUBSCRIBE packet to the socket" do
+      inject_suback(1)
+      client.subscribe('a/b')
+      expect(socket.string).to eq("\x82\x08\x00\x01\x00\x03a/b\x00")
+    end
+
+    it "should return the same value as send_packet on success" do
+      inject_suback(1)
+      subscribe_packet = "\x82\x08\x00\x01\x00\x03a/b\x00"
+      expect(client.subscribe('a/b')).to eq(subscribe_packet.bytesize)
+    end
+
+    it "should raise MQTT::ProtocolException if the broker rejects with return code 0x80" do
+      inject_suback(1, [0x80])
+      expect { client.subscribe('a/b') }.to raise_error(
+        MQTT::ProtocolException,
+        'Subscription rejected by broker for topics: ["a/b"]'
+      )
+    end
+
+    it "should mention only the rejected topic when one is granted and another rejected" do
+      inject_suback(1, [0x00, 0x80])
+      expect { client.subscribe(['a/b', 0], ['c/d', 1]) }.to raise_error(
+        MQTT::ProtocolException,
+        'Subscription rejected by broker for topics: ["c/d"]'
+      )
+    end
+
+    it "should raise on ack_timeout if no SUBACK arrives" do
+      require "socket"
+      rd, wr = UNIXSocket.pair
+      client = MQTT::Client.new(:host => 'localhost', :ack_timeout => 1.0, :verify_subscription => true)
+      client.instance_variable_set('@socket', rd)
+      t = Thread.new {
+        Thread.current[:parent] = Thread.main
+        loop do
+          client.send :receive_packet
+        end
+      }
+      start = now
+      expect { client.subscribe('topic') }.to raise_error(MQTT::ProtocolException, 'Timed out waiting for SUBACK')
+      elapsed = now - start
+      t.kill
+      expect(elapsed).to be_within(0.1).of(1.0)
+    end
+
+    it "does not crash when receiving a SUBACK for a packet it never sent" do
+      expect { client.send(:handle_packet, MQTT::Packet::Suback.new(:id => 666, :return_codes => [0])) }.to_not raise_error
     end
   end
 
@@ -1112,7 +1170,12 @@ describe MQTT::Client do
 
   def inject_puback(packet_id)
     packet = MQTT::Packet::Puback.new(:id => packet_id)
-    client.inject_puback packet
+    client.inject_ack packet
+  end
+
+  def inject_suback(packet_id, return_codes = [0])
+    packet = MQTT::Packet::Suback.new(:id => packet_id, :return_codes => return_codes)
+    client.inject_ack packet
   end
 
 end
