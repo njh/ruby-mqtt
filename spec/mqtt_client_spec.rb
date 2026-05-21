@@ -981,8 +981,6 @@ describe MQTT::Client do
       client.instance_variable_set('@socket', socket)
       allow(IO).to receive(:select).and_return([[socket], [], []])
       @read_queue = client.instance_variable_get('@read_queue')
-      @parent_thread = Thread.current[:parent] = double('Parent Thread')
-      allow(@parent_thread).to receive(:raise)
     end
 
     it "should put PUBLISH messages on to the read queue" do
@@ -1011,18 +1009,18 @@ describe MQTT::Client do
       client.send(:receive_packet)
     end
 
-    it "should pass exceptions up to parent thread" do
+    it "should store MQTT exceptions so the calling thread can raise them" do
       e = MQTT::Exception.new
-      expect(@parent_thread).to receive(:raise).with(e).once
       allow(MQTT::Packet).to receive(:read).and_raise(e)
       client.send(:receive_packet)
+      expect { client.send(:check_for_exception!) }.to raise_error(MQTT::Exception)
     end
 
-    it "should pass a system call error up to parent thread" do
+    it "should store system call errors so the calling thread can raise them" do
       e = Errno::ECONNRESET.new
-      expect(@parent_thread).to receive(:raise).with(e).once
       allow(MQTT::Packet).to receive(:read).and_raise(e)
       client.send(:receive_packet)
+      expect { client.send(:check_for_exception!) }.to raise_error(Errno::ECONNRESET)
     end
 
     it "should update last_ping_response when receiving a Pingresp" do

@@ -180,6 +180,8 @@ module MQTT
       @read_thread = nil
       @write_semaphore = Mutex.new
       @pubacks_semaphore = Mutex.new
+      @last_exception = nil
+      @exception_mutex = Mutex.new
     end
 
     # Get the OpenSSL context, that is used if SSL/TLS is enabled
@@ -282,8 +284,8 @@ module MQTT
         receive_connack
 
         # Start packet reading thread
-        @read_thread = Thread.new(Thread.current) do |parent|
-          Thread.current[:parent] = parent
+        @exception_mutex.synchronize { @last_exception = nil }
+        @read_thread = Thread.new do
           receive_packet while connected?
         end
       end
@@ -305,6 +307,9 @@ module MQTT
       @read_thread.kill if @read_thread && @read_thread.alive?
       @read_thread = nil
 
+      # Clear any stored exception so a reconnect starts clean
+      @exception_mutex.synchronize { @last_exception = nil }
+
       return unless connected?
 
       # Close the socket if it is open
@@ -324,6 +329,7 @@ module MQTT
 
     # Publish a message on a particular topic to the MQTT server.
     def publish(topic, payload = '', retain = false, qos = 0)
+      check_for_exception!
       raise ArgumentError, 'Topic name cannot be nil' if topic.nil?
       raise ArgumentError, 'Topic name cannot be empty' if topic.empty?
 
@@ -374,6 +380,7 @@ module MQTT
     #   client.subscribe( 'a/b' => 0, 'c/d' => 1 )
     #
     def subscribe(*topics)
+      check_for_exception!
       packet = MQTT::Packet::Subscribe.new(
         :id => next_packet_id,
         :topics => topics
@@ -420,6 +427,7 @@ module MQTT
     #   end
     #
     def get_packet(topic = nil)
+      check_for_exception!
       # Subscribe to a topic, if an argument is given
       subscribe(topic) unless topic.nil?
 
@@ -485,7 +493,7 @@ module MQTT
         @socket = nil
         handle_close
       end
-      Thread.current[:parent].raise(exp)
+      @exception_mutex.synchronize { @last_exception = exp }
     end
 
     def wait_for_puback(id)
@@ -575,6 +583,18 @@ module MQTT
       # Only allow one thread to write to socket at a time
       @write_semaphore.synchronize do
         @socket.write(data.to_s)
+      end
+    end
+
+    # Raise any exception stored by the reader thread so the calling thread
+    # receives it, regardless of which thread originally called connect.
+    def check_for_exception!
+      @exception_mutex.synchronize do
+        e = @last_exception
+        if e
+          @last_exception = nil
+          raise e
+        end
       end
     end
 
