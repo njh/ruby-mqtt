@@ -953,6 +953,27 @@ describe MQTT::Client do
         expect(packets.map{|p| p.payload}).to eq(['payload0', 'payload1'])
       end
     end
+
+    context "when the connection drops while waiting" do
+      it "should raise a stored reader thread exception" do
+        e = MQTT::Exception.new('connection lost')
+        client.instance_variable_set('@last_exception', e)
+        client.instance_variable_get('@read_queue') << :close
+        expect { client.get_packet }.to raise_error(MQTT::Exception, 'connection lost')
+      end
+
+      it "should raise NotConnectedException if there is no stored exception" do
+        client.instance_variable_get('@read_queue') << :close
+        expect { client.get_packet }.to raise_error(MQTT::NotConnectedException)
+      end
+
+      it "should raise a stored exception when using the block form" do
+        e = Errno::ECONNRESET.new
+        client.instance_variable_set('@last_exception', e)
+        client.instance_variable_get('@read_queue') << :close
+        expect { client.get_packet { |_p| } }.to raise_error(Errno::ECONNRESET)
+      end
+    end
   end
 
   describe "when calling the 'unsubscribe' method" do
@@ -1028,6 +1049,20 @@ describe MQTT::Client do
       client.instance_variable_set '@last_ping_response', Time.at(0)
       client.send :receive_packet
       expect(client.last_ping_response).to be_within(1).of now
+    end
+  end
+
+  describe "when calling the 'handle_close' method" do
+    it "should push :close onto the read queue" do
+      client.send(:handle_close)
+      expect(client.instance_variable_get('@read_queue').pop).to eq(:close)
+    end
+
+    it "should notify puback waiters with :close" do
+      queue = Queue.new
+      client.instance_variable_get('@pubacks')[1] = queue
+      client.send(:handle_close)
+      expect(queue.pop).to eq(:close)
     end
   end
 

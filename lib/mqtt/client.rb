@@ -435,12 +435,20 @@ module MQTT
         # Loop forever!
         loop do
           packet = @read_queue.pop
+          if packet == :close
+            check_for_exception!
+            raise MQTT::NotConnectedException
+          end
           yield(packet)
           puback_packet(packet) if packet.qos > 0
         end
       else
         # Wait for one packet to be available
         packet = @read_queue.pop
+        if packet == :close
+          check_for_exception!
+          raise MQTT::NotConnectedException
+        end
         puback_packet(packet) if packet.qos > 0
         return packet
       end
@@ -527,6 +535,7 @@ module MQTT
       @pubacks_semaphore.synchronize do
         @pubacks.each_value { |q| q << :close }
       end
+      @read_queue << :close
     end
 
     if Process.const_defined? :CLOCK_MONOTONIC
