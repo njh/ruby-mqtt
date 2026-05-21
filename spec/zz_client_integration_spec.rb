@@ -164,8 +164,9 @@ describe "a client talking to a server" do
 
     context "when keep-alive=1" do
       it "the server should have received at least one ping" do
+        connect_and_timeout(1)
         expect {
-          connect_and_timeout(1)
+          @client.publish('test', '')
         }.to raise_error(
           MQTT::ProtocolException,
           'No Ping Response received for 2 seconds'
