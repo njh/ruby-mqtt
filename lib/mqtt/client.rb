@@ -281,6 +281,10 @@ module MQTT
         # Receive response
         receive_connack
 
+        # Reset ping stopwatch
+        @last_ping_request = Time.now
+        @last_ping_response = Time.now
+
         # Start packet reading thread
         @read_thread = Thread.new(Thread.current) do |parent|
           Thread.current[:parent] = parent
