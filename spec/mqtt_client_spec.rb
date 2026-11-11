@@ -331,6 +331,14 @@ describe MQTT::Client do
       client.connect('myclient')
     end
 
+    it "should reset the keep alive clock so a reconnect doesn't time out on stale pings" do
+      client.instance_variable_set('@last_ping_request', 0.0)
+      client.instance_variable_set('@last_ping_response', 0.0)
+      client.connect('myclient')
+      expect(client.instance_variable_get('@last_ping_request')).to be_within(1).of(now)
+      expect(client.instance_variable_get('@last_ping_response')).to be_within(1).of(now)
+    end
+
     context "protocol version 3.1.0" do
       it "should write a valid CONNECT packet to the socket if not connected" do
         client.version = '3.1.0'
@@ -1042,6 +1050,35 @@ describe MQTT::Client do
       allow(MQTT::Packet).to receive(:read).and_raise(e)
       client.send(:receive_packet)
       expect { client.send(:check_for_exception!) }.to raise_error(Errno::ECONNRESET)
+    end
+
+    it "should store the exception before waking the calling thread" do
+      e = Errno::ECONNRESET.new
+      allow(MQTT::Packet).to receive(:read).and_raise(e)
+      expect(client).to receive(:handle_close).and_wrap_original do |original|
+        expect(client.instance_variable_get('@last_exception')).to eq(e)
+        original.call
+      end
+      client.send(:receive_packet)
+    end
+
+    it "should wake the calling thread if closing the socket fails" do
+      allow(MQTT::Packet).to receive(:read).and_raise(Errno::ECONNRESET)
+      allow(socket).to receive(:close).and_raise(IOError)
+      client.send(:receive_packet)
+      expect(@read_queue.pop).to eq(:close)
+      expect { client.send(:check_for_exception!) }.to raise_error(Errno::ECONNRESET)
+    end
+
+    it "should store a protocol exception if a packet doesn't arrive within the keep alive response timeout" do
+      client.keep_alive = 0.5
+      allow(MQTT::Packet).to receive(:read) { sleep }
+      client.send(:receive_packet)
+      expect(@read_queue.pop).to eq(:close)
+      expect { client.send(:check_for_exception!) }.to raise_error(
+        MQTT::ProtocolException,
+        'Failed to read a packet within 1 seconds'
+      )
     end
 
     it "should update last_ping_response when receiving a Pingresp" do

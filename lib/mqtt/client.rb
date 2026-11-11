@@ -283,6 +283,10 @@ module MQTT
         # Receive response
         receive_connack
 
+        # Start the keep alive clock afresh, the times from a previous connection are stale
+        @last_ping_request = current_time
+        @last_ping_response = current_time
+
         # Start packet reading thread
         @exception_mutex.synchronize { @last_exception = nil }
         @read_thread = Thread.new do
@@ -490,18 +494,37 @@ module MQTT
       handle_timeouts
       unless result.nil?
         # Yes - read in the packet
-        packet = MQTT::Packet.read(@socket)
+        packet = read_packet
         handle_packet packet
       end
       keep_alive!
     # Pass exceptions up to parent thread
     rescue ::Exception => exp
+      # Store the exception before waking the caller, so get_packet raises it rather than NotConnectedException
+      @exception_mutex.synchronize { @last_exception = exp }
       unless @socket.nil?
-        @socket.close
-        @socket = nil
+        close_socket
         handle_close
       end
-      @exception_mutex.synchronize { @last_exception = exp }
+    end
+
+    # Read a packet, giving up when it doesn't arrive in time. A connection that dies half-open
+    # would otherwise block the reader thread forever, stopping the keep alive check too.
+    def read_packet
+      Timeout.timeout(keep_alive_response_timeout) do
+        MQTT::Packet.read(@socket)
+      end
+    rescue Timeout::Error
+      raise MQTT::ProtocolException, "Failed to read a packet within #{keep_alive_response_timeout} seconds"
+    end
+
+    # Close the socket, ignoring errors, as the connection is already being dropped
+    def close_socket
+      @socket.close
+    rescue StandardError
+      nil
+    ensure
+      @socket = nil
     end
 
     def wait_for_puback(id)
@@ -552,7 +575,7 @@ module MQTT
     def keep_alive!
       return unless @keep_alive > 0 && connected?
 
-      response_timeout = (@keep_alive * 1.5).ceil
+      response_timeout = keep_alive_response_timeout
       if current_time >= @last_ping_request + @keep_alive
         packet = MQTT::Packet::Pingreq.new
         send_packet(packet)
@@ -560,6 +583,11 @@ module MQTT
       elsif current_time > @last_ping_response + response_timeout
         raise MQTT::ProtocolException, "No Ping Response received for #{response_timeout} seconds"
       end
+    end
+
+    # How long to wait for the server before treating the connection as dead (0 waits forever)
+    def keep_alive_response_timeout
+      (@keep_alive * 1.5).ceil
     end
 
     def puback_packet(packet)
