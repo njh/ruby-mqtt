@@ -180,6 +180,8 @@ module MQTT
       @read_thread = nil
       @write_semaphore = Mutex.new
       @pubacks_semaphore = Mutex.new
+      @last_exception = nil
+      @exception_mutex = Mutex.new
     end
 
     # Get the OpenSSL context, that is used if SSL/TLS is enabled
@@ -281,9 +283,13 @@ module MQTT
         # Receive response
         receive_connack
 
+        # Start the keep alive clock afresh, the times from a previous connection are stale
+        @last_ping_request = current_time
+        @last_ping_response = current_time
+
         # Start packet reading thread
-        @read_thread = Thread.new(Thread.current) do |parent|
-          Thread.current[:parent] = parent
+        @exception_mutex.synchronize { @last_exception = nil }
+        @read_thread = Thread.new do
           receive_packet while connected?
         end
       end
@@ -305,6 +311,9 @@ module MQTT
       @read_thread.kill if @read_thread && @read_thread.alive?
       @read_thread = nil
 
+      # Clear any stored exception so a reconnect starts clean
+      @exception_mutex.synchronize { @last_exception = nil }
+
       return unless connected?
 
       # Close the socket if it is open
@@ -324,6 +333,7 @@ module MQTT
 
     # Publish a message on a particular topic to the MQTT server.
     def publish(topic, payload = '', retain = false, qos = 0)
+      check_for_exception!
       raise ArgumentError, 'Topic name cannot be nil' if topic.nil?
       raise ArgumentError, 'Topic name cannot be empty' if topic.empty?
 
@@ -374,6 +384,7 @@ module MQTT
     #   client.subscribe( 'a/b' => 0, 'c/d' => 1 )
     #
     def subscribe(*topics)
+      check_for_exception!
       packet = MQTT::Packet::Subscribe.new(
         :id => next_packet_id,
         :topics => topics
@@ -420,6 +431,7 @@ module MQTT
     #   end
     #
     def get_packet(topic = nil)
+      check_for_exception!
       # Subscribe to a topic, if an argument is given
       subscribe(topic) unless topic.nil?
 
@@ -427,12 +439,20 @@ module MQTT
         # Loop forever!
         loop do
           packet = @read_queue.pop
+          if packet == :close
+            check_for_exception!
+            raise MQTT::NotConnectedException
+          end
           yield(packet)
           puback_packet(packet) if packet.qos > 0
         end
       else
         # Wait for one packet to be available
         packet = @read_queue.pop
+        if packet == :close
+          check_for_exception!
+          raise MQTT::NotConnectedException
+        end
         puback_packet(packet) if packet.qos > 0
         return packet
       end
@@ -474,18 +494,37 @@ module MQTT
       handle_timeouts
       unless result.nil?
         # Yes - read in the packet
-        packet = MQTT::Packet.read(@socket)
+        packet = read_packet
         handle_packet packet
       end
       keep_alive!
     # Pass exceptions up to parent thread
     rescue ::Exception => exp
+      # Store the exception before waking the caller, so get_packet raises it rather than NotConnectedException
+      @exception_mutex.synchronize { @last_exception = exp }
       unless @socket.nil?
-        @socket.close
-        @socket = nil
+        close_socket
         handle_close
       end
-      Thread.current[:parent].raise(exp)
+    end
+
+    # Read a packet, giving up when it doesn't arrive in time. A connection that dies half-open
+    # would otherwise block the reader thread forever, stopping the keep alive check too.
+    def read_packet
+      Timeout.timeout(keep_alive_response_timeout) do
+        MQTT::Packet.read(@socket)
+      end
+    rescue Timeout::Error
+      raise MQTT::ProtocolException, "Failed to read a packet within #{keep_alive_response_timeout} seconds"
+    end
+
+    # Close the socket, ignoring errors, as the connection is already being dropped
+    def close_socket
+      @socket.close
+    rescue StandardError
+      nil
+    ensure
+      @socket = nil
     end
 
     def wait_for_puback(id)
@@ -519,6 +558,7 @@ module MQTT
       @pubacks_semaphore.synchronize do
         @pubacks.each_value { |q| q << :close }
       end
+      @read_queue << :close
     end
 
     if Process.const_defined? :CLOCK_MONOTONIC
@@ -535,7 +575,7 @@ module MQTT
     def keep_alive!
       return unless @keep_alive > 0 && connected?
 
-      response_timeout = (@keep_alive * 1.5).ceil
+      response_timeout = keep_alive_response_timeout
       if current_time >= @last_ping_request + @keep_alive
         packet = MQTT::Packet::Pingreq.new
         send_packet(packet)
@@ -543,6 +583,11 @@ module MQTT
       elsif current_time > @last_ping_response + response_timeout
         raise MQTT::ProtocolException, "No Ping Response received for #{response_timeout} seconds"
       end
+    end
+
+    # How long to wait for the server before treating the connection as dead (0 waits forever)
+    def keep_alive_response_timeout
+      (@keep_alive * 1.5).ceil
     end
 
     def puback_packet(packet)
@@ -575,6 +620,18 @@ module MQTT
       # Only allow one thread to write to socket at a time
       @write_semaphore.synchronize do
         @socket.write(data.to_s)
+      end
+    end
+
+    # Raise any exception stored by the reader thread so the calling thread
+    # receives it, regardless of which thread originally called connect.
+    def check_for_exception!
+      @exception_mutex.synchronize do
+        e = @last_exception
+        if e
+          @last_exception = nil
+          raise e
+        end
       end
     end
 
