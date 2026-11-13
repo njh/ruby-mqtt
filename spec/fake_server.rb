@@ -5,9 +5,10 @@
 # It behaves in the following ways:
 #   * Responses to CONNECT with a successful CONACK
 #   * Responses to PUBLISH by echoing the packet back
-#   * Responses to SUBSCRIBE with SUBACK and a PUBLISH to the topic
+#   * Responses to SUBSCRIBE with SUBACK and a PUBLISH to the topic, in a single write
 #   * Responses to PINGREQ with PINGRESP
 #   * Responses to DISCONNECT by closing the socket
+#   * Speaks TLS if given an ssl_context
 #
 # It has the following restrictions
 #   * Doesn't deal with timeouts
@@ -17,6 +18,7 @@
 $:.unshift File.dirname(__FILE__)+'/../lib'
 
 require 'logger'
+require 'openssl'
 require 'socket'
 require 'mqtt'
 
@@ -28,6 +30,7 @@ class MQTT::FakeServer
   attr_reader :pings_received
   attr_accessor :respond_to_pings
   attr_accessor :just_one_connection
+  attr_accessor :ssl_context
   attr_accessor :logger
 
   # Create a new fake MQTT server
@@ -58,6 +61,11 @@ class MQTT::FakeServer
       loop do
         # Wait for a client to connect
         client = @socket.accept
+        if ssl_context
+          client = OpenSSL::SSL::SSLSocket.new(client, ssl_context)
+          client.sync_close = true
+          client.accept
+        end
         @pings_received = 0
         handle_client(client)
         break if just_one_connection
@@ -96,30 +104,31 @@ class MQTT::FakeServer
 
       case packet
         when MQTT::Packet::Connect
-          client.write MQTT::Packet::Connack.new(:return_code => 0)
+          client.write MQTT::Packet::Connack.new(:return_code => 0).to_s
         when MQTT::Packet::Publish
-          client.write packet
+          client.write packet.to_s
           @last_publish = packet
 
           if packet.qos > 0
             puback = MQTT::Packet::Puback.new(:id => packet.id)
-            client.write puback
+            client.write puback.to_s
           end
         when MQTT::Packet::Subscribe
-          client.write MQTT::Packet::Suback.new(
+          suback = MQTT::Packet::Suback.new(
             :id => packet.id,
             :return_codes => 0
           )
           topic = packet.topics[0][0]
-          client.write MQTT::Packet::Publish.new(
+          publish = MQTT::Packet::Publish.new(
             :topic => topic,
             :payload => "hello #{topic}",
             :retain => true
           )
+          client.write(suback.to_s + publish.to_s)
         when MQTT::Packet::Pingreq
           @pings_received += 1
           if respond_to_pings
-            client.write MQTT::Packet::Pingresp.new
+            client.write MQTT::Packet::Pingresp.new.to_s
           end
         when MQTT::Packet::Disconnect
           client.close
