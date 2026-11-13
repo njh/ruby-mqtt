@@ -1031,6 +1031,25 @@ describe MQTT::Client do
       client.send :receive_packet
       expect(client.last_ping_response).to be_within(1).of now
     end
+
+    context "using ssl" do
+      before(:each) do
+        client.instance_variable_set('@ssl', true)
+      end
+
+      it "should pass up the end of the stream that OpenSSL has already read" do
+        allow(IO).to receive(:select).and_return(nil)
+        expect(@parent_thread).to receive(:raise).with(MQTT::ProtocolException).once
+        client.send(:receive_packet)
+      end
+
+      it "should wait on the socket when OpenSSL has nothing buffered" do
+        allow(socket).to receive(:read_nonblock).and_return(:wait_readable)
+        expect(IO).to receive(:select).and_return(nil)
+        client.send(:receive_packet)
+        expect(@read_queue.size).to eq(0)
+      end
+    end
   end
 
   describe "when calling the 'keep_alive!' method" do

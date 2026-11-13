@@ -121,6 +121,44 @@ describe "a client talking to a server" do
     end
   end
 
+  context "connecting over TLS, subscribing to a topic and getting a message" do
+    def server_ssl_context
+      key = OpenSSL::PKey::RSA.new(2048)
+      cert = OpenSSL::X509::Certificate.new
+      cert.version = 2
+      cert.serial = 1
+      cert.subject = cert.issuer = OpenSSL::X509::Name.parse('/CN=localhost')
+      cert.public_key = key.public_key
+      cert.not_before = Time.now - 60
+      cert.not_after = Time.now + 3600
+      cert.sign(key, OpenSSL::Digest::SHA256.new)
+
+      context = OpenSSL::SSL::SSLContext.new
+      context.cert = cert
+      context.key = key
+      context
+    end
+
+    def connect_and_subscribe
+      @server.ssl_context = server_ssl_context
+      @client = MQTT::Client.new(
+        :host => @server.address,
+        :port => @server.port,
+        :ssl => true,
+        :verify_host => false
+      )
+      @client.connect
+      @client.subscribe('test')
+      @topic, @message = Timeout.timeout(2) { @client.get }
+      @client.disconnect
+    end
+
+    it "the client should get the message that arrived in the same TLS record as the SUBACK, before the next ping" do
+      connect_and_subscribe
+      expect(@message).to eq('hello test')
+    end
+  end
+
   context "sends pings when idle" do
     def connect_and_ping(keep_alive)
       @client.keep_alive = keep_alive

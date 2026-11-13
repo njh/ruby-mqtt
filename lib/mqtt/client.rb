@@ -470,7 +470,7 @@ module MQTT
     # Also sends keep-alive ping packets.
     def receive_packet
       # Poll socket - is there data waiting?
-      result = IO.select([@socket], [], [], SELECT_TIMEOUT)
+      result = ssl_readable? || IO.select([@socket], [], [], SELECT_TIMEOUT)
       handle_timeouts
       unless result.nil?
         # Yes - read in the packet
@@ -486,6 +486,19 @@ module MQTT
         handle_close
       end
       Thread.current[:parent].raise(exp)
+    end
+
+    # OpenSSL reads a whole TLS record at a time: the packets after the first
+    # one in a record wait in its buffer, and a close_notify read here leaves
+    # nothing on the socket, so IO.select would wait for neither
+    def ssl_readable?
+      return false unless @ssl
+
+      byte = @socket.read_nonblock(1, :exception => false)
+      return false if byte.is_a?(Symbol)
+
+      @socket.ungetc(byte) if byte
+      true
     end
 
     def wait_for_puback(id)
